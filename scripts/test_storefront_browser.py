@@ -15,6 +15,14 @@ async def main():
       overflow=await page.evaluate("document.documentElement.scrollWidth > window.innerWidth")
       assert not overflow,(width,"horizontal overflow")
       if width <= 430:
+        header_position=await page.locator("header").evaluate("(e)=>getComputedStyle(e).position")
+        assert header_position=="static",(width,"large header still overlays catalog")
+        photo_blend=await page.locator(".product .photo img").first.evaluate("(e)=>getComputedStyle(e).mixBlendMode")
+        assert photo_blend=="multiply",(width,"square photo background not blended")
+        card=await page.locator(".product").first.evaluate("(e)=>({height:e.getBoundingClientRect().height,photo:e.querySelector('.photo').getBoundingClientRect().height})")
+        assert card["height"]<440,(width,"excessive product card height",card)
+        assert 130<=card["photo"]<=170,(width,"bad image frame height",card)
+      if width <= 430:
         hidden=await page.locator(".hero-art").evaluate("(e)=>getComputedStyle(e).display==='none'")
         assert hidden,(width,"hero photos overlap mobile text")
         hero=await page.locator(".hero").bounding_box()
