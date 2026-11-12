@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - upgrade/all-product-photos-level-b-20261112
+      - feature/secure-admin-d1-review-20261112
   workflow_dispatch:
   pull_request:
     branches:
@@ -37,9 +38,10 @@ jobs:
           print('PASS 84 products, prices, photo links and disabled checkout')
           PY
       - name: Commit generated images on review branch
+        if: github.event_name == 'push' && (github.ref_name == 'upgrade/all-product-photos-level-b-20261112' || github.ref_name == 'feature/secure-admin-d1-review-20261112')
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html assets-v7
           git diff --cached --quiet || git commit -m "Generate 84 standardized product photographs"
-          git push origin HEAD:upgrade/all-product-photos-level-b-20261112
+          git push origin HEAD:${GITHUB_REF_NAME}
