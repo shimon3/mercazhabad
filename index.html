@@ -162,4 +162,28 @@ function accountTab(tab){['SignIn','SignUp','Orders'].forEach(x=>el('tab'+x).cla
 function adminTab(tab){['Products','Orders','Settings'].forEach(x=>el('a'+x).classList.toggle('active',x===({products:'Products',orders:'Orders',settings:'Settings'}[tab])));const view=el('adminView');if(tab==='orders'){view.innerHTML='<div class="noresult"><b>אין הזמנות אמיתיות</b><p>הדמו מציגה את המבנה בלבד. בעתיד יופיעו כאן הזמנות, סטטוס תשלום, פרטי משלוח והחזרות.</p></div>';return}if(tab==='settings'){view.innerHTML='<div class="form-grid"><div><label class="field-label">שם החנות</label><input class="field-input" readonly value="מרכז חב״ד משיח"></div><div><label class="field-label">מטבע</label><input class="field-input" readonly value="ILS — ₪"></div><div class="full"><label class="field-label">ספק סליקה מתוכנן</label><input class="field-input" readonly value="PayPlus — טרם חובר"></div></div>';return}view.innerHTML='<div class="admin-list">'+PRODUCTS.slice(0,7).map(p=>'<div class="admin-line"><img src="'+p.image+'" alt=""><div><b>'+safe(p.name)+'</b><br><small class="muted">'+safe(p.id)+' · '+catHe[p.category]+'</small></div><b>'+(p.price==null?'לבדיקה':money(p.price))+'</b><button class="small-btn" onclick="demoOnly()">עריכה</button></div>').join('')+'</div><p class="muted">מוצגים 7 מוצרים לדוגמה מתוך '+PRODUCTS.length+' מוצרים.</p>'}
 el('login').onclick=openAccount;el('adminNav').onclick=e=>{e.preventDefault();openAdmin()};el('checkout').onclick=()=>{closeAll();el('overlay').classList.add('open');el('accountModal').classList.add('open');el('accountView').innerHTML='<div class="noresult"><b>אישור הזמנה — הדגמה בלבד</b><p>סכום הסל: '+el('total').textContent+'</p><p>בהמשך תוצג כאן כתובת למשלוח והעברה לעמוד סליקה חיצוני מאובטח. כרגע אין רכישה או חיוב.</p><button class="primary" onclick="closeExtra()">הבנתי</button></div>';['SignIn','SignUp','Orders'].forEach(x=>el('tab'+x).classList.remove('active'))};
 el('overlay').addEventListener('click',closeExtra);document.addEventListener('keydown',e=>{if(e.key==='Escape')closeExtra()});
+</script><script type="module" id="supabase-catalog-preview">
+// Optional read-only Supabase catalog. No configuration = original static 84-item demo unchanged.
+// No secret/service-role key is ever required in the browser.
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './admin-supabase/config.js';
+if (SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY) {
+  try {
+    const url = new URL(SUPABASE_URL);
+    if (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url.origin)) throw Error('Invalid Supabase origin');
+    const response = await fetch(url.origin + '/rest/v1/mercaz_products?select=id,category,name_he,name_fr,description,price_agorot,old_price_agorot,image_url&active=eq.true&order=category.asc,id.asc&limit=500',
+      { headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Accept: 'application/json' },cache:'no-store' });
+    if (!response.ok) throw Error('Supabase catalog status ' + response.status);
+    const rows = await response.json();
+    if (!Array.isArray(rows) || rows.length===0 || new Set(rows.map(p=>p.id)).size!==rows.length) throw Error('Invalid catalog response');
+    const mapped=rows.map(p=>({
+      id:p.id,category:p.category,name:p.name_he,fr:p.name_fr,description:p.description,
+      price:p.price_agorot===null?null:p.price_agorot/100,
+      old:p.old_price_agorot===null?null:p.old_price_agorot/100,
+      image:p.image_url
+    }));
+    PRODUCTS.splice(0,PRODUCTS.length,...mapped);
+    for(const id of Object.keys(cart))if(!PRODUCTS.some(p=>p.id===id))delete cart[id];
+    categories();render();renderCart();
+  } catch(e) { console.warn('Supabase catalog unavailable, retaining static catalog',e); }
+}
 </script></body></html>
