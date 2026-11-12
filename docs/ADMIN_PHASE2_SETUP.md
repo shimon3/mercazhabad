@@ -23,3 +23,13 @@ Le site public actuel reste une **démo** ; aucun paiement réel. Cette branche 
 ## À vérifier avant la fusion
 
 La vérification Node/SQLite est un **test hors ligne**, pas une preuve de sécurité complète. Valider les politiques Cloudflare Access, les paramètres de binding et les parcours d'administration avec un navigateur réel sur un environnement de test.
+
+## État de la connexion Cloudflare — 2026-11-12
+
+L'intégration ChatGPT a confirmé le compte Cloudflare mais les opérations API suivantes sont **refusées pour permissions insuffisantes** : Pages (403, scopes `page.read`/`page.write`), D1 (401, `d1.read`/`d1.write`), R2 (403, `workers-r2.read`/`workers-r2.write`), Access (403, `access.read`/`access.write`). **Aucune base de test, aucun bucket, aucun Access App ni binding n'a été créé.**
+
+Pour débloquer la prévisualisation, reconnecter l'intégration Cloudflare avec les autorisations minimales nécessaires (Pages Read/Write, D1 Read/Write, R2 Read/Write et Access Apps/Policies Read/Write). Garder la PR en brouillon et ne pas fusionner vers `main` avant de vérifier la sécurité sur un environnement de prévisualisation.
+
+### Validation API hors ligne
+
+`node scripts/test_admin_api.mjs` vérifie des jetons RS256 signés localement, signature/audience/expiration/e-mail autorisé, refus des origines externes, modifications D1 fictives, journal d'audit, validation des entrées et upload R2 simulé. Cela ne remplace pas un test avec Cloudflare Access, D1 et R2 réels.
