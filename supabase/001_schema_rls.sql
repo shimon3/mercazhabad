@@ -23,6 +23,7 @@ alter table public.mercaz_admins enable row level security;
 alter table public.mercaz_products enable row level security;
 -- No user can add themselves as an admin through the REST API.
 revoke all on public.mercaz_admins from anon, authenticated;
+revoke all on public.mercaz_products from anon, authenticated;
 grant select on public.mercaz_admins to authenticated;
 grant select on public.mercaz_products to anon, authenticated;
 grant insert, update on public.mercaz_products to authenticated;
