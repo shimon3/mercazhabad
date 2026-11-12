@@ -14,6 +14,17 @@ async def main():
       assert await page.locator(".product").count()==84, (width,"catalog count")
       overflow=await page.evaluate("document.documentElement.scrollWidth > window.innerWidth")
       assert not overflow,(width,"horizontal overflow")
+      if width <= 430:
+        hidden=await page.locator(".hero-art").evaluate("(e)=>getComputedStyle(e).display==='none'")
+        assert hidden,(width,"hero photos overlap mobile text")
+        hero=await page.locator(".hero").bounding_box()
+        primary=await page.locator(".hero .primary").bounding_box()
+        secondary=await page.locator(".hero .secondary-btn").bounding_box()
+        assert hero and primary and secondary,(width,"missing mobile hero controls")
+        for b in (primary,secondary):
+          assert b["x"]>=hero["x"]-2 and b["x"]+b["width"]<=hero["x"]+hero["width"]+2,(width,"hero button clipped")
+          assert b["y"]>=hero["y"] and b["y"]+b["height"]<=hero["y"]+hero["height"]+2,(width,"hero button outside banner")
+        assert await page.locator(".product").first.evaluate("(e)=>e.getBoundingClientRect().width>=140"),(width,"product card too narrow")
       await page.locator("#search").fill("כיפה")
       assert await page.locator(".product").count()>=10,(width,"Hebrew search")
       await page.locator("#search").fill("")
