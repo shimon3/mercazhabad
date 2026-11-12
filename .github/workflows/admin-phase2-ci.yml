@@ -1,0 +1,40 @@
+name: Admin D1 Phase 2 review
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [feature/secure-admin-d1-review-20261112]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate migrations and catalog invariants
+        run: python scripts/test_admin_phase2.py
+      - name: Verify admin API with signed JWT, D1/R2 mocks
+        run: node scripts/test_admin_api.mjs
+      - name: Install Chromium browser test dependencies
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Test static storefront in Chromium (360, 390, 430, 1440 px)
+        run: |
+          python -m http.server 8765 >/tmp/mercaz-http.log 2>&1 &
+          sleep 2
+          python scripts/test_storefront_browser.py
+      - name: Save visual QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: storefront-responsive-review
+          path: /tmp/mercaz-qa-*.png
+          if-no-files-found: ignore
+          retention-days: 14
