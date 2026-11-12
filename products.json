@@ -1,0 +1,842 @@
+[
+  {
+    "id": "s/3",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון שחור זהב",
+    "fr": "Autocollant pour téléphone - noir/or",
+    "price": null,
+    "old": null,
+    "description": "Autocollant pour téléphone - noir/or",
+    "image": "assets/s_3.jpg"
+  },
+  {
+    "id": "s/2",
+    "category": "Autocollants",
+    "name": "מדבקה לבנה לפאלפון",
+    "fr": "Autocollant pour téléphone - blanc",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant pour téléphone - blanc",
+    "image": "assets/s_2.jpg"
+  },
+  {
+    "id": "s/1",
+    "category": "Autocollants",
+    "name": "מדבקת זהב לפאלפון",
+    "fr": "Autocollant pour téléphone - or",
+    "price": 5,
+    "old": null,
+    "description": "Remise pour plusieurs autocollants achetés.",
+    "image": "assets/s_1.jpg"
+  },
+  {
+    "id": "sc/19",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון אתיופיה",
+    "fr": "Autocollant pour téléphone - Ethiopie",
+    "price": null,
+    "old": null,
+    "description": "Autocollant pour téléphone - Ethiopie",
+    "image": "assets/sc_19.jpg"
+  },
+  {
+    "id": "sc/18",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון דובאי",
+    "fr": "Autocollant pour téléphone - Dubaï",
+    "price": null,
+    "old": null,
+    "description": "Autocollant pour téléphone - Dubaï",
+    "image": "assets/sc_18.jpg"
+  },
+  {
+    "id": "sc/17",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון נמיביה",
+    "fr": "Autocollant pour téléphone - Namibie",
+    "price": null,
+    "old": null,
+    "description": "Autocollant pour téléphone - Namibie",
+    "image": "assets/sc_17.jpg"
+  },
+  {
+    "id": "sc/16",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון ברזיל",
+    "fr": "Autocollant pour téléphone - Brésil",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant pour téléphone - Brésil",
+    "image": "assets/sc_16.jpg"
+  },
+  {
+    "id": "sc/15",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון אוקראינה",
+    "fr": "Autocollant pour téléphone - Ukraine",
+    "price": null,
+    "old": null,
+    "description": "Autocollant pour téléphone - Ukraine",
+    "image": "assets/sc_15.jpg"
+  },
+  {
+    "id": "sc/14",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון דרא״פ",
+    "fr": "Autocollant pour téléphone - Afrique du Sud",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant pour téléphone - Afrique du Sud",
+    "image": "assets/sc_14.jpg"
+  },
+  {
+    "id": "sc/13",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון רוסיה",
+    "fr": "Autocollant pour téléphone - Russie",
+    "price": null,
+    "old": null,
+    "description": "Autocollant pour téléphone - Russie",
+    "image": "assets/sc_13.jpg"
+  },
+  {
+    "id": "sc/12",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון נפאל",
+    "fr": "Autocollant pour téléphone - Népal",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant décoratif pour téléphone.",
+    "image": "assets/sc_12.jpg"
+  },
+  {
+    "id": "sc/11",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון ",
+    "fr": "Autocollant pour téléphone - Multicolore",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant décoratif pour téléphone.",
+    "image": "assets/sc_11.jpg"
+  },
+  {
+    "id": "sc/10",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון גיאורגיה",
+    "fr": "Autocollant pour téléphone - Géorgie",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant décoratif pour téléphone.",
+    "image": "assets/sc_10.jpg"
+  },
+  {
+    "id": "sc/9",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון אמריקה",
+    "fr": "Autocollant pour téléphone - États-Unis",
+    "price": 5,
+    "old": null,
+    "description": "Un aimant pour voiture au motif similaire est aussi proposé.",
+    "image": "assets/sc_9.jpg"
+  },
+  {
+    "id": "sc/8",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון בריטניה",
+    "fr": "Autocollant pour téléphone - Grande-Bretagne",
+    "price": null,
+    "old": null,
+    "description": "Autocollant décoratif pour téléphone.",
+    "image": "assets/sc_8.jpg"
+  },
+  {
+    "id": "sc/7",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון יוון",
+    "fr": "Autocollant pour téléphone - Grèce",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant décoratif pour téléphone.",
+    "image": "assets/sc_7.jpg"
+  },
+  {
+    "id": "sc/6",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון ארגנטינה",
+    "fr": "Autocollant pour téléphone - Argentine",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant décoratif pour téléphone.",
+    "image": "assets/sc_6.jpg"
+  },
+  {
+    "id": "sc/5",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון איטליה",
+    "fr": "Autocollant pour téléphone - Italie",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant décoratif pour téléphone.",
+    "image": "assets/sc_5.jpg"
+  },
+  {
+    "id": "sc/4",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון תאילנד",
+    "fr": "Autocollant pour téléphone - Thaïlande",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant décoratif pour téléphone.",
+    "image": "assets/sc_4.jpg"
+  },
+  {
+    "id": "sc/3",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון צרפת",
+    "fr": "Autocollant pour téléphone - France",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant décoratif pour téléphone.",
+    "image": "assets/sc_3.jpg"
+  },
+  {
+    "id": "sc/2",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון הודו",
+    "fr": "Autocollant pour téléphone - Inde",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant décoratif pour téléphone.",
+    "image": "assets/sc_2.jpg"
+  },
+  {
+    "id": "sc/1",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון יפן",
+    "fr": "Autocollant pour téléphone - Japon",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant décoratif pour téléphone.",
+    "image": "assets/sc_1.jpg"
+  },
+  {
+    "id": "mg/4",
+    "category": "Magnets",
+    "name": "מגנט לרכב אמריקה אנגלית",
+    "fr": "Aimant voiture - drapeau américain",
+    "price": 10,
+    "old": 20,
+    "description": "Aimant voiture - drapeau américain",
+    "image": "assets/mg_4.jpg"
+  },
+  {
+    "id": "mg/6",
+    "category": "Magnets",
+    "name": "מגנט לרכב אמריקה",
+    "fr": "Aimant voiture États-Unis 35 cm",
+    "price": 50,
+    "old": null,
+    "description": "Aimant voiture États-Unis 35 cm",
+    "image": "assets/mg_6.jpg"
+  },
+  {
+    "id": "mg/5",
+    "category": "Magnets",
+    "name": "מגנט לרכב אמריקה",
+    "fr": "Aimant voiture États-Unis 25 cm",
+    "price": 30,
+    "old": 40,
+    "description": "Aimant voiture États-Unis 25 cm",
+    "image": "assets/mg_5.jpg"
+  },
+  {
+    "id": "mg/21",
+    "category": "Magnets",
+    "name": "מגנט דגל משיח ענק לרכב",
+    "fr": "Aimant voiture - grand drapeau 40 cm",
+    "price": 50,
+    "old": null,
+    "description": "Aimant voiture - grand drapeau 40 cm",
+    "image": "assets/mg_21.jpg"
+  },
+  {
+    "id": "mg/20-drapeau",
+    "category": "Magnets",
+    "name": "מגנט דגל משיח לרכב",
+    "fr": "Aimant voiture - drapeau 25 cm",
+    "price": 30,
+    "old": 40,
+    "description": "Aimant voiture - drapeau 25 cm",
+    "image": "assets/mg_20-drapeau.jpg"
+  },
+  {
+    "id": "mg/7",
+    "category": "Magnets",
+    "name": "מגנט משיח כסוף ניקל",
+    "fr": "Aimant argent/nickel 15 cm",
+    "price": 20,
+    "old": 25,
+    "description": "Aimant argent/nickel 15 cm",
+    "image": "assets/mg_7.jpg"
+  },
+  {
+    "id": "ko/3",
+    "category": "Casquettes",
+    "name": "כובע משיח פאץ כסוף",
+    "fr": "Casquette Mashiach - noir/argent",
+    "price": 40,
+    "old": 50,
+    "description": "Casquette Mashiach - noir/argent",
+    "image": "assets/ko_3.jpg"
+  },
+  {
+    "id": "ko/2",
+    "category": "Casquettes",
+    "name": "כובע משיח טקטי",
+    "fr": "Casquette Mashiach - kaki",
+    "price": 40,
+    "old": 50,
+    "description": "Casquette Mashiach - kaki",
+    "image": "assets/ko_2.jpg"
+  },
+  {
+    "id": "ko/1",
+    "category": "Casquettes",
+    "name": "כובע משיח פאץ זהוב",
+    "fr": "Casquette Mashiach - noir/or",
+    "price": 40,
+    "old": 50,
+    "description": "Casquette Mashiach - noir/or",
+    "image": "assets/ko_1.jpg"
+  },
+  {
+    "id": "mg/20-nickel",
+    "category": "Magnets",
+    "name": "מגנט זהב ניקל",
+    "fr": "Aimant Mashiach or/nickel 15 cm",
+    "price": 20,
+    "old": 25,
+    "description": "Aimant Mashiach or/nickel 15 cm",
+    "image": "assets/mg_20-nickel.jpg"
+  },
+  {
+    "id": "mg/19",
+    "category": "Magnets",
+    "name": "מגנט משיח לרכב",
+    "fr": "Aimant voiture - rose 15 cm",
+    "price": 10,
+    "old": 20,
+    "description": "Aimant voiture - rose 15 cm",
+    "image": "assets/mg_19.jpg"
+  },
+  {
+    "id": "mg/18",
+    "category": "Magnets",
+    "name": "מגנט משיח לרכב 18",
+    "fr": "Aimant voiture - modèle 18, 15 cm",
+    "price": 10,
+    "old": 20,
+    "description": "Promotion 10 unités affichée sous conditions de stock",
+    "image": "assets/mg_18.jpg"
+  },
+  {
+    "id": "mg/17",
+    "category": "Magnets",
+    "name": "מגנט משיח לרכב 17",
+    "fr": "Aimant voiture - modèle 17, 15 cm",
+    "price": 10,
+    "old": 20,
+    "description": "Promotion 10 unités affichée sous conditions de stock",
+    "image": "assets/mg_17.jpg"
+  },
+  {
+    "id": "mg/16",
+    "category": "Magnets",
+    "name": "מגנט משיח לרכב 16",
+    "fr": "Aimant voiture - modèle 16, 15 cm",
+    "price": 10,
+    "old": 20,
+    "description": "Promotion 10 unités affichée sous conditions de stock",
+    "image": "assets/mg_16.jpg"
+  },
+  {
+    "id": "mg/15",
+    "category": "Magnets",
+    "name": "מגנט משיח לרכב 15",
+    "fr": "Aimant voiture - modèle 15, 15 cm",
+    "price": 10,
+    "old": 20,
+    "description": "Promotion 10 unités affichée sous conditions de stock",
+    "image": "assets/mg_15.jpg"
+  },
+  {
+    "id": "mg/14",
+    "category": "Magnets",
+    "name": "מגנט משיח לרכב 14",
+    "fr": "Aimant voiture - modèle 14, 15 cm",
+    "price": 10,
+    "old": 20,
+    "description": "Promotion 10 unités affichée sous conditions de stock",
+    "image": "assets/mg_14.jpg"
+  },
+  {
+    "id": "mg/13",
+    "category": "Magnets",
+    "name": "מגנט משיח לרכב 13",
+    "fr": "Aimant voiture - modèle 13, 15 cm",
+    "price": 10,
+    "old": 20,
+    "description": "Aimant voiture - modèle 13, 15 cm",
+    "image": "assets/mg_13.jpg"
+  },
+  {
+    "id": "mg/12",
+    "category": "Magnets",
+    "name": "מגנט משיח לרכב 12",
+    "fr": "Aimant voiture - modèle 12, 15 cm",
+    "price": 10,
+    "old": 20,
+    "description": "Aimant voiture - modèle 12, 15 cm",
+    "image": "assets/mg_12.jpg"
+  },
+  {
+    "id": "mg/11",
+    "category": "Magnets",
+    "name": "מגנט משיח לרכב 11",
+    "fr": "Aimant voiture - modèle 11, 15 cm",
+    "price": 10,
+    "old": 20,
+    "description": "Aimant voiture - modèle 11, 15 cm",
+    "image": "assets/mg_11.jpg"
+  },
+  {
+    "id": "mg/10",
+    "category": "Magnets",
+    "name": "מגנט משיח לרכב 10",
+    "fr": "Aimant voiture - modèle 10, 15 cm",
+    "price": 20,
+    "old": 25,
+    "description": "Aimant voiture - modèle 10, 15 cm",
+    "image": "assets/mg_10.jpg"
+  },
+  {
+    "id": "mg/9",
+    "category": "Magnets",
+    "name": "מגנט משיח לרכב 9",
+    "fr": "Aimant voiture - modèle 9, 15 cm",
+    "price": 20,
+    "old": 25,
+    "description": "Aimant voiture - modèle 9, 15 cm",
+    "image": "assets/mg_9.jpg"
+  },
+  {
+    "id": "mg/8",
+    "category": "Magnets",
+    "name": "מגנט משיח לרכב 8",
+    "fr": "Aimant voiture - modèle 8, 15 cm",
+    "price": 20,
+    "old": 25,
+    "description": "Aimant voiture - modèle 8, 15 cm",
+    "image": "assets/mg_8.jpg"
+  },
+  {
+    "id": "mg/3",
+    "category": "Magnets",
+    "name": "מגנט לרכב ישראל 3",
+    "fr": "Aimant voiture Israël - modèle 3",
+    "price": 50,
+    "old": 60,
+    "description": "Aimant voiture Israël - modèle 3",
+    "image": "assets/mg_3.jpg"
+  },
+  {
+    "id": "mg/2",
+    "category": "Magnets",
+    "name": "מגנט לרכב ישראל 2",
+    "fr": "Aimant voiture Israël - modèle 2",
+    "price": 30,
+    "old": 40,
+    "description": "Aimant voiture Israël - modèle 2",
+    "image": "assets/mg_2.jpg"
+  },
+  {
+    "id": "mg/1",
+    "category": "Magnets",
+    "name": "מגנט לרכב ישראל 1",
+    "fr": "Aimant voiture Israël - modèle 1",
+    "price": 10,
+    "old": 20,
+    "description": "Aimant voiture Israël - modèle 1",
+    "image": "assets/mg_1.jpg"
+  },
+  {
+    "id": "t/t",
+    "category": "Autres",
+    "name": "כיסוי לטלית ותפילין מיוחד ל4 זוגות",
+    "fr": "Set talit et tefilines - 4 éléments",
+    "price": 770,
+    "old": 1000,
+    "description": "Ensemble de housses, détail tronqué sur la capture",
+    "image": "assets/t_t.jpg"
+  },
+  {
+    "id": "z/23",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון צנחנים",
+    "fr": "Autocollant pour téléphone - parachutistes",
+    "price": 5,
+    "old": null,
+    "description": "Prix spécial distribution",
+    "image": "assets/z_23.jpg"
+  },
+  {
+    "id": "z/24",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון גבעתי",
+    "fr": "Autocollant pour téléphone - Givati",
+    "price": 5,
+    "old": null,
+    "description": "Prix spécial distribution",
+    "image": "assets/z_24.jpg"
+  },
+  {
+    "id": "z/8",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון חיל חימוש",
+    "fr": "Autocollant pour téléphone - חיל חימוש",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant pour téléphone - חיל חימוש",
+    "image": "assets/z_8.jpg"
+  },
+  {
+    "id": "s/5",
+    "category": "Pin’s",
+    "name": "סיכת משיח ניקל",
+    "fr": "Pin Mashiach - nickel",
+    "price": 20,
+    "old": 25,
+    "description": "Pin Mashiach - nickel",
+    "image": "assets/s_5.jpg"
+  },
+  {
+    "id": "s/6",
+    "category": "Pin’s",
+    "name": "סיכת משיח עיגול",
+    "fr": "Pin Mashiach - rond",
+    "price": 15,
+    "old": 20,
+    "description": "Pin Mashiach - rond",
+    "image": "assets/s_6.jpg"
+  },
+  {
+    "id": "z/9",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון מגלן",
+    "fr": "Autocollant pour téléphone - Maglan",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant pour téléphone - Maglan",
+    "image": "assets/z_9.jpg"
+  },
+  {
+    "id": "z/16",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון סיירת אגוז",
+    "fr": "Autocollant pour téléphone - Sayeret Egoz",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant pour téléphone - Sayeret Egoz",
+    "image": "assets/z_16.jpg"
+  },
+  {
+    "id": "z/15",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון משטרה",
+    "fr": "Autocollant pour téléphone - Police",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant pour téléphone - Police",
+    "image": "assets/z_15.jpg"
+  },
+  {
+    "id": "z/11",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון יהלום",
+    "fr": "Autocollant pour téléphone - Yahalom",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant pour téléphone - Yahalom",
+    "image": "assets/z_11.jpg"
+  },
+  {
+    "id": "z/14",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון חיל האויר",
+    "fr": "Autocollant pour téléphone - Armée de l’air",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant pour téléphone - Armée de l’air",
+    "image": "assets/z_14.jpg"
+  },
+  {
+    "id": "z/13",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון חיל רפואה",
+    "fr": "Autocollant pour téléphone - Corps médical",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant pour téléphone - Corps médical",
+    "image": "assets/z_13.jpg"
+  },
+  {
+    "id": "z/12",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון הנדסה קרבית",
+    "fr": "Autocollant pour téléphone - Génie de combat",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant pour téléphone - Génie de combat",
+    "image": "assets/z_12.jpg"
+  },
+  {
+    "id": "z/10",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון דובדבן",
+    "fr": "Autocollant pour téléphone - Douvdevan",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant pour téléphone - Douvdevan",
+    "image": "assets/z_10.jpg"
+  },
+  {
+    "id": "z/6",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון פיקוד העורף",
+    "fr": "Autocollant pour téléphone - Commandement arrière",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant pour téléphone - Commandement arrière",
+    "image": "assets/z_6.jpg"
+  },
+  {
+    "id": "z/5",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון נח״ל",
+    "fr": "Autocollant pour téléphone - Nahal",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant pour téléphone - Nahal",
+    "image": "assets/z_5.jpg"
+  },
+  {
+    "id": "z/4",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון נח״ל",
+    "fr": "Autocollant pour téléphone - Nahal (variante)",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant pour téléphone - Nahal (variante)",
+    "image": "assets/z_4.jpg"
+  },
+  {
+    "id": "z/3",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון יחידת לוט״ר",
+    "fr": "Autocollant pour téléphone - Unité Lotar",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant pour téléphone - Unité Lotar",
+    "image": "assets/z_3.jpg"
+  },
+  {
+    "id": "z/2",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון שלדג",
+    "fr": "Autocollant pour téléphone - Shaldag",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant pour téléphone - Shaldag",
+    "image": "assets/z_2.jpg"
+  },
+  {
+    "id": "z/1",
+    "category": "Autocollants",
+    "name": "מדבקה לפאלפון חיל גולני",
+    "fr": "Autocollant pour téléphone - Golani",
+    "price": 5,
+    "old": null,
+    "description": "Autocollant pour téléphone - Golani",
+    "image": "assets/z_1.jpg"
+  },
+  {
+    "id": "s/4",
+    "category": "Pin’s",
+    "name": "סיכת משיח בית המקדש",
+    "fr": "Pin Mashiach - Temple doré",
+    "price": 20,
+    "old": 25,
+    "description": "Pin Mashiach - Temple doré",
+    "image": "assets/s_4.jpg"
+  },
+  {
+    "id": "s/3-temple",
+    "category": "Pin’s",
+    "name": "סיכת משיח בית המקדש",
+    "fr": "Pin Mashiach - Temple bronze",
+    "price": 20,
+    "old": 25,
+    "description": "Pin Mashiach - Temple bronze",
+    "image": "assets/s_3-temple.jpg"
+  },
+  {
+    "id": "s/1-temple",
+    "category": "Pin’s",
+    "name": "סיכת משיח בית המקדש",
+    "fr": "Pin Mashiach - Temple cuivre",
+    "price": 20,
+    "old": 25,
+    "description": "Pin Mashiach - Temple cuivre",
+    "image": "assets/s_1-temple.jpg"
+  },
+  {
+    "id": "s/2-temple",
+    "category": "Pin’s",
+    "name": "סיכת משיח בית המקדש",
+    "fr": "Pin Mashiach - Temple foncé",
+    "price": 20,
+    "old": 25,
+    "description": "Pin Mashiach - Temple foncé",
+    "image": "assets/s_2-temple.jpg"
+  },
+  {
+    "id": "lot-80",
+    "category": "Autres",
+    "name": "מדבקות פאצי לפאלפון לחייל - מבצע",
+    "fr": "Lot de 80 autocollants pour soldats",
+    "price": 40,
+    "old": 80,
+    "description": "Lot de 80 autocollants pour soldats",
+    "image": "assets/lot-80.jpg"
+  },
+  {
+    "id": "patch",
+    "category": "Autres",
+    "name": "מתנה לחייל פאצ׳ משיח",
+    "fr": "Patch textile Mashiach - soldat",
+    "price": null,
+    "old": null,
+    "description": "Patch textile Mashiach - soldat",
+    "image": "assets/patch.jpg"
+  },
+  {
+    "id": "carte",
+    "category": "Autres",
+    "name": "מתנה לחייל כרטיס משיח עם מכתב",
+    "fr": "Carte Mashiach - soldat",
+    "price": null,
+    "old": null,
+    "description": "Carte Mashiach - soldat",
+    "image": "assets/carte.jpg"
+  },
+  {
+    "id": "kippa-soldat",
+    "category": "Kippas",
+    "name": "כיפת פאצ׳ מבצע לחייל",
+    "fr": "Kippa Mashiach militaire - kaki",
+    "price": 20,
+    "old": 50,
+    "description": "Kippa Mashiach militaire - kaki",
+    "image": "assets/kippa-soldat.jpg"
+  },
+  {
+    "id": "k8",
+    "category": "Kippas",
+    "name": "כיפת עור משיח k8",
+    "fr": "Kippa Mashiach - beige",
+    "price": 40,
+    "old": 50,
+    "description": "Kippa Mashiach - beige",
+    "image": "assets/k8.jpg"
+  },
+  {
+    "id": "k7",
+    "category": "Kippas",
+    "name": "כיפת עור משיח k7",
+    "fr": "Kippa Mashiach - beige clair",
+    "price": 40,
+    "old": 50,
+    "description": "Kippa Mashiach - beige clair",
+    "image": "assets/k7.jpg"
+  },
+  {
+    "id": "k6",
+    "category": "Kippas",
+    "name": "כיפת רקמת משיח k6",
+    "fr": "Kippa Mashiach - sable",
+    "price": 40,
+    "old": 50,
+    "description": "Kippa Mashiach - sable",
+    "image": "assets/k6.jpg"
+  },
+  {
+    "id": "k4",
+    "category": "Kippas",
+    "name": "כיפת רקמת משיח k4",
+    "fr": "Kippa Mashiach - bleu foncé",
+    "price": 40,
+    "old": 50,
+    "description": "Kippa Mashiach - bleu foncé",
+    "image": "assets/k4.jpg"
+  },
+  {
+    "id": "k5",
+    "category": "Kippas",
+    "name": "כיפת רקמת משיח k5",
+    "fr": "Kippa Mashiach - bleu",
+    "price": 40,
+    "old": 50,
+    "description": "Kippa Mashiach - bleu",
+    "image": "assets/k5.jpg"
+  },
+  {
+    "id": "k-mix",
+    "category": "Kippas",
+    "name": "כיפות עור מיוחדות רקמת משיח",
+    "fr": "Kippas Mashiach - couleurs variées",
+    "price": 40,
+    "old": 50,
+    "description": "Kippas Mashiach - couleurs variées",
+    "image": "assets/k-mix.jpg"
+  },
+  {
+    "id": "k3",
+    "category": "Kippas",
+    "name": "כיפת משיח רקמה עגולה k3",
+    "fr": "Kippa Mashiach - kaki rond",
+    "price": 40,
+    "old": 50,
+    "description": "Kippa Mashiach - kaki rond",
+    "image": "assets/k3.jpg"
+  },
+  {
+    "id": "k2",
+    "category": "Kippas",
+    "name": "כיפת רקמת משיח k2",
+    "fr": "Kippa Mashiach - kaki",
+    "price": 40,
+    "old": 50,
+    "description": "Kippa Mashiach - kaki",
+    "image": "assets/k2.jpg"
+  },
+  {
+    "id": "k1",
+    "category": "Kippas",
+    "name": "כיפת פאצ׳ משיח k1",
+    "fr": "Kippa Mashiach - kaki motif",
+    "price": 40,
+    "old": 50,
+    "description": "Kippa Mashiach - kaki motif",
+    "image": "assets/k1.jpg"
+  }
+]
