@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ניהול החנות | מרכז חב״ד משיח</title>
+<style>
+:root{--gold:#bf9850;--ink:#171717;--bg:#f7f4ed}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+header{padding:16px 4vw;background:#141414;color:#e8c98b;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header a{color:#e8c98b}main{max-width:1150px;padding:20px 16px;margin:auto}
+.panel{padding:18px;border:1px solid #ded7ca;background:white;border-radius:13px;margin-bottom:18px}
+input,textarea,select,button{font:inherit;padding:11px;border-radius:8px;border:1px solid #cdc3b4}
+input,textarea,select{width:100%;background:#fff}
+button{background:#171717;color:#ebcb91;cursor:pointer;border:0;min-height:44px}
+button:disabled{opacity:.6;cursor:wait}.ghost{color:#171717;background:#efe7d7}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:13px}
+.toolbar input{flex:1;min-width:170px}
+table{border-collapse:collapse;width:100%;min-width:680px}th,td{text-align:right;padding:10px;border-bottom:1px solid #e5e0d8}
+th{background:#f5f1e8}.table-scroll{overflow-x:auto}
+.thumb{height:55px;width:55px;object-fit:contain;background:#f9f7f2}
+.status{min-height:24px;color:#805024}.error{color:#a52424}
+dialog{border:0;border-radius:15px;width:min(550px,94vw);box-shadow:0 12px 55px #0005;max-height:92vh;overflow:auto}
+dialog::backdrop{background:#0009}
+form{display:grid;gap:11px}label{display:grid;gap:4px;font-size:14px;font-weight:bold}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold)}
+@media(max-width:600px){header h1{font-size:19px}.panel{padding:12px}main{padding:12px}.toolbar button{width:100%}}
+</style></head>
+<body><header><h1>✦ ניהול החנות · מרכז חב״ד משיח</h1><a href="/">חזרה לחנות</a></header>
+<main>
+<section class="panel" id="setup"><p><b>סביבת בדיקות:</b> הכניסה דורשת משתמש Supabase מורשה. אין תשלומים או הזמנות אמיתיות.</p><p class="status" id="status" role="status">בודק חיבור…</p></section>
+<section class="panel" id="signin" hidden><h2>כניסת מנהל</h2><form id="loginform"><label>דוא״ל מורשה<input id="loginEmail" type="email" required autocomplete="email"></label><button>קבלת קישור התחברות בדוא״ל</button></form><p>רק חשבון שקיבל הרשאה בטבלת מנהלי החנות יכול לערוך מוצרים.</p></section>
+<section class="panel" id="dashboard" hidden>
+<div class="toolbar"><input id="search" placeholder="חיפוש לפי שם, מק״ט או קטגוריה" aria-label="חיפוש">
+<button id="refresh">רענון</button><button class="ghost" id="logout">התנתקות</button></div>
+<p id="count"></p><div class="table-scroll"><table><thead><tr><th>תמונה</th><th>מוצר</th><th>מק״ט</th><th>מחיר ₪</th><th>מלאי</th><th>פעיל</th><th>פעולה</th></tr></thead><tbody id="rows"></tbody></table></div>
+</section>
+<dialog id="editdialog"><form id="editform"><h2>עריכת מוצר</h2><p id="sku"></p>
+<label>שם המוצר<input name="name_he" required maxlength="200"></label>
+<label>תיאור<textarea name="description" maxlength="2000" rows="3"></textarea></label>
+<label>מחיר ₪ (ריק = לא ידוע)<input name="price" inputmode="decimal" type="number" min="0" max="1000000" step=".01"></label>
+<label>מחיר קודם ₪ (ריק = אין)<input name="oldprice" type="number" min="0" max="1000000" step=".01"></label>
+<label>מלאי מאומת<input name="stock" type="number" min="0" max="1000000" step="1" required></label>
+<label>תצוגה<select name="active"><option value="true">מוצג</option><option value="false">מוסתר</option></select></label>
+<label>צילום חדש (עד 5 MB)<input id="photo" type="file" accept="image/png,image/jpeg,image/webp"></label>
+<div class="toolbar"><button id="save">שמירה</button><button type="button" class="ghost" id="cancel">ביטול</button></div></form></dialog>
+</main>
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.95.0';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js';
+const $=id=>document.getElementById(id);
+let client=null,products=[],editing=null;
+const status=(message,isError=false)=>{$('status').textContent=message;$('status').className=isError?'status error':'status'};
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const imageUrl=x=>x?.startsWith('/assets-')?x:(x||'');
+const money=x=>x==null?'מחיר לא אושר':(x/100).toFixed(2);
+function paint(){
+ const q=$('search').value.trim().toLowerCase();
+ const listed=products.filter(p=>[p.id,p.name_he,p.category].some(x=>String(x||'').toLowerCase().includes(q)));
+ $('count').textContent=listed.length+' מתוך '+products.length;
+ $('rows').innerHTML=listed.map(p=>'<tr><td><img class="thumb" src="'+esc(imageUrl(p.image_url))+'" alt=""></td><td>'+esc(p.name_he)+'</td><td dir="ltr">'+esc(p.id)+'</td><td>'+money(p.price_agorot)+'</td><td>'+p.stock+'</td><td>'+(p.active?'כן':'לא')+'</td><td><button data-id="'+esc(p.id)+'">עריכה</button></td></tr>').join('');
+}
+async function refresh(){
+ const {data,error}=await client.from('mercaz_products').select('*').order('category').order('id');
+ if(error)throw error;products=data;paint();
+ status('נטענו '+products.length+' מוצרים');
+}
+async function checkSession(){
+ const {data:{user},error}=await client.auth.getUser();
+ if(error||!user){$('dashboard').hidden=true;$('signin').hidden=false;status('יש להתחבר עם חשבון מנהל');return}
+ const {data:admin,error:permissionError}=await client.from('mercaz_admin_users').select('user_id').eq('user_id',user.id).maybeSingle();
+ if(permissionError||!admin){$('dashboard').hidden=true;$('signin').hidden=true;status('המשתמש אינו מורשה לנהל את החנות',true);return}
+ $('signin').hidden=true;$('dashboard').hidden=false;await refresh();
+}
+if(!SUPABASE_URL||!SUPABASE_PUBLISHABLE_KEY){status('חיבור Supabase טרם הוגדר. יש ליצור פרויקט נפרד ולקבוע כתובת ומפתח ציבורי בלבד.',true)}else{
+ client=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{detectSessionInUrl:true,flowType:'pkce'}});
+ checkSession().catch(e=>status(e.message,true));
+}
+$('loginform').onsubmit=async e=>{
+ e.preventDefault();try{
+ const email=$('loginEmail').value.trim();
+ const {error}=await client.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:false}});
+ if(error)throw error;status('קישור התחברות נשלח אם החשבון קיים ומורשה');
+ }catch(err){status(err.message,true)}
+};
+$('logout').onclick=async()=>{await client.auth.signOut();await checkSession()};
+$('refresh').onclick=()=>refresh().catch(e=>status(e.message,true));
+$('search').oninput=paint;
+$('rows').onclick=e=>{
+ const button=e.target.closest('button[data-id]');if(!button)return;
+ editing=products.find(p=>p.id===button.dataset.id);if(!editing)return;
+ const f=$('editform');$('sku').textContent=editing.id;
+ f.elements.name_he.value=editing.name_he;
+ f.elements.description.value=editing.description;
+ f.elements.price.value=editing.price_agorot==null?'':(editing.price_agorot/100).toFixed(2);
+ f.elements.oldprice.value=editing.old_price_agorot==null?'':(editing.old_price_agorot/100).toFixed(2);
+ f.elements.stock.value=editing.stock;f.elements.active.value=String(editing.active);
+ $('photo').value='';$('editdialog').showModal();
+};
+$('cancel').onclick=()=>$('editdialog').close();
+function parseCents(v){if(v==='')return null;const amount=Number(v);if(!Number.isFinite(amount)||amount<0||Math.abs(amount*100-Math.round(amount*100))>1e-6)throw Error('מחיר לא תקין');return Math.round(amount*100)}
+$('editform').onsubmit=async e=>{
+ e.preventDefault();if(!editing||!client)return;
+ const f=$('editform'),save=$('save');save.disabled=true;
+ try{
+ const payload={name_he:f.elements.name_he.value,description:f.elements.description.value,
+ price_agorot:parseCents(f.elements.price.value),old_price_agorot:parseCents(f.elements.oldprice.value),
+ stock:Number(f.elements.stock.value),active:f.elements.active.value==='true'};
+ if(!Number.isInteger(payload.stock)||payload.stock<0)throw Error('מלאי לא תקין');
+ const file=$('photo').files[0];
+ if(file){
+  if(file.size>5242880||!['image/png','image/jpeg','image/webp'].includes(file.type))throw Error('קובץ תמונה לא תקין');
+  const ext={'image/png':'png','image/jpeg':'jpg','image/webp':'webp'}[file.type];
+  const path='products/'+crypto.randomUUID()+'.'+ext;
+  const {error:uploadErr}=await client.storage.from('mercaz-photos').upload(path,file,{contentType:file.type,upsert:false});
+  if(uploadErr)throw uploadErr;
+  payload.image_url=client.storage.from('mercaz-photos').getPublicUrl(path).data.publicUrl;
+ }
+ const {data,error}=await client.from('mercaz_products').update(payload).eq('id',editing.id).select('id').single();
+ if(error)throw error;
+ if(!data)throw Error('לא נשמר – בדקו הרשאות');
+ $('editdialog').close();await refresh();status('המוצר נשמר בהצלחה');
+ }catch(err){status(err.message,true)}finally{save.disabled=false}
+};
+</script></body></html>
