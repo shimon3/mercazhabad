@@ -1,5 +1,4 @@
 -- Immutable initial seed; never overwrite existing product changes. Stock zero until merchant confirms inventory.
-BEGIN TRANSACTION;
 INSERT INTO products (id,category,name_he,name_fr,description,price_agorot,old_price_agorot,image_key,stock,active,variant_label) VALUES ('s/3','Autocollants','מדבקה לפאלפון שחור זהב','Autocollant pour téléphone - noir/or','Autocollant pour téléphone - noir/or',NULL,NULL,'assets-v7/s_3.webp',0,1,'') ON CONFLICT(id) DO NOTHING;
 INSERT INTO products (id,category,name_he,name_fr,description,price_agorot,old_price_agorot,image_key,stock,active,variant_label) VALUES ('s/2','Autocollants','מדבקה לבנה לפאלפון','Autocollant pour téléphone - blanc','Autocollant pour téléphone - blanc',500,NULL,'assets-v7/s_2.webp',0,1,'') ON CONFLICT(id) DO NOTHING;
 INSERT INTO products (id,category,name_he,name_fr,description,price_agorot,old_price_agorot,image_key,stock,active,variant_label) VALUES ('s/1','Autocollants','מדבקת זהב לפאלפון','Autocollant pour téléphone - or','Remise pour plusieurs autocollants achetés.',500,NULL,'assets-v7/s_1.webp',0,1,'') ON CONFLICT(id) DO NOTHING;
@@ -84,4 +83,3 @@ INSERT INTO products (id,category,name_he,name_fr,description,price_agorot,old_p
 INSERT INTO products (id,category,name_he,name_fr,description,price_agorot,old_price_agorot,image_key,stock,active,variant_label) VALUES ('k3','Kippas','כיפת משיח רקמה עגולה k3','Kippa Mashiach - kaki rond','Kippa Mashiach - kaki rond',4000,5000,'assets-v7/k3.webp',0,1,'') ON CONFLICT(id) DO NOTHING;
 INSERT INTO products (id,category,name_he,name_fr,description,price_agorot,old_price_agorot,image_key,stock,active,variant_label) VALUES ('k2','Kippas','כיפת רקמת משיח k2','Kippa Mashiach - kaki','Kippa Mashiach - kaki',4000,5000,'assets-v7/k2.webp',0,1,'') ON CONFLICT(id) DO NOTHING;
 INSERT INTO products (id,category,name_he,name_fr,description,price_agorot,old_price_agorot,image_key,stock,active,variant_label) VALUES ('k1','Kippas','כיפת פאצ׳ משיח k1','Kippa Mashiach - kaki motif','Kippa Mashiach - kaki motif',4000,5000,'assets-v7/k1.webp',0,1,'') ON CONFLICT(id) DO NOTHING;
-COMMIT;
