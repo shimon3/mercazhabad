@@ -67,7 +67,8 @@ assert.equal((await call('/api/admin/products/mg%2F18','PUT',JSON.stringify({pri
 assert.equal((await call('/api/admin/products/wrong','PUT',payload,{'Content-Type':'application/json'})).status,404);
 assert.equal((await call('/api/admin/products/mg%2F18','PUT',payload,{'Content-Type':'application/json'})).status,200);
 assert.equal(state.stock,7);assert.equal(state.price_agorot,1250);assert.equal(audits.length,1);assert.equal(audits[0].email,email);
-const badUpload=await call('/api/admin/images','POST',new TextEncoder().encode('invalid content'),{'Content-Type':'image/png'});assert.equal(badUpload.status,415);
+const tooSmall=await call('/api/admin/images','POST',new TextEncoder().encode('short'),{'Content-Type':'image/png'});assert.equal(tooSmall.status,400);
+const badUpload=await call('/api/admin/images','POST',new TextEncoder().encode('invalid image content deliberately not PNG'),{'Content-Type':'image/png'});assert.equal(badUpload.status,415);
 const goodJpg=new Uint8Array([255,216,255,...Array(20).fill(1),255,217]);
 const uploaded=await call('/api/admin/images','POST',goodJpg,{'Content-Type':'image/jpeg'});assert.equal(uploaded.status,201);
 const key=(await uploaded.json()).image_key;assert.match(key,/^\/api\/images\/products\/[a-f0-9-]+\.jpg$/);
