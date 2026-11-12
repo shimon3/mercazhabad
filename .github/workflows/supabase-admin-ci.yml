@@ -1,0 +1,21 @@
+name: Supabase admin preparation checks
+on:
+  push:
+    branches: [feature/supabase-store-admin-20261112]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check Supabase schema, seed and admin JS without secrets
+        run: python scripts/test_supabase_admin_preparation.py
