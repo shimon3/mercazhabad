@@ -30,3 +30,11 @@ jobs:
           python -m http.server 8765 >/tmp/mercaz-http.log 2>&1 &
           sleep 2
           python scripts/test_storefront_browser.py
+      - name: Save visual QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: storefront-responsive-review
+          path: /tmp/mercaz-qa-*.png
+          if-no-files-found: ignore
+          retention-days: 14
