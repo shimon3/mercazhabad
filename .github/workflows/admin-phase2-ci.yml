@@ -1,0 +1,21 @@
+name: Admin D1 Phase 2 review
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [feature/secure-admin-d1-review-20261112]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate migrations and catalog invariants
+        run: python scripts/test_admin_phase2.py
