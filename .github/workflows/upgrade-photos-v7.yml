@@ -1,0 +1,42 @@
+name: Generate catalog photos V7
+on:
+  push:
+    branches:
+      - upgrade/all-product-photos-level-b-20261112
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Install image processing dependencies
+        run: |
+          python -m pip install --disable-pip-version-check pillow numpy opencv-python-headless
+      - name: Regenerate 84 normalized product photos
+        run: python scripts/upgrade_catalog_photos.py
+      - name: Validate output
+        run: |
+          test "$(find assets-v7 -name '*.webp' | wc -l)" -eq 84
+          python - <<'PY'
+          import json,re
+          from pathlib import Path
+          s=Path('index.html').read_text()
+          p=json.loads(re.search(r'const PRODUCTS=(\[.*?\]);\s*const ',s,re.S).group(1))
+          assert len(p)==84 and len({x['id'] for x in p})==84
+          assert sum(x['price'] is None for x in p)==9
+          assert all(Path(x['image']).exists() for x in p)
+          assert 'אין רכישה או חיוב' in s
+          print('PASS 84 products, prices, photo links and disabled checkout')
+          PY
+      - name: Commit generated images on review branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html assets-v7
+          git diff --cached --quiet || git commit -m "Generate 84 standardized product photographs"
+          git push origin HEAD:upgrade/all-product-photos-level-b-20261112
