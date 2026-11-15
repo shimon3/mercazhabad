@@ -13,7 +13,7 @@ async function who(){if(!token)throw Error('יש להתחבר');return api('/aut
 async function getRole(user){const found=await api('/rest/v1/mercaz_roles?select=role&user_id=eq.'+encodeURIComponent(user.id));role=found?.[0]?.role||'';if(!['admin','manager'].includes(role)||(panel==='admin'&&role!=='admin'))throw Error('אין הרשאה למסך ניהול זה');return role}
 function getAal(){try{return JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).aal||'aal1'}catch{return 'aal1'}}
 async function initStaff(){const user=await who();await getRole(user);$('login').classList.add('hidden');if(getAal()!=='aal2'){await showMfa(user);return}
-$('mfa').classList.add('hidden');$('dashboard').classList.remove('hidden');$('roleBadge').textContent=role==='admin'?'מנהל ראשי':'ניהול הזמנות ומוצרים';$('onlyAdmin').classList.toggle('hidden',role!=='admin');await Promise.all([loadProducts(),loadOrders()])}
+$('mfa').classList.add('hidden');$('dashboard').classList.remove('hidden');$('roleBadge').textContent=role==='admin'?'מנהל ראשי':'ניהול הזמנות ומוצרים';$('onlyAdmin').classList.toggle('hidden',role!=='admin');await Promise.all([loadProducts(),loadOrders()]);if(role==='admin')await loadDeliverySettings()}
 async function showMfa(user){$('mfa').classList.remove('hidden');$('dashboard').classList.add('hidden');$('totpSetup').classList.add('hidden');$('totpVerify').classList.add('hidden');$('startMfa').classList.add('hidden');
 const active=(Array.isArray(user.factors)?user.factors:[]).find(f=>f.factor_type==='totp'&&f.status==='verified');if(active){pendingFactor=active.id;$('mfaInfo').textContent='יש להזין את הקוד בן 6 הספרות מאפליקציית האימות.';$('totpVerify').classList.remove('hidden');try{await challenge()}catch(e){notice('לא ניתן לשלוח בקשת אימות: '+e.message,true,'mfaStatus')}}else{$('startMfa').classList.remove('hidden');$('mfaInfo').textContent='לפני כניסה ראשונה נדרש להפעיל אימות דו־שלבי באפליקציית Authenticator.'}}
 async function challenge(){const c=await api('/auth/v1/factors/'+encodeURIComponent(pendingFactor)+'/challenge','POST',{});challengeId=c.id}
@@ -53,6 +53,47 @@ $('restartMfa').onclick=async()=>{
 $('totpVerify').onsubmit=async ev=>{ev.preventDefault();const b=ev.target.querySelector('button');b.disabled=true;try{const v=await api('/auth/v1/factors/'+encodeURIComponent(pendingFactor)+'/verify','POST',{challenge_id:challengeId,code:$('totpCode').value.trim()});if(!v.access_token)throw Error('אימות נכשל');$('totpQr').replaceChildren();$('totpSecret').textContent='';token=v.access_token;sessionStorage.setItem('merkaz_staff_token',token);$('totpCode').value='';await initStaff()}catch(e){notice(e.message,true,'mfaStatus');try{await challenge()}catch{}}finally{b.disabled=false}};
 $('loginForm').onsubmit=async ev=>{ev.preventDefault();const b=ev.target.querySelector('button');b.disabled=true;try{const v=await api('/auth/v1/token?grant_type=password','POST',{email:$('email').value.trim(),password:$('password').value},false);token=v.access_token;sessionStorage.setItem('merkaz_staff_token',token);$('password').value='';await initStaff()}catch(e){const message=String(e?.message||'שגיאה');notice('לא ניתן להשלים את הכניסה: '+message,true,'loginStatus');token='';sessionStorage.removeItem('merkaz_staff_token')}finally{b.disabled=false}};
 $('logout').onclick=async()=>{try{await api('/auth/v1/logout','POST',{})}catch{}sessionStorage.removeItem('merkaz_staff_token');sessionStorage.removeItem('merkaz_customer_token');token='';location.reload()};
+async function loadDeliverySettings(){
+ const host=$('deliverySettingsForms');if(!host||role!=='admin')return;
+ host.replaceChildren();
+ try{
+  const options=await api('/rest/v1/mercaz_delivery_options?select=id,label_he,enabled,area_description,fee_agorot,instructions&order=id.asc');
+  for(const item of options){
+   if(!['delivery','pickup'].includes(item.id))continue;
+   const form=document.createElement('form');form.className='delivery-option-form';
+   const heading=document.createElement('h4');heading.textContent=item.label_he;form.append(heading);
+   const makeField=(label,control)=>{
+    const wrapper=document.createElement('label');wrapper.className='field';
+    const caption=document.createElement('span');caption.textContent=label;wrapper.append(caption,control);
+    form.append(wrapper);return control;
+   };
+   const enabled=document.createElement('input');enabled.type='checkbox';enabled.checked=item.enabled;
+   makeField('אפשרות זמינה ללקוחות',enabled);
+   const area=document.createElement('textarea');area.rows=2;area.maxLength=500;area.value=item.area_description||'';
+   makeField(item.id==='pickup'?'כתובת נקודת איסוף':'אזורי חלוקה',area);
+   const price=document.createElement('input');price.type='number';price.min='0';price.max='10000';price.step='0.01';price.placeholder='לתיאום מול החנות';price.value=item.fee_agorot==null?'':String(item.fee_agorot/100);
+   makeField('דמי משלוח / איסוף (₪, ריק = בתיאום)',price);
+   const instructions=document.createElement('textarea');instructions.rows=2;instructions.maxLength=600;instructions.value=item.instructions||'';
+   makeField('הוראות ללקוח',instructions);
+   const submit=document.createElement('button');submit.type='submit';submit.textContent='שמירת '+item.label_he;form.append(submit);
+   form.onsubmit=async ev=>{
+    ev.preventDefault();submit.disabled=true;
+    try{
+     if(item.id==='pickup'&&enabled.checked&&!area.value.trim())throw Error('יש להזין כתובת איסוף לפני הפעלת איסוף עצמי');
+     const amount=price.value.trim();
+     const fee=amount===''?null:Math.round(Number(amount)*100);
+     if(fee!==null&&(!Number.isSafeInteger(fee)||fee<0||fee>1000000))throw Error('סכום דמי מסירה אינו תקין');
+     const payload={enabled:enabled.checked,area_description:area.value.trim(),fee_agorot:fee,instructions:instructions.value.trim(),updated_at:new Date().toISOString()};
+     await api('/rest/v1/mercaz_delivery_options?id=eq.'+encodeURIComponent(item.id),'PATCH',payload);
+     notice('הגדרות '+item.label_he+' עודכנו',false,'deliverySettingsStatus');
+     await loadDeliverySettings();
+    }catch(err){notice(err.message,true,'deliverySettingsStatus')}
+    finally{submit.disabled=false}
+   };
+   host.append(form);
+  }
+ }catch(err){notice('לא ניתן לטעון הגדרות מסירה: '+err.message,true,'deliverySettingsStatus')}
+}
 function fields(p){const categoryOptions=Object.entries(CATEGORY).map(([v,label])=>'<option value="'+clean(v)+'" '+(v===p.category?'selected':'')+'>'+clean(label)+'</option>').join('');
 return '<div class="sku-display"><strong>מק״ט: '+clean(p.sku||'טרם הוקצה')+'</strong><button type="button" class="secondary copy-sku">העתקת מק״ט</button><small>מספר קבוע וייחודי שהמערכת מקצה אוטומטית. מזהה פנימי: '+clean(p.id)+'</small></div><div class="grid"><div class="field"><label>שם בעברית</label><input name="name_he" required maxlength="250" value="'+clean(p.name_he)+'"></div>'+
 '<div class="field"><label>שם בצרפתית</label><input name="name_fr" maxlength="250" value="'+clean(p.name_fr)+'"></div>'+
