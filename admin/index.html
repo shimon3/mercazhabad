@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ניהול חנות | מרכז חב״ד משיח</title>
+<style>
+:root{font-family:Arial,"Rubik",sans-serif;color:#29231a;background:#f7f4ec}*{box-sizing:border-box}body{margin:0}header{background:#171512;color:#f4deb3;padding:20px 5%;display:flex;justify-content:space-between;align-items:center;gap:15px}header a{color:#f2d49a;text-decoration:none}main{max-width:1200px;margin:30px auto;padding:0 18px}h1{font-size:25px}section,.record{background:white;border:1px solid #dfd6c5;border-radius:13px;padding:20px;margin-bottom:14px}label{font-size:13px;font-weight:700;display:block;margin-bottom:5px}input,select,textarea{font:inherit;max-width:100%;width:100%;padding:10px;border:1px solid #c9bca8;border-radius:7px;background:#fff}button{font:inherit;cursor:pointer;background:#211c16;color:#f4d49a;border:0;border-radius:8px;padding:10px 17px}button:disabled{opacity:.55;cursor:not-allowed}button.alt{background:#f0e7d5;color:#28231a}button.danger{background:#803c35;color:white}.field{margin-bottom:13px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.row>*{flex-shrink:0}.muted{color:#756b5d;font-size:13px}.error{color:#a42a27}.ok{color:#236b40}.hidden{display:none!important}summary{cursor:pointer;font-weight:700;padding:8px}.record{padding:10px 18px}.record[open]{padding-bottom:20px}.record .grid{padding-top:15px}.status{margin:15px 0}#list{margin-top:20px}#search{width:300px}#login{max-width:420px;margin:50px auto}#addForm{margin-top:14px}@media(max-width:740px){.grid{grid-template-columns:1fr}header{flex-wrap:wrap}#search{width:100%}}
+</style></head><body><header><strong>מרכז חב״ד משיח · ניהול חנות</strong><a href="/">חזרה לחנות</a></header>
+<main>
+<section id="login"><h1>כניסת מנהל</h1><p class="muted">הכניסה מיועדת לחשבונות שהורשו מראש בלבד.</p><form id="loginForm"><div class="field"><label for="email">דוא״ל</label><input id="email" type="email" autocomplete="username" required></div><div class="field"><label for="password">סיסמה</label><input id="password" type="password" autocomplete="current-password" required></div><button type="submit">כניסה</button></form><p id="loginStatus" class="status" role="status"></p></section>
+<div id="dashboard" class="hidden">
+<div class="row"><h1>ניהול מוצרים</h1><button id="logout" class="alt">התנתקות</button></div><p class="muted">שינויים במחירים, בקטגוריות ובזמינות נשמרים ישירות במסד הנתונים. אין תשלומים פעילים באתר.</p>
+<section><div class="row"><label for="search">חיפוש</label><input id="search" placeholder="חיפוש לפי שם או מק״ט"><span id="count" class="muted"></span></div><div id="list"></div></section>
+<section><h2>הוספת מוצר</h2><form id="addForm"><div class="grid">
+<div class="field"><label for="newId">מק״ט ייחודי</label><input id="newId" required maxlength="90"></div>
+<div class="field"><label for="newName">שם המוצר</label><input id="newName" required maxlength="250"></div>
+<div class="field"><label for="newCategory">קטגוריה</label><select id="newCategory"></select></div>
+<div class="field"><label for="newPrice">מחיר בש״ח (אפשר להשאיר ריק)</label><input id="newPrice" type="number" step="0.01" min="0"></div>
+<div class="field"><label for="newStock">מלאי</label><input id="newStock" type="number" step="1" min="0" value="0"></div>
+<div class="field"><label for="newImage">נתיב תמונה מאושר</label><input id="newImage" placeholder="assets-v8/example.webp"></div>
+</div><button type="submit">שמירת מוצר חדש</button></form></section>
+<p id="status" class="status" role="status"></p></div>
+</main>
+<script>
+'use strict';
+const URL_BASE='https://bdalhyqpruefdbyirykp.supabase.co';
+const PUBLIC_KEY='sb_publishable_K6ciGUejNpRfLeIEc598Iw_L3VoMJYM';
+const categories={'PhoneStickers':'מדבקות לפלאפון','CarMagnets':'מגנטים לרכב','Pins':'סיכות משיח','Kippas':'כיפות משיח','Caps':'כובעי משיח','Keychains':'מחזיקי מפתחות','SoldierPatches':'פאצ׳ים לחיילים','Flags':'דגלי משיח','General':'מוצרי משיח כללי'};
+let token=sessionStorage.getItem('mercaz-admin-access')||'', products=[];
+const $=id=>document.getElementById(id);
+const heads=(authenticated)=>Object.assign({'apikey':PUBLIC_KEY,'Content-Type':'application/json'},authenticated?{'Authorization':'Bearer '+token}:{});
+const notify=(message,error=false)=>{const node=$('status');node.textContent=message;node.className='status '+(error?'error':'ok')};
+async function request(path,method='GET',body=null,authorized=true){
+const opts={method,headers:heads(authorized)};if(body!==null)opts.body=JSON.stringify(body);
+const resp=await fetch(URL_BASE+path,opts);const raw=await resp.text();let data;try{data=raw?JSON.parse(raw):null}catch{data=null}
+if(!resp.ok)throw Error((data&&data.message)||(data&&data.error_description)||(data&&data.msg)||'HTTP '+resp.status);
+return data;
+}
+async function verifyAdmin(){if(!token)return false;const session=await request('/auth/v1/user');if(!session||!session.id)return false;
+const row=await request('/rest/v1/mercaz_admins?select=user_id&user_id=eq.'+encodeURIComponent(session.id));return Array.isArray(row)&&row.length===1;}
+async function showDashboard(){if(!await verifyAdmin())throw Error('אין הרשאת ניהול לחשבון זה');$('login').classList.add('hidden');$('dashboard').classList.remove('hidden');await load();}
+async function load(){products=await request('/rest/v1/mercaz_products?select=*&order=created_at.asc');draw();}
+function field(label,value,type='text',options=null){const box=document.createElement('div');box.className='field';const l=document.createElement('label');l.textContent=label;box.append(l);let input;
+if(options){input=document.createElement('select');for(const [v,t] of Object.entries(options)){const opt=new Option(t,v);input.add(opt);}input.value=value||'General';}
+else{input=document.createElement('input');input.type=type;input.value=value??'';if(type==='number'){input.step=label==='מלאי'?'1':'0.01';input.min='0';}}
+box.append(input);return {box,input};}
+function draw(){
+const q=$('search').value.trim().toLowerCase();const found=products.filter(p=>[p.id,p.name_he,p.name_fr,p.category].join(' ').toLowerCase().includes(q));$('count').textContent=found.length+' מוצרים';const list=$('list');list.replaceChildren();
+for(const p of found){const details=document.createElement('details');details.className='record';const sum=document.createElement('summary');sum.textContent=p.name_he+' · '+p.id+' · '+(p.price_agorot==null?'מחיר בבירור':'₪'+(p.price_agorot/100).toFixed(2));details.append(sum);
+const grid=document.createElement('div');grid.className='grid';const name=field('שם המוצר',p.name_he),fr=field('שם בצרפתית',p.name_fr),cat=field('קטגוריה',p.category,'text',categories),price=field('מחיר בש״ח',p.price_agorot==null?'':(p.price_agorot/100).toFixed(2),'number'),stock=field('מלאי',p.stock,'number'),img=field('נתיב תמונה',p.image_key),desc=field('תיאור',p.description);
+for(const f of [name,fr,cat,price,stock,img,desc])grid.append(f.box);details.append(grid);
+const actions=document.createElement('div');actions.className='row';const active=document.createElement('input');active.type='checkbox';active.checked=p.active;active.style.width='auto';const lab=document.createElement('label');lab.textContent='מוצר פעיל';lab.append(active);actions.append(lab);const save=document.createElement('button');save.textContent='שמירת שינויים';actions.append(save);details.append(actions);
+save.onclick=async()=>{save.disabled=true;try{const amount=price.input.value.trim();const n=amount===''?null:Math.round(Number(amount)*100);const st=Number(stock.input.value);if((n!==null&&(!Number.isFinite(n)||n<0))||!Number.isInteger(st)||st<0)throw Error('מחיר או מלאי לא תקינים');
+const payload={name_he:name.input.value.trim(),name_fr:fr.input.value.trim(),category:cat.input.value,price_agorot:n,stock:st,image_key:img.input.value.trim(),description:desc.input.value.trim(),active:active.checked};if(!payload.name_he)throw Error('שם המוצר חובה');
+await request('/rest/v1/mercaz_products?id=eq.'+encodeURIComponent(p.id),'PATCH',payload);await load();notify('המוצר נשמר בהצלחה: '+p.id);}
+catch(e){notify(e.message,true)}finally{save.disabled=false}};
+list.append(details);
+}}
+$('loginForm').onsubmit=async e=>{e.preventDefault();const btn=e.currentTarget.querySelector('button');btn.disabled=true;$('loginStatus').textContent='';try{
+const data=await request('/auth/v1/token?grant_type=password','POST',{email:$('email').value.trim(),password:$('password').value},false);
+token=data.access_token;sessionStorage.setItem('mercaz-admin-access',token);$('password').value='';await showDashboard();
+}catch(err){token='';sessionStorage.removeItem('mercaz-admin-access');$('loginStatus').textContent=err.message;$('loginStatus').className='status error';}finally{btn.disabled=false}};
+$('logout').onclick=async()=>{try{await request('/auth/v1/logout','POST')}catch{}token='';sessionStorage.removeItem('mercaz-admin-access');location.reload();};
+$('search').oninput=draw;
+for(const [id,label] of Object.entries(categories))$('newCategory').add(new Option(label,id));
+$('addForm').onsubmit=async e=>{e.preventDefault();const b=e.currentTarget.querySelector('button');b.disabled=true;try{
+const id=$('newId').value.trim(),name=$('newName').value.trim(),amount=$('newPrice').value.trim(),stock=Number($('newStock').value);
+if(!id||!name||!Number.isInteger(stock)||stock<0)throw Error('פרטי מוצר לא תקינים');
+const price=amount===''?null:Math.round(Number(amount)*100);if(price!==null&&(!Number.isFinite(price)||price<0))throw Error('מחיר לא תקין');
+await request('/rest/v1/mercaz_products','POST',{id,name_he:name,name_fr:'',category:$('newCategory').value,description:'',price_agorot:price,old_price_agorot:null,image_key:$('newImage').value.trim(),stock,active:true});
+$('addForm').reset();$('newStock').value='0';await load();notify('מוצר חדש נוסף: '+id);
+}catch(err){notify(err.message,true)}finally{b.disabled=false;}};
+if(token)showDashboard().catch(()=>{token='';sessionStorage.removeItem('mercaz-admin-access');$('loginStatus').textContent='יש להתחבר מחדש';});
+</script></body></html>
