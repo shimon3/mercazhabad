@@ -140,10 +140,49 @@ $('confirmOrder').onclick=async()=>{
   }finally{b.disabled=false}
 };
 const payText={pending_payment:'ממתין לתשלום',paid:'שולם',failed:'נכשל',refunded:'הוחזר'},deliverText={new:'התקבלה',processing:'בטיפול',shipped:'נשלחה',completed:'הושלמה',cancelled:'בוטלה'};
-async function loadOrders(){const orders=await api('/rest/v1/mercaz_orders?select=id,customer_name,total_agorot,payment_status,fulfillment_status,created_at&order=created_at.desc&limit=100');const host=$('orders');host.replaceChildren();if(!orders.length){host.textContent='עדיין אין הזמנות בחשבון';return}
-for(const o of orders){const block=document.createElement('div');block.className='order';const h=document.createElement('strong');h.textContent='הזמנה '+o.id.slice(0,8)+' · '+money(o.total_agorot);block.append(h);const p=document.createElement('p');p.className='muted';p.textContent=new Date(o.created_at).toLocaleString('he-IL')+' · תשלום: '+(payText[o.payment_status]||o.payment_status)+' · משלוח: '+(deliverText[o.fulfillment_status]||o.fulfillment_status);block.append(p);
-const names=document.createElement('div');names.className='muted';names.textContent='טוען פריטים...';block.append(names);host.append(block);
-api('/rest/v1/mercaz_order_items?select=product_name,quantity,pack_size,line_total_agorot&order_id=eq.'+encodeURIComponent(o.id)).then(items=>{names.textContent=items.map(x=>x.product_name+(x.pack_size?' ('+x.pack_size+' יח׳)':'')+' × '+x.quantity+' — '+money(x.line_total_agorot)).join(' | ')}).catch(()=>names.textContent='פרטי הפריטים אינם זמינים כעת')}
+async function growEnabled(){
+ try{const r=await fetch('/api/grow/status',{cache:'no-store'});return r.ok&&!!(await r.json()).enabled}
+ catch{return false}
+}
+async function redirectToGrow(orderId,button){
+ button.disabled=true;
+ try{
+  const r=await fetch('/api/grow/create-payment',{
+   method:'POST',cache:'no-store',
+   headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+   body:JSON.stringify({orderId})
+  });
+  const body=await r.json();
+  if(!r.ok)throw Error(body?.error||'Payment setup unavailable');
+  const url=new URL(body.redirectUrl);
+  if(url.protocol!=='https:'||!['sandbox.meshulam.co.il','secure.meshulam.co.il'].includes(url.hostname))
+   throw Error('Invalid payment destination');
+  // Hosted page only: never embed a card input or iframe on this domain.
+  location.assign(url.href);
+ }catch(e){msg('authStatus','לא ניתן לפתוח את דף התשלום המאובטח. נסו מאוחר יותר.',true);button.disabled=false}
+}
+async function loadOrders(){
+ const [orders,canGrow]=await Promise.all([
+  api('/rest/v1/mercaz_orders?select=id,customer_name,total_agorot,payment_status,fulfillment_status,created_at&order=created_at.desc&limit=100'),
+  growEnabled()
+ ]);
+ const host=$('orders');host.replaceChildren();
+ if(!orders.length){host.textContent='עדיין אין הזמנות בחשבון';return}
+ for(const o of orders){
+  const block=document.createElement('div');block.className='order';
+  const h=document.createElement('strong');h.textContent='הזמנה '+o.id.slice(0,8)+' · '+money(o.total_agorot);block.append(h);
+  const p=document.createElement('p');p.className='muted';
+  p.textContent=new Date(o.created_at).toLocaleString('he-IL')+' · תשלום: '+(payText[o.payment_status]||o.payment_status)+' · משלוח: '+(deliverText[o.fulfillment_status]||o.fulfillment_status);
+  block.append(p);
+  if(canGrow&&o.payment_status==='pending_payment'&&o.fulfillment_status!=='cancelled'){
+   const pay=document.createElement('button');pay.type='button';pay.textContent='מעבר לתשלום מאובטח ב-Grow';
+   pay.onclick=()=>redirectToGrow(o.id,pay);block.append(pay);
+  }
+  const names=document.createElement('div');names.className='muted';names.textContent='טוען פריטים...';block.append(names);host.append(block);
+  api('/rest/v1/mercaz_order_items?select=product_name,quantity,pack_size,line_total_agorot&order_id=eq.'+encodeURIComponent(o.id))
+   .then(items=>{names.textContent=items.map(x=>x.product_name+(x.pack_size?' ('+x.pack_size+' יח׳)':'')+' × '+x.quantity+' — '+money(x.line_total_agorot)).join(' | ')})
+   .catch(()=>names.textContent='פרטי הפריטים אינם זמינים כעת');
+ }
 }
 $('reload').onclick=()=>loadOrders().catch(e=>msg('authStatus',e.message,true));
 // Supabase email confirmation may return a session in the URL fragment.
