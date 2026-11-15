@@ -3,6 +3,8 @@ const BASE='https://bdalhyqpruefdbyirykp.supabase.co';
 const PUBLIC_KEY='sb_publishable_K6ciGUejNpRfLeIEc598Iw_L3VoMJYM';
 export function answer(status,data){return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}})}
 export function environment(env){
+ // Explicit switch keeps checkout disabled even if secrets were provisioned.
+ if(env.GROW_ENABLE_PAYMENTS!=='true')return null;
  if(!['sandbox','production'].includes(env.GROW_MODE))return null;
  if(env.GROW_MODE==='production'&&env.GROW_PRODUCTION_APPROVED!=='true')return null;
  if(!env.GROW_USER_ID||!env.GROW_PAGE_CODE||!env.GROW_DB_ADMIN_TOKEN)return null;
