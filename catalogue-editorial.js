@@ -12,8 +12,8 @@ const dialog = byId('dialog');
 let products = [];
 let category = '';
 let badge = '';
-const badgeLabels = {'':'כל המדבקות',country:'סמלי מדינות',idf:'סמלי יחידות צה״ל'};
-const badgeFor = id => /^sc\/(?!11$)/.test(id) ? 'country' : /^z\/(?!15$)/.test(id) ? 'idf' : id === 'z/15' ? 'police' : '';
+const badgeLabels = {'':'כל המדבקות',heroes:'גיבורי אל משיח',country:'סמלי מדינות',idf:'סמלי יחידות צה״ל'};
+const badgeFor = product => product.subcategory === 'HeroesOfMessiah' ? 'heroes' : /^sc\/(?!11$)/.test(product.id) ? 'country' : /^z\/(?!15$)/.test(product.id) ? 'idf' : product.id === 'z/15' ? 'police' : '';
 
 let cart = {};
 let initialCart = {};
@@ -145,7 +145,7 @@ function priceLabel(product) {
 
 function renderCategories() {
   const categories = [['', 'כל המוצרים'], ...Object.entries(labels)];
-  byId('categories').replaceChildren(...categories.map(([key, label]) => {
+  byId('categories').replaceChildren(...categories.flatMap(([key, label]) => {
     const count = key ? products.filter(product => product.category === key).length : products.length;
     const control = button('', () => {
       category = key;
@@ -155,8 +155,17 @@ function renderCategories() {
       renderProducts();
     });
     control.append(element('span', label), element('span', String(count)));
-    control.setAttribute('aria-pressed', key === category);
-    return control;
+    control.setAttribute('aria-pressed', key === category && !(key === 'PhoneStickers' && badge === 'heroes'));
+    if (key !== 'PhoneStickers') return [control];
+    const subCount = products.filter(product => product.category === 'PhoneStickers' && product.subcategory === 'HeroesOfMessiah').length;
+    const child = button('', () => {
+      category = 'PhoneStickers'; badge = 'heroes';
+      byId('catalog-title').textContent = 'גיבורי אל משיח';
+      renderCategories(); renderProducts();
+    }, 'subcategory');
+    child.append(element('span', 'גיבורי אל משיח'), element('span', String(subCount)));
+    child.setAttribute('aria-pressed', category === 'PhoneStickers' && badge === 'heroes');
+    return [control, child];
   }));
 }
 
@@ -166,8 +175,8 @@ function renderProducts() {
   for (const control of filters.children) control.setAttribute('aria-pressed', control.dataset.badge === badge);
   const terms = normalize(byId('search').value).trim().split(/\s+/);
   const items = products.filter(product => {
-    const fields = normalize([product.name_he, product.name_fr, product.id, product.sku, labels[product.category], badgeLabels[badgeFor(product.id)], badgeFor(product.id) === 'police' ? 'סמל משטרה' : ''].join(' '));
-    return (!category || product.category === category) && (!badge || badgeFor(product.id) === badge) && terms.every(term => fields.includes(term));
+    const fields = normalize([product.name_he, product.name_fr, product.id, product.sku, labels[product.category], product.subcategory === 'HeroesOfMessiah' ? 'גיבורי אל משיח' : '', badgeLabels[badgeFor(product)], badgeFor(product) === 'police' ? 'סמל משטרה' : ''].join(' '));
+    return (!category || product.category === category) && (!badge || badgeFor(product) === badge) && terms.every(term => fields.includes(term));
   });
   const sort = byId('sort').value;
   if (sort !== 'catalog') items.sort((a, b) => {
@@ -331,7 +340,7 @@ byId('search').addEventListener('input', renderProducts);
 byId('sort').addEventListener('change', renderProducts);
 
 for (const [key, label] of Object.entries(badgeLabels)) {
-  const control = button(label, () => { badge = key; renderProducts(); });
+  const control = button(label, () => { badge = key; byId('catalog-title').textContent = key === 'heroes' ? 'גיבורי אל משיח' : labels.PhoneStickers; renderCategories(); renderProducts(); });
   control.dataset.badge = key;
   byId('badge-filters').append(control);
 }
@@ -346,7 +355,7 @@ byId('reset').addEventListener('click', () => {
 });
 
 try {
-  const response = await fetch(SUPABASE_URL + '/rest/v1/mercaz_products?select=id,sku,category,name_he,name_fr,description,price_agorot,old_price_agorot,image_key,active,stock,stock_tracking_enabled&active=eq.true&order=created_at.asc', {
+  const response = await fetch(SUPABASE_URL + '/rest/v1/mercaz_products?select=id,sku,category,subcategory,name_he,name_fr,description,price_agorot,old_price_agorot,image_key,active,stock,stock_tracking_enabled&active=eq.true&order=created_at.asc', {
     headers: {apikey: SUPABASE_PUBLISHABLE_KEY},
   });
   if (!response.ok) throw new Error('Catalog fetch failed');
