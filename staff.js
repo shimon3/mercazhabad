@@ -5,7 +5,7 @@ const $=x=>document.getElementById(x);
 const clean=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>'₪'+(n/100).toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2});
 const panel=location.pathname.startsWith('/admin')?'admin':'manager';
-let token=sessionStorage.getItem('merkaz_staff_token')||sessionStorage.getItem('merkaz_customer_token')||'',role='',products=[],orders=[],pendingFactor=null,challengeId=null;
+let token=sessionStorage.getItem('merkaz_staff_token')||sessionStorage.getItem('merkaz_customer_token')||'',role='',products=[],orders=[],pendingFactor=null,challengeId=null,productFilter='',orderFilter='';
 function notice(msg,bad=false,id='notice'){const el=$(id);el.textContent=msg;el.className='status '+(bad?'error':'ok')}
 async function api(path,method='GET',body=undefined,authed=true){const headers={apikey:KEY};if(authed&&token)headers.Authorization='Bearer '+token;if(body!==undefined)headers['Content-Type']='application/json';
 const res=await fetch(BASE+path,{method,headers,body:body===undefined?undefined:JSON.stringify(body),cache:'no-store'});const raw=await res.text();let data;try{data=raw?JSON.parse(raw):null}catch{data=null}if(!res.ok)throw Error(data?.msg||data?.message||data?.error_description||'HTTP '+res.status);return data}
@@ -69,15 +69,89 @@ function makePayload(form){const v=new FormData(form), price=(v.get('price')||''
 const name=(v.get('name_he')||'').toString().trim();if(!name)throw Error('שם חובה');return {name_he:name,name_fr:String(v.get('name_fr')||'').trim(),category:String(v.get('category')),price_agorot:agorot,stock,description:String(v.get('description')||'').trim(),image_key:String(v.get('image_key')||'').trim(),stock_tracking_enabled:v.has('stock_tracking_enabled'),active:v.has('active')}}
 async function upload(file){if(!file||!file.size)return null;if(file.size>5*1024*1024||!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('יש לבחור קובץ תמונה JPG/PNG/WebP עד 5MB');
 const ext={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[file.type],key=crypto.randomUUID()+'.'+ext;const res=await fetch(BASE+'/storage/v1/object/mercaz-product-images/'+key,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':file.type,'cache-control':'3600'},body:file});if(!res.ok)throw Error('העלאת התמונה נכשלה: '+res.status);return BASE+'/storage/v1/object/public/mercaz-product-images/'+key;}
-async function loadProducts(){products=await api('/rest/v1/mercaz_products?select=*&order=created_at.desc&limit=300');showProducts()}
-function showProducts(){const term=$('findProduct').value.trim().toLowerCase();const matches=products.filter(p=>(p.id+' '+(p.sku||'')+' '+p.name_he+' '+p.category).toLowerCase().includes(term));$('productCount').textContent=matches.length+' מוצרים';const host=$('products');host.replaceChildren();for(const p of matches){const details=document.createElement('details');details.className='product';details.innerHTML='<summary>'+clean(p.name_he)+' · מק״ט '+clean(p.sku||p.id)+' · '+(p.price_agorot==null?'ללא מחיר':money(p.price_agorot))+'</summary><form>'+fields(p)+'<button type="submit">שמירת שינויים</button></form>';const form=details.querySelector('form');form.onsubmit=async e=>{e.preventDefault();const button=form.querySelector('button');button.disabled=true;try{const payload=makePayload(form);const img=await upload(form.elements.photo.files[0]);if(img)payload.image_key=img;await api('/rest/v1/mercaz_products?id=eq.'+encodeURIComponent(p.id),'PATCH',payload);notice('נשמר: '+p.id);await loadProducts()}catch(err){notice(err.message,true)}finally{button.disabled=false}};const copy=details.querySelector('.copy-sku');if(copy)copy.onclick=async()=>{try{await navigator.clipboard.writeText(p.sku||'');notice('המק״ט הועתק: '+p.sku)}catch{notice('לא ניתן להעתיק אוטומטית. המק״ט: '+p.sku,true)}};host.append(details)}}
+async function loadProducts(){products=await api('/rest/v1/mercaz_products?select=*&order=created_at.desc&limit=300');showProducts();updateSellerInsights()}
+function showProducts(){const term=$('findProduct').value.trim().toLowerCase();const matches=filteredProducts().filter(p=>(p.id+' '+(p.sku||'')+' '+p.name_he+' '+p.category).toLowerCase().includes(term));$('productCount').textContent=matches.length+' מוצרים';const host=$('products');host.replaceChildren();for(const p of matches){const details=document.createElement('details');details.className='product';details.innerHTML='<summary>'+clean(p.name_he)+' · מק״ט '+clean(p.sku||p.id)+' · '+(p.price_agorot==null?'ללא מחיר':money(p.price_agorot))+'</summary><form>'+fields(p)+'<button type="submit">שמירת שינויים</button><button type="button" class="secondary print-single-label">הדפסת תווית מק״ט + QR</button></form>';const form=details.querySelector('form');form.onsubmit=async e=>{e.preventDefault();const button=form.querySelector('button');button.disabled=true;try{const payload=makePayload(form);const img=await upload(form.elements.photo.files[0]);if(img)payload.image_key=img;await api('/rest/v1/mercaz_products?id=eq.'+encodeURIComponent(p.id),'PATCH',payload);notice('נשמר: '+p.id);await loadProducts()}catch(err){notice(err.message,true)}finally{button.disabled=false}};const printOne=details.querySelector('.print-single-label');if(printOne)printOne.onclick=()=>printProductLabels([p]);const copy=details.querySelector('.copy-sku');if(copy)copy.onclick=async()=>{try{await navigator.clipboard.writeText(p.sku||'');notice('המק״ט הועתק: '+p.sku)}catch{notice('לא ניתן להעתיק אוטומטית. המק״ט: '+p.sku,true)}};host.append(details)}}
 $('findProduct').oninput=showProducts;
+$('printFilteredLabels').onclick=()=>{const term=$('findProduct').value.trim().toLowerCase();printProductLabels(filteredProducts().filter(p=>(p.id+' '+(p.sku||'')+' '+p.name_he+' '+p.category).toLowerCase().includes(term)))};
+function filteredProducts(){
+ if(productFilter==='out')return products.filter(p=>p.active&&p.stock_tracking_enabled&&p.stock<=0);
+ if(productFilter==='photos')return products.filter(p=>p.active&&!String(p.image_key||'').trim());
+ if(productFilter==='untracked')return products.filter(p=>p.active&&!p.stock_tracking_enabled);
+ return products;
+}
+function setProductFilter(value){
+ productFilter=value;$('findProduct').value='';
+ document.querySelector('[data-view="products"]').click();
+ showProducts();
+ $('findProduct').focus();
+}
+function setOrderFilter(value){
+ orderFilter=value;$('findOrder').value='';
+ document.querySelector('[data-view="orders"]').click();
+ showOrders();
+ $('findOrder').focus();
+}
+function updateSellerInsights(){
+ if(!$('sellerInsights'))return;
+ const active=products.filter(p=>p.active);
+ const out=active.filter(p=>p.stock_tracking_enabled&&p.stock<=0);
+ const photoMissing=active.filter(p=>!String(p.image_key||'').trim());
+ const untracked=active.filter(p=>!p.stock_tracking_enabled);
+ const attention=orders.filter(o=>o.fulfillment_status==='new'||o.fulfillment_status==='processing');
+ $('insightPending').textContent=attention.length;
+ $('insightOut').textContent=out.length;
+ $('insightPhotos').textContent=photoMissing.length;
+ $('insightUntracked').textContent=untracked.length;
+ const actions=$('priorityActions');actions.replaceChildren();
+ const cases=[
+   [attention.length,attention.length+' הזמנות ממתינות לטיפול','pending'],
+   [out.length,out.length+' מוצרים אזלו מהמלאי','out'],
+   [photoMissing.length,photoMissing.length+' מוצרים ללא תמונה','photos'],
+   [untracked.length,untracked.length+' מוצרים עם מלאי שטרם אומת','untracked']
+ ];
+ for(const [count,title,key] of cases){
+   if(!count)continue;
+   const btn=document.createElement('button');btn.type='button';btn.className='priority-link secondary';btn.textContent=title+' ←';
+   btn.onclick=()=>key==='pending'?setOrderFilter('pending'):setProductFilter(key);
+   actions.append(btn);
+ }
+ if(!actions.children.length)actions.textContent='אין כרגע משימות דחופות במוצרים ובהזמנות האחרונות.';
+}
+for(const tile of document.querySelectorAll('[data-insight]')){
+ tile.onclick=()=>tile.dataset.insight==='pending'?setOrderFilter('pending'):setProductFilter(tile.dataset.insight);
+}
+function printProductLabels(items){
+ if(!items.length){notice('אין מוצרים מתאימים להדפסה',true);return}
+ if(typeof QRCode!=='function'){notice('מחולל QR לא נטען. רעננו את העמוד.',true);return}
+ const sheet=$('printSheet');sheet.replaceChildren();
+ const safe=items.slice(0,150);
+ for(const p of safe){
+  const item=document.createElement('article');item.className='printed-label';
+  const words=document.createElement('div');words.className='printed-label-info';
+  const brand=document.createElement('small');brand.textContent='מרכז חב״ד משיח';
+  const title=document.createElement('strong');title.textContent=p.name_he;
+  const sku=document.createElement('bdi');sku.textContent='מק״ט: '+p.sku;
+  words.append(brand,title,sku);
+  const qr=document.createElement('div');qr.className='printed-label-qr';
+  item.append(words,qr);sheet.append(item);
+  // Encodes the public catalogue deep link; the product is looked up by immutable SKU.
+  new QRCode(qr,{text:location.origin+'/?sku='+encodeURIComponent(p.sku),width:92,height:92,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+ }
+ document.body.classList.add('printing-labels');
+ $('printSheet').setAttribute('aria-hidden','false');
+ requestAnimationFrame(()=>requestAnimationFrame(()=>window.print()));
+}
+window.addEventListener('afterprint',()=>{
+ document.body.classList.remove('printing-labels');
+ $('printSheet').setAttribute('aria-hidden','true');
+ $('printSheet').replaceChildren();
+});
 for(const [v,n] of Object.entries(CATEGORY))$('newCategory').add(new Option(n,v));
 $('newProduct').onsubmit=async e=>{e.preventDefault();const b=e.target.querySelector('button');b.disabled=true;try{const data=makePayload(e.target);let id=$('newId').value.trim();if(!id)id='p-'+crypto.randomUUID();if(!/^[\w/-]{1,90}$/.test(id))throw Error('מזהה פנימי לא תקין');data.id=id;const img=await upload(e.target.elements.photo.files[0]);if(img)data.image_key=img;await api('/rest/v1/mercaz_products','POST',data);e.target.reset();await loadProducts();const created=products.find(p=>p.id===id);notice('המוצר נוסף · מק״ט: '+(created?.sku||'נוצר אוטומטית'))}catch(err){notice(err.message,true)}finally{b.disabled=false}};
 function statusLabel(p){return {'pending_payment':'ממתין לתשלום','paid':'שולם','failed':'התשלום נכשל','refunded':'הוחזר'}[p]||p}
 function fulfillmentLabel(s){return {'new':'חדשה','processing':'בטיפול','shipped':'נשלחה','completed':'הושלמה','cancelled':'בוטלה'}[s]||s}
-async function loadOrders(){orders=await api('/rest/v1/mercaz_orders?select=*&order=created_at.desc&limit=100');const paid=orders.filter(x=>x.payment_status==='paid');$('ordersCount').textContent=orders.length;$('paidTotal').textContent=money(paid.reduce((x,o)=>x+o.total_agorot,0));$('pendingCount').textContent=orders.filter(x=>x.payment_status==='pending_payment').length;showOrders()}
-async function showOrders(){const host=$('orders');host.replaceChildren();const q=$('findOrder').value.toLowerCase().trim();for(const o of orders.filter(o=>(o.id+' '+o.customer_name+' '+o.customer_phone).toLowerCase().includes(q))){const block=document.createElement('div');block.className='order';const head=document.createElement('div');head.className='row';const title=document.createElement('strong');title.textContent=o.customer_name+' · '+money(o.total_agorot);head.append(title);const id=document.createElement('span');id.className='muted';id.textContent=o.id.slice(0,8)+' · '+new Date(o.created_at).toLocaleString('he-IL');head.append(id);block.append(head);
+async function loadOrders(){orders=await api('/rest/v1/mercaz_orders?select=*&order=created_at.desc&limit=100');const paid=orders.filter(x=>x.payment_status==='paid');$('ordersCount').textContent=orders.length;$('paidTotal').textContent=money(paid.reduce((x,o)=>x+o.total_agorot,0));$('pendingCount').textContent=orders.filter(x=>x.payment_status==='pending_payment').length;showOrders();updateSellerInsights()}
+async function showOrders(){const host=$('orders');host.replaceChildren();const q=$('findOrder').value.toLowerCase().trim();for(const o of orders.filter(o=>(!orderFilter||orderFilter!=='pending'||['new','processing'].includes(o.fulfillment_status))&&(o.id+' '+o.customer_name+' '+o.customer_phone).toLowerCase().includes(q))){const block=document.createElement('div');block.className='order';const head=document.createElement('div');head.className='row';const title=document.createElement('strong');title.textContent=o.customer_name+' · '+money(o.total_agorot);head.append(title);const id=document.createElement('span');id.className='muted';id.textContent=o.id.slice(0,8)+' · '+new Date(o.created_at).toLocaleString('he-IL');head.append(id);block.append(head);
 const info=document.createElement('p');info.className='muted';info.textContent='תשלום: '+statusLabel(o.payment_status)+' · סטטוס: '+fulfillmentLabel(o.fulfillment_status);block.append(info);
 const contact=document.createElement('p');contact.className='muted';contact.textContent=o.customer_phone+' · '+o.shipping_address+(o.notes?' · '+o.notes:'');block.append(contact);
 const itemList=document.createElement('div');itemList.className='muted';itemList.textContent='טוען פריטים...';block.append(itemList);
