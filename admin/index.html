@@ -21,6 +21,13 @@
 <form id="newProduct"><h2>הוספת מוצר חדש</h2><div class="field"><label for="newId">מזהה פנימי (אופציונלי)</label><input id="newId" name="id" maxlength="90" pattern="[a-zA-Z0-9_/-]+" placeholder="נוצר אוטומטית אם נשאר ריק"><small>המק״ט המסחרי ייווצר אוטומטית בפורמט MH-000089. אין צורך להקליד מק״ט ידנית.</small></div>
 <div class="grid"><div class="field"><label for="new-name_he">שם מוצר</label><input id="new-name_he" name="name_he" required></div><div class="field"><label for="new-name_fr">שם בצרפתית</label><input id="new-name_fr" name="name_fr"></div><div class="field"><label for="newCategory">קטגוריה</label><select id="newCategory" name="category"></select><div class="field"><label>תת־קטגוריה (מדבקות לפלאפון)</label><select name="subcategory"><option value="">ללא תת־קטגוריה</option><option value="HeroesOfMessiah">גיבורי אל משיח</option></select></div></div><div class="field"><label for="new-price">מחיר ₪</label><input id="new-price" name="price" type="number" min="0" step="0.01"></div><div class="field"><label for="new-stock">מלאי</label><input id="new-stock" name="stock" type="number" min="0" step="1" value="0"></div><div class="field"><label for="new-photo">תמונה JPG/PNG/WebP</label><input id="new-photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp"></div><div class="field"><label for="new-description">תיאור</label><input id="new-description" name="description"></div><div class="field"><label for="new-image_key">קישור תמונה קיים (אופציונלי)</label><input id="new-image_key" name="image_key"></div><div class="field"><label><input type="checkbox" name="active" checked> להציג בחנות</label></div></div><button>הוספת מוצר</button></form></section>
 <section id="onlyAdmin" class="hidden"><h2>הגדרות מנהל ראשי</h2>
+<section class="hero-import" aria-labelledby="heroImportTitle">
+<h3 id="heroImportTitle">גיבורי אל משיח · יבוא 18 תמונות</h3>
+<p class="muted">בחרו את 18 קובצי ה־WebP הממוינים מחבילת התמונות. הקבצים יותאמו למוצרים לפי שמות קבועים; שלושת המוצרים הקיימים יעודכנו ו־15 וריאציות חדשות יישארו מוסתרות עד קביעת מחיר ואישור פרסום.</p>
+<div class="field"><label for="heroPhotoFiles">בחירת תמונות (WebP)</label><input id="heroPhotoFiles" type="file" multiple accept="image/webp,.webp"></div>
+<button id="importHeroPhotos" type="button">יבוא תמונות לפי מק״ט</button>
+<p id="heroPhotoImportStatus" class="status" role="status"></p>
+</section>
 <div class="delivery-settings">
 <h3>שיטות משלוח ואיסוף</h3>
 <p class="muted">אפשר להגדיר זמינות, אזורי שירות, הוראות ודמי מסירה. השאירו מחיר ריק כאשר יתואם בנפרד. אין חיוב מקוון באתר.</p>
