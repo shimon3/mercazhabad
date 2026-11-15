@@ -1,0 +1,66 @@
+.admin-console {
+  --ink: #202218;
+  --paper: #f4f0e4;
+  --surface: #fffdf5;
+  --line: #c5bfac;
+  --gold: #edc54d;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Arial, sans-serif;
+}
+.admin-console header {
+  background: var(--gold);
+  color: var(--ink);
+  border-bottom: 2px solid var(--ink);
+  padding: 15px clamp(16px, 5vw, 72px);
+}
+.admin-console header strong { display: block; font-size: clamp(1.1rem, 3vw, 1.45rem); }
+.admin-console header span { display: block; margin-top: 3px; font-size: .85rem; }
+.admin-console header a { color: inherit; border: 1px solid; padding: 10px 12px; white-space: nowrap; }
+.admin-console main { padding: clamp(16px, 4vw, 42px); }
+.admin-console h1 { font-size: clamp(1.8rem, 5vw, 2.8rem); margin: 0 0 12px; letter-spacing: -.035em; }
+.admin-console h2 { margin: 0 0 14px; }
+.admin-console section, .admin-console .product {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 0;
+  padding: clamp(14px, 3vw, 26px);
+}
+.admin-console .login { max-width: 480px; margin: clamp(12px, 8vh, 82px) auto; border-top: 5px solid var(--gold); }
+.admin-console .login p { line-height: 1.55; }
+.admin-console .login form { margin-top: 22px; }
+.admin-console .login .field { margin-bottom: 16px; }
+.admin-console .login form button { width: 100%; }
+.admin-console .status:empty { display: none; }
+.admin-console input, .admin-console select, .admin-console button { border-radius: 0; min-height: 44px; }
+.admin-console input, .admin-console select { border-color: #8b887a; }
+.admin-console input[type=checkbox] { min-height: auto; }
+.admin-console button { background: var(--ink); color: #fffdf5; }
+.admin-console button.secondary { background: var(--paper); color: var(--ink); border: 1px solid var(--line); }
+.admin-console :focus-visible { outline: 3px solid #346457; outline-offset: 3px; }
+.admin-console .dashboard-heading { border-bottom: 2px solid var(--ink); padding-bottom: 13px; margin-bottom: 16px; }
+.admin-console .dashboard-heading h1 { margin: 0; }
+.admin-console #logout { margin-inline-start: auto; }
+.admin-console .pill { border-radius: 0; background: var(--gold); }
+.admin-console .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line); margin-top: 16px; }
+.admin-console .stat { min-width: 0; border-radius: 0; background: var(--surface); overflow-wrap: anywhere; }
+.admin-console .stat + .stat { border-inline-start: 1px solid var(--line); }
+.admin-console .stat strong { font-size: clamp(1.12rem, 4vw, 1.85rem); }
+.admin-console .navtabs { margin-bottom: 0; gap: 4px; }
+.admin-console .navtabs button { background: var(--paper); color: var(--ink); border: 1px solid var(--line); }
+.admin-console .navtabs button.active { background: var(--gold); border-color: var(--ink); font-weight: bold; }
+.admin-console [data-panel] { margin-top: 6px; }
+.admin-console .toolbar { padding-bottom: 14px; margin-bottom: 12px; border-bottom: 1px solid var(--line); }
+.admin-console .toolbar h2 { margin: 0; }
+.admin-console .toolbar a { color: var(--ink); font-weight: bold; }
+.admin-console .fulfillment-select { width: min(200px, 100%); }
+.admin-console #newProduct { padding-top: 22px; margin-top: 22px; border-top: 2px solid var(--ink); }
+.admin-console #notice:not(:empty) { position: sticky; bottom: 12px; padding: 12px; border: 1px solid var(--line); background: var(--surface); }
+@media (max-width: 640px) {
+  .admin-console .stat { padding: 9px; font-size: .83rem; }
+  .admin-console .toolbar h2 { flex-basis: 100%; }
+  .admin-console .toolbar input { flex: 1 1 100%; max-width: none; }
+  .admin-console .navtabs button { flex: 1; }
+}
+.admin-console header nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.admin-console header nav a { font-size: .85rem; }
