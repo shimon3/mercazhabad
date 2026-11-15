@@ -54,9 +54,15 @@ function missingPhoto(product) {
 }
 function photo(product, lazy = false) {
   const fallback = missingPhoto(product);
-  if (!product.image_key || !/^(\/|https:\/\/)/.test(product.image_key)) return fallback;
+  if (!product.image_key) return fallback;
+  // Permit existing relative catalogue paths, root paths and trusted HTTPS images.
+  // Never allow javascript:, data:, protocol-relative URLs or unrelated remote hosts.
+  let url;
+  try { url = new URL(product.image_key, location.origin); }
+  catch { return fallback; }
+  if (url.protocol !== 'https:' || ![location.origin,'https://bdalhyqpruefdbyirykp.supabase.co'].includes(url.origin)) return fallback;
   const image = element('img');
-  image.src = product.image_key;
+  image.src = url.href;
   image.alt = product.name_he;
   if (lazy) image.loading = 'lazy';
   image.addEventListener('error', () => image.replaceWith(fallback), {once:true});
