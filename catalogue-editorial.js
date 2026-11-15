@@ -207,7 +207,21 @@ function updateCart(key, amount) {
 }
 
 function updateCount() {
-  byId('count').textContent = Object.values(cart).reduce((total, amount) => total + amount, 0);
+  const choices = new Map(products.flatMap(product => options(product).map(choice => [choice.key, choice])));
+  let count = 0;
+  let total = 0;
+  for (const [key, quantity] of Object.entries(cart)) {
+    if (!choices.has(key)) continue;
+    count += quantity;
+    total += choices.get(key).price * quantity;
+  }
+  byId('count').textContent = count;
+  byId('floating-cart-count').textContent = count;
+  byId('floating-cart-total').textContent = format(total);
+  const floating = byId('floating-cart');
+  floating.hidden = count === 0;
+  floating.setAttribute('aria-label', 'פתיחת סל הקניות, ' + count + ' פריטים, ' + format(total));
+  document.body.classList.toggle('has-floating-cart', count > 0);
 }
 
 function showCart() {
@@ -219,15 +233,19 @@ function showCart() {
     if (!choice) continue;
     total += choice.price * count;
     const line = element('div', '', 'cart-line');
-    line.append(element('strong', [choice.product.name_he, choice.label].filter(Boolean).join(' · ')));
-    line.append(element('p', format(choice.price * count)));
+    const thumb = element('span', '', 'cart-thumb');
+    thumb.append(photo(choice.product, true));
+    const details = element('div', '', 'cart-line-details');
+    details.append(element('strong', [choice.product.name_he, choice.label].filter(Boolean).join(' · ')));
+    details.append(element('p', format(choice.price * count), 'cart-line-price'));
+    line.append(thumb, details);
     const quantity = element('div', '', 'quantity');
     const change = (label, value, description) => {
       const control = button(label, () => {
         updateCart(key, value);
         showCart();
-        const replacement = [...byId('dialog-body').querySelectorAll('button')].find(node => node.dataset.key === key && node.getAttribute('aria-label') === description);
-        (replacement || byId('close')).focus();
+        const replacement = [...byId('cart-dialog-body').querySelectorAll('button')].find(node => node.dataset.key === key && node.getAttribute('aria-label') === description);
+        (replacement || byId('close-cart')).focus();
       });
       control.setAttribute('aria-label', description);
       control.dataset.key = key;
@@ -238,8 +256,8 @@ function showCart() {
     line.append(quantity);
     body.append(line);
   }
-  if (![...Object.keys(cart)].some(key => choices.has(key))) body.append(element('p', 'אין מוצרים זמינים בסל.'));
-  body.append(element('p', 'סה״כ ' + format(total), 'cart-total'));
+  if (![...Object.keys(cart)].some(key => choices.has(key))) body.append(element('p', 'אין מוצרים זמינים בסל.', 'cart-empty'));
+
   const checkout = button('המשך להזמנה', () => {
     const lines = Object.entries(cart).filter(([key]) => choices.has(key)).map(([key, quantity]) => ({key, quantity}));
     if (!lines.length) { message.textContent = 'הפריטים שבסל אינם זמינים כרגע להזמנה.'; return; }
@@ -254,12 +272,22 @@ function showCart() {
   checkout.disabled = ![...Object.keys(cart)].some(key => choices.has(key));
   const message = element('p', '', 'cart-note');
   message.setAttribute('role', 'status');
-  body.append(checkout, message, element('p', 'אין חיוב בכרטיס בשלב זה.', 'cart-note'));
-  openDialog('סל קניות', body);
+  const summary = element('div', '', 'cart-drawer-footer');
+  const summaryRow = element('div', '', 'cart-subtotal');
+  summaryRow.append(element('span', 'סך הכל'), element('strong', format(total)));
+  summary.append(summaryRow, checkout, message, element('p', 'אין חיוב בכרטיס בשלב זה.', 'cart-note'));
+  byId('cart-dialog-body').replaceChildren(body, summary);
+  byId('drawer-count').textContent = '(' + Object.entries(cart).filter(([key]) => choices.has(key)).reduce((sum, [,qty]) => sum + qty, 0) + ')';
+  if (!byId('cart-dialog').open) byId('cart-dialog').showModal();
 }
 
 byId('close').addEventListener('click', () => dialog.close());
 byId('basket').addEventListener('click', showCart);
+byId('floating-cart').addEventListener('click', showCart);
+byId('close-cart').addEventListener('click', () => byId('cart-dialog').close());
+byId('cart-dialog').addEventListener('click', event => {
+  if (event.target === byId('cart-dialog')) byId('cart-dialog').close();
+});
 byId('feature').addEventListener('click', () => details(products.find(product => product.id === 's/3-temple')));
 byId('search').addEventListener('input', renderProducts);
 byId('sort').addEventListener('change', renderProducts);
