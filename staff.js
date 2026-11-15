@@ -17,8 +17,40 @@ $('mfa').classList.add('hidden');$('dashboard').classList.remove('hidden');$('ro
 async function showMfa(user){$('mfa').classList.remove('hidden');$('dashboard').classList.add('hidden');$('totpSetup').classList.add('hidden');$('totpVerify').classList.add('hidden');$('startMfa').classList.add('hidden');
 const active=(Array.isArray(user.factors)?user.factors:[]).find(f=>f.factor_type==='totp'&&f.status==='verified');if(active){pendingFactor=active.id;$('mfaInfo').textContent='יש להזין את הקוד בן 6 הספרות מאפליקציית האימות.';$('totpVerify').classList.remove('hidden');try{await challenge()}catch(e){notice('לא ניתן לשלוח בקשת אימות: '+e.message,true,'mfaStatus')}}else{$('startMfa').classList.remove('hidden');$('mfaInfo').textContent='לפני כניסה ראשונה נדרש להפעיל אימות דו־שלבי באפליקציית Authenticator.'}}
 async function challenge(){const c=await api('/auth/v1/factors/'+encodeURIComponent(pendingFactor)+'/challenge','POST',{});challengeId=c.id}
-$('startMfa').onclick=async()=>{try{const f=await api('/auth/v1/factors','POST',{factor_type:'totp',friendly_name:'Mercaz Habad'});pendingFactor=f.id;$('totpSecret').textContent=f.totp.secret;$('totpSetup').classList.remove('hidden');$('startMfa').classList.add('hidden');await challenge();$('totpVerify').classList.remove('hidden')}catch(e){notice(e.message,true,'mfaStatus')}};
-$('totpVerify').onsubmit=async ev=>{ev.preventDefault();const b=ev.target.querySelector('button');b.disabled=true;try{const v=await api('/auth/v1/factors/'+encodeURIComponent(pendingFactor)+'/verify','POST',{challenge_id:challengeId,code:$('totpCode').value.trim()});if(!v.access_token)throw Error('אימות נכשל');token=v.access_token;sessionStorage.setItem('merkaz_staff_token',token);$('totpCode').value='';await initStaff()}catch(e){notice(e.message,true,'mfaStatus');try{await challenge()}catch{}}finally{b.disabled=false}};
+
+function showEnrollment(f){
+ if(!f?.totp?.secret || !f.totp.uri?.startsWith('otpauth://totp/')) throw Error('לא התקבל קוד QR תקין. נסו שוב.');
+ const box=$('totpQr');box.replaceChildren();
+ if(typeof QRCode!=='function')throw Error('רכיב ה־QR לא נטען. נסו לרענן את הדף.');
+ new QRCode(box,{text:f.totp.uri,width:220,height:220,colorDark:'#151515',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+ $('totpSecret').textContent=f.totp.secret;
+ $('totpManual').classList.add('hidden');
+ $('totpSetup').classList.remove('hidden');
+ $('startMfa').classList.add('hidden');
+ $('totpVerify').classList.remove('hidden');
+}
+$('showTotpSecret').onclick=()=>{$('totpManual').classList.toggle('hidden')};
+async function clearUnverifiedFactors(){
+ const user=await who();
+ const old=(Array.isArray(user.factors)?user.factors:[]).filter(f=>f.factor_type==='totp'&&f.status==='unverified');
+ for(const factor of old) await api('/auth/v1/factors/'+encodeURIComponent(factor.id),'DELETE');
+}
+async function beginEnrollment(){
+ $('mfaStatus').textContent='';
+ await clearUnverifiedFactors();
+ const f=await api('/auth/v1/factors','POST',{factor_type:'totp',friendly_name:'Mercaz Habad'});
+ pendingFactor=f.id;
+ showEnrollment(f);
+ await challenge();
+}
+$('startMfa').onclick=async()=>{try{await beginEnrollment()}catch(e){notice('לא ניתן להגדיר אימות: '+e.message,true,'mfaStatus')}};
+$('restartMfa').onclick=async()=>{
+ $('totpSecret').textContent='';
+ $('totpQr').replaceChildren();
+ $('totpSetup').classList.add('hidden');$('totpVerify').classList.add('hidden');
+ try{await beginEnrollment()}catch(e){notice('לא ניתן להנפיק קוד חדש: '+e.message,true,'mfaStatus');$('startMfa').classList.remove('hidden')}
+};
+$('totpVerify').onsubmit=async ev=>{ev.preventDefault();const b=ev.target.querySelector('button');b.disabled=true;try{const v=await api('/auth/v1/factors/'+encodeURIComponent(pendingFactor)+'/verify','POST',{challenge_id:challengeId,code:$('totpCode').value.trim()});if(!v.access_token)throw Error('אימות נכשל');$('totpQr').replaceChildren();$('totpSecret').textContent='';token=v.access_token;sessionStorage.setItem('merkaz_staff_token',token);$('totpCode').value='';await initStaff()}catch(e){notice(e.message,true,'mfaStatus');try{await challenge()}catch{}}finally{b.disabled=false}};
 $('loginForm').onsubmit=async ev=>{ev.preventDefault();const b=ev.target.querySelector('button');b.disabled=true;try{const v=await api('/auth/v1/token?grant_type=password','POST',{email:$('email').value.trim(),password:$('password').value},false);token=v.access_token;sessionStorage.setItem('merkaz_staff_token',token);$('password').value='';await initStaff()}catch(e){const message=String(e?.message||'שגיאה');notice('לא ניתן להשלים את הכניסה: '+message,true,'loginStatus');token='';sessionStorage.removeItem('merkaz_staff_token')}finally{b.disabled=false}};
 $('logout').onclick=async()=>{try{await api('/auth/v1/logout','POST',{})}catch{}sessionStorage.removeItem('merkaz_staff_token');token='';location.reload()};
 function fields(p){const categoryOptions=Object.entries(CATEGORY).map(([v,label])=>'<option value="'+clean(v)+'" '+(v===p.category?'selected':'')+'>'+clean(label)+'</option>').join('');
