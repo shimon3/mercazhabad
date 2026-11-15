@@ -11,7 +11,8 @@ the merchant. A corresponding private key is required to decrypt.
 param(
   [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string]$AgeRecipient,
   [string]$OutputDirectory = "$HOME\MerkazHabadBackups",
-  [string]$StorageExportDirectory = ""
+  [string]$StorageExportDirectory = "",
+  [string]$UnpublishedPhotosDirectory = ""
 )
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
@@ -35,6 +36,7 @@ $dump = Join-Path $work 'database.dump'
 $list = Join-Path $work 'database-contents.txt'
 $repoDir = Join-Path $work 'repository'
 $storageDir = Join-Path $work 'storage-export'
+$unpublishedDir = Join-Path $work 'unpublished-photos'
 $zip = Join-Path $work 'backup.zip'
 $encrypted = Join-Path $work 'backup.zip.age'
 New-Item -ItemType Directory -Path $work -Force | Out-Null
@@ -55,6 +57,11 @@ try {
       throw 'Storage export folder is empty'
     }
   }
+  if (-not [string]::IsNullOrWhiteSpace($UnpublishedPhotosDirectory)) {
+    if (-not (Test-Path -LiteralPath $UnpublishedPhotosDirectory -PathType Container)) {throw 'Unpublished photos folder missing'}
+    New-Item -ItemType Directory -Path $unpublishedDir | Out-Null
+    Copy-Item -Path (Join-Path $UnpublishedPhotosDirectory '*') -Destination $unpublishedDir -Recurse -Force
+  }
   & pg_dump --format=custom --no-owner --no-acl --file $dump
   if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $dump)) {throw 'pg_dump failed'}
   & pg_restore --list $dump | Out-File -FilePath $list -Encoding utf8
@@ -70,16 +77,15 @@ try {
     'Repository: GitHub main branch, shallow clone including static assets',
     'Supabase Storage objects reported: ' + $storageCount,
     'Supabase Storage original binary export included: ' + [bool]$StorageExportDirectory,
+    'Unpublished original photos (if supplied) included: ' + [bool]$UnpublishedPhotosDirectory,
     'ARCHIVE LISTABILITY CHECK PASSED. FULL RESTORATION HAS NOT BEEN TESTED.',
     'Restore only in an isolated non-production PostgreSQL/Supabase environment.'
   )
   $manifest | Set-Content -Path (Join-Path $work 'MANIFEST.txt') -Encoding UTF8
-  Compress-Archive -LiteralPath $dump,$list,$repoDir,(Join-Path $work 'git-commit.txt'),(Join-Path $work 'MANIFEST.txt') -DestinationPath $zip -CompressionLevel Optimal
-  if (Test-Path $storageDir) {
-    # Recreate zip with the storage directory included.
-    Remove-Item -LiteralPath $zip -Force
-    Compress-Archive -LiteralPath $dump,$list,$repoDir,$storageDir,(Join-Path $work 'git-commit.txt'),(Join-Path $work 'MANIFEST.txt') -DestinationPath $zip -CompressionLevel Optimal
-  }
+  $inputs = @($dump,$list,$repoDir,(Join-Path $work 'git-commit.txt'),(Join-Path $work 'MANIFEST.txt'))
+  if (Test-Path -LiteralPath $storageDir) {$inputs += $storageDir}
+  if (Test-Path -LiteralPath $unpublishedDir) {$inputs += $unpublishedDir}
+  Compress-Archive -LiteralPath $inputs -DestinationPath $zip -CompressionLevel Optimal
   & age -r $AgeRecipient -o $encrypted $zip
   if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $encrypted)) {throw 'Backup encryption failed'}
   New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
