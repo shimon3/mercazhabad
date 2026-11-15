@@ -98,3 +98,9 @@ body.has-floating-cart{padding-bottom:100px}
 .item>.whatsapp-product{margin:0 12px 12px}
 .whatsapp-product:hover,.whatsapp-product:focus-visible{background:#cee3d1}
 .dialog-actions>.whatsapp-product{flex:1}
+
+
+/* Nested phone-sticker family — uses the existing editorial palette. */
+.index button.subcategory{padding-inline-start:22px;font-size:.9rem;background:#f0ead9;border-inline-start:3px solid var(--gold)}
+.index button.subcategory[aria-pressed=true]{background:var(--gold);font-weight:800;border-inline-start-color:var(--ink)}
+@media(max-width:660px){.index button.subcategory{padding-inline-start:12px}}
