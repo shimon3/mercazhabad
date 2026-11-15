@@ -173,7 +173,9 @@ function renderProducts() {
   const filters = byId('badge-filters');
   filters.hidden = category !== 'PhoneStickers';
   for (const control of filters.children) control.setAttribute('aria-pressed', control.dataset.badge === badge);
-  const terms = normalize(byId('search').value).trim().split(/\s+/);
+  const query = normalize(byId('search').value).trim();
+  byId('model-gallery').hidden = category !== 'PhoneStickers' || badge !== 'heroes' || Boolean(query);
+  const terms = query.split(/\s+/);
   const items = products.filter(product => {
     const fields = normalize([product.name_he, product.name_fr, product.id, product.sku, labels[product.category], product.subcategory === 'HeroesOfMessiah' ? 'גיבורי אל משיח' : '', badgeLabels[badgeFor(product)], badgeFor(product) === 'police' ? 'סמל משטרה' : ''].join(' '));
     return (!category || product.category === category) && (!badge || badgeFor(product) === badge) && terms.every(term => fields.includes(term));
@@ -218,6 +220,17 @@ function openDialog(title, body) {
   byId('dialog-body').replaceChildren(heading, body);
   if (!dialog.open) dialog.showModal();
 }
+
+byId('model-gallery').addEventListener('click', event => {
+  const link = event.target.closest('a');
+  if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  const image = element('img', '', 'model-gallery-full');
+  const title = link.textContent.trim();
+  image.src = link.href;
+  image.alt = title;
+  openDialog(title, image);
+});
 
 function details(product) {
   if (!product) return;
