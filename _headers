@@ -1,0 +1,25 @@
+# Cloudflare Pages: response headers for static assets and pages.
+# CSP allows the existing public catalogue and account scripts plus Supabase REST/Auth.
+# Update connect-src, form-action and img-src before adding a payment provider.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://bdalhyqpruefdbyirykp.supabase.co; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+
+/admin/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, nofollow
+
+/manager/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, nofollow
+
+/account/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, nofollow
+
+/vendor/*
+  X-Content-Type-Options: nosniff
