@@ -14,14 +14,16 @@ Dernière révision : 2026-11-15. Dépôt : shimon3/mercazhabad. Supabase : `bda
 ## Sauvegardes (sans service payant)
 Le plan Supabase Free **n'inclut pas** les sauvegardes quotidiennes automatiques. Documentation : https://supabase.com/kb/faqs/platform/free-plan-backups et https://supabase.com/docs/guides/platform/backups
 
-Procédure à exécuter depuis une machine autorisée disposant du CLI Supabase et d'un accès DB valide, en suivant la documentation officielle : https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore
+## Sauvegarde manuelle chiffrée — procédure actualisée
 
-1. Utiliser une connexion PostgreSQL **sécurisée**, conservée hors du dépôt Git et des journaux. Ne jamais publier le mot de passe, les clés d'administration ou un dump contenant des données clients.
-2. Sauvegarder séparément les rôles, le schéma et les données : `supabase db dump --remote="$DB_URL" -f roles.sql --role-only`, puis `supabase db dump --remote="$DB_URL" -f schema.sql`, puis `supabase db dump --remote="$DB_URL" -f data.sql --use-copy --data-only -x "storage.buckets_vectors" -x "storage.vector_indexes"`.
-3. Sauvegarder **séparément** les images et autres objets Supabase Storage : un dump PostgreSQL ne contient pas les fichiers binaires de Storage.
-4. Chiffrer les archives, conserver des copies hors site, définir une rétention et contrôler l'intégrité des fichiers.
-5. Tester une restauration **sur une base de test isolée**, sans remplacer la production, comparer le nombre de produits/commandes, tester l'accès aux images et les permissions RLS.
-6. Programmer des exports récurrents uniquement depuis une machine ou une CI disposant de secrets protégés, après validation du propriétaire.
+Utiliser `scripts/backup-merkaz-habad.ps1` du dépôt, documenté dans `docs/merchant-handover-readiness.md`, depuis un poste autorisé disposant de PostgreSQL CLI (`pg_dump`, `pg_restore`, `psql`), Git et `age`. Fournir une clé publique `age` appartenant au propriétaire, ainsi que les variables de connexion PostgreSQL dans la session, avec un fichier `PGPASSFILE` protégé.
+
+Le script produit une archive ZIP **chiffrée**, avec le dump PostgreSQL, la copie GitHub incluant les photos statiques et, s'il y a des objets dans Supabase Storage, exige leur export binaire. Il vérifie la lisibilité du dump avec `pg_restore --list` et un SHA-256.
+
+**Aucune sauvegarde chiffrée n'a été exécutée ni testée dans le cadre de cette mise à jour.** Un contrôle `pg_restore --list` ne remplace pas un test complet de restauration. Il faut restaurer sur un projet isolé distinct, et reconfigurer les fonctions, secrets, paramètres Auth et éléments Storage selon le besoin. Ne jamais essayer de restaurer directement sur la production.
+
+Documentation officielle : https://supabase.com/docs/guides/platform/backups et https://supabase.com/docs/guides/platform/clone-project
+
 
 ## Contrôles de validation manuelle
 - Compte visiteur non connecté : catalogue visible, commandes clients et interface vendeurs non visibles.
