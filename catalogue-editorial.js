@@ -54,9 +54,53 @@ function options(product) {
     ? [] : [{key: product.id, label: '', price: product.price_agorot, units: 1}];
 }
 
+function stockState(product) {
+  if (!product.stock_tracking_enabled) return 'untracked';
+  if (product.stock <= 0) return 'out';
+  if (product.category === 'PhoneStickers' && !product.id.startsWith('mix-') && product.stock < 4) return 'insufficient';
+  return 'available';
+}
+
+function stockSymbol() {
+  // Inline vector icon is drawn locally; no external image or tracking request.
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('width', '19');
+  svg.setAttribute('height', '19');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '1.8');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  svg.setAttribute('aria-hidden', 'true');
+  const lines = ['M3 7 12 2l9 5v10l-9 5-9-5V7Z','m3 7 9 5 9-5','M12 12v10','m7 2 4 4','m4 0 7-7'];
+  for (const d of lines) {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', d);
+    svg.append(path);
+  }
+  return svg;
+}
+function unavailableLabel(product) {
+  return stockState(product) === 'out' ? 'אזל מהמלאי' : 'אין מספיק מלאי למארז';
+}
+function stockBadge(product) {
+  if (!['out','insufficient'].includes(stockState(product))) return null;
+  const badge = element('span', '', 'out-of-stock-badge');
+  badge.append(stockSymbol(), document.createTextNode(unavailableLabel(product)));
+  return badge;
+}
+function soldOutButton(product) {
+  const control = button('', () => {}, 'add sold-out-action');
+  control.append(stockSymbol(), document.createTextNode(unavailableLabel(product)));
+  control.disabled = true;
+  control.setAttribute('aria-label', unavailableLabel(product) + ' — לא ניתן להזמין');
+  return control;
+}
+
 function priceLabel(product) {
   const choices = options(product);
-  if (!choices.length) return element('p', product.stock_tracking_enabled ? 'אזל מהמלאי' : 'מחיר בבירור', 'price');
+  if (!choices.length) return element('p', ['out','insufficient'].includes(stockState(product)) ? unavailableLabel(product) : 'מחיר בבירור', 'price');
   const prefix = choices.length > 1 ? 'החל מ־' : '';
   const line = element('p', prefix + format(choices[0].price), 'price');
   if (!prefix && product.old_price_agorot > choices[0].price) line.append(element('del', format(product.old_price_agorot)));
@@ -106,6 +150,9 @@ function card(product) {
   const image = button('', () => details(product), 'photo');
   image.setAttribute('aria-label', product.name_he);
   image.append(photo(product, true));
+  const badge = stockBadge(product);
+  if (badge) image.append(badge);
+  if (badge) node.classList.add('is-sold-out');
   const info = element('div', '', 'item-info');
   const title = element('h3');
   title.append(button(product.name_he, () => details(product)));
@@ -114,6 +161,7 @@ function card(product) {
   const choices = options(product);
   if (choices.length > 1) node.append(button('בחירת מארז ←', () => details(product), 'add'));
   if (choices.length === 1) node.append(button('הוספה לסל +', () => add(choices[0].key), 'add'));
+  if (!choices.length && badge) node.append(soldOutButton(product));
   return node;
 }
 
@@ -129,6 +177,8 @@ function details(product) {
   if (!product) return;
   const body = element('div', '', 'detail');
   body.append(photo(product), element('bdi', product.id, 'sku'), priceLabel(product));
+  const detailBadge = stockBadge(product);
+  if (detailBadge) body.append(detailBadge);
   if (product.description && product.description !== product.name_he) {
     const desc = element('p', product.description);
     desc.dir = 'auto';
@@ -139,6 +189,7 @@ function details(product) {
     const label = choice.label ? choice.label + ' · ' + format(choice.price) : 'הוספה לסל +';
     actions.append(button(label, () => { add(choice.key); dialog.close(); }));
   }
+  if (!actions.children.length && detailBadge) actions.append(soldOutButton(product));
   body.append(actions);
   openDialog(product.name_he, body);
 }
@@ -187,10 +238,11 @@ function showCart() {
     line.append(quantity);
     body.append(line);
   }
-  if (!Object.keys(cart).length) body.append(element('p', 'הסל עדיין ריק.'));
+  if (![...Object.keys(cart)].some(key => choices.has(key))) body.append(element('p', 'אין מוצרים זמינים בסל.'));
   body.append(element('p', 'סה״כ ' + format(total), 'cart-total'));
   const checkout = button('המשך להזמנה', () => {
-    const lines = Object.entries(cart).map(([key, quantity]) => ({key, quantity}));
+    const lines = Object.entries(cart).filter(([key]) => choices.has(key)).map(([key, quantity]) => ({key, quantity}));
+    if (!lines.length) { message.textContent = 'הפריטים שבסל אינם זמינים כרגע להזמנה.'; return; }
     if (lines.length > 30 || lines.some(line => line.quantity > 100)) {
       message.textContent = 'אפשר להזמין עד 30 סוגי פריטים ועד 100 יחידות מכל סוג.';
       return;
@@ -199,7 +251,7 @@ function showCart() {
     catch { message.textContent = 'לא ניתן להעביר את הסל. נסו שוב.'; return; }
     location.href = '/account/?checkout=1';
   }, 'ink-link checkout');
-  checkout.disabled = !Object.keys(cart).length;
+  checkout.disabled = ![...Object.keys(cart)].some(key => choices.has(key));
   const message = element('p', '', 'cart-note');
   message.setAttribute('role', 'status');
   body.append(checkout, message, element('p', 'אין חיוב בכרטיס בשלב זה.', 'cart-note'));
