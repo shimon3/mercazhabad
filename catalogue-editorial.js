@@ -354,7 +354,20 @@ try {
   const keys = new Set(products.flatMap(product => options(product).map(choice => choice.key)));
   cart = Object.fromEntries(Object.entries(initialCart).filter(([key, count]) => keys.has(key) && Number.isSafeInteger(count) && count > 0 && count <= 100));
   renderCategories();
-  renderProducts();
+  const skuFromQr = new URLSearchParams(location.search).get('sku');
+  if (skuFromQr && /^MH-[0-9]{6,}$/.test(skuFromQr)) {
+    const match = products.find(product => product.sku === skuFromQr);
+    if (match) {
+      byId('search').value = skuFromQr;
+      renderProducts();
+      details(match);
+    } else {
+      renderProducts();
+      byId('announcement').textContent = 'לא נמצא מוצר עם המק״ט המבוקש.';
+    }
+  } else {
+    renderProducts();
+  }
   updateCount();
 } catch {
   byId('result-count').textContent = 'לא ניתן לטעון את הקטלוג.';
