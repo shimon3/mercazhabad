@@ -379,5 +379,7 @@ try {
   }
   updateCount();
 } catch {
-  byId('result-count').textContent = 'לא ניתן לטעון את הקטלוג.';
+  byId('result-count').textContent = 'לא ניתן לטעון את הקטלוג. בדקו את החיבור ונסו לרענן.';
+  byId('categories').replaceChildren(element('p', 'הקטגוריות אינן זמינות כעת.', 'empty'));
+  byId('products').replaceChildren(element('p', 'אירעה שגיאה בטעינת המוצרים. נסו שוב מאוחר יותר.', 'empty'));
 }
