@@ -33,13 +33,43 @@ function button(text, action, className) {
   return node;
 }
 
+function missingPhoto(product) {
+  const fallback = element('span', '', 'photo-placeholder');
+  const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  icon.setAttribute('viewBox', '0 0 64 64');
+  icon.setAttribute('aria-hidden', 'true');
+  icon.setAttribute('width', '50');
+  icon.setAttribute('height', '50');
+  icon.setAttribute('fill', 'none');
+  icon.setAttribute('stroke', 'currentColor');
+  icon.setAttribute('stroke-width', '2.5');
+  for (const d of ['M9 12h46v40H9z','m12 25 8-9 9 10 7-6 10 12','M45 22h.1']) {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', d);
+    icon.append(path);
+  }
+  fallback.append(icon, element('span', 'תמונה בקרוב'));
+  fallback.title = product.name_he;
+  return fallback;
+}
 function photo(product, lazy = false) {
-  if (!product.image_key) return element('span', 'אין תמונה');
+  const fallback = missingPhoto(product);
+  if (!product.image_key || !/^(\/|https:\/\/)/.test(product.image_key)) return fallback;
   const image = element('img');
   image.src = product.image_key;
   image.alt = product.name_he;
   if (lazy) image.loading = 'lazy';
+  image.addEventListener('error', () => image.replaceWith(fallback), {once:true});
   return image;
+}
+function whatsappContact(product) {
+  const text = 'שלום, אשמח לקבל מידע על המוצר '+product.name_he+' (מק"ט: '+product.id+').';
+  const link = element('a', 'שאלה על המוצר ב־WhatsApp', 'whatsapp-product');
+  link.href = 'https://wa.me/972533770073?text=' + encodeURIComponent(text);
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.setAttribute('aria-label', 'פנייה ב־WhatsApp לגבי '+product.name_he);
+  return link;
 }
 
 function options(product) {
@@ -162,6 +192,7 @@ function card(product) {
   if (choices.length > 1) node.append(button('בחירת מארז ←', () => details(product), 'add'));
   if (choices.length === 1) node.append(button('הוספה לסל +', () => add(choices[0].key), 'add'));
   if (!choices.length && badge) node.append(soldOutButton(product));
+  node.append(whatsappContact(product));
   return node;
 }
 
@@ -190,6 +221,7 @@ function details(product) {
     actions.append(button(label, () => { add(choice.key); dialog.close(); }));
   }
   if (!actions.children.length && detailBadge) actions.append(soldOutButton(product));
+  actions.append(whatsappContact(product));
   body.append(actions);
   openDialog(product.name_he, body);
 }
