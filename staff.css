@@ -56,3 +56,8 @@
 .delivery-option-form .field textarea{resize:vertical}
 .delivery-option-form button[type="submit"]{justify-self:start}
 @media(max-width:780px){.delivery-settings-grid{grid-template-columns:1fr}}
+
+/* Manual payment confirmation: distinct from ordinary fulfillment actions. */
+.manual-payment-button{background:#28563a;color:#fff;min-height:40px;font-weight:700}
+.manual-payment-button:hover,.manual-payment-button:focus-visible{background:#1b452c}
+.manual-payment-audit{padding:10px 12px;margin:9px 0;background:#e9f1e8;color:#21452a;border-inline-start:3px solid #357345;border-radius:6px;font-size:.84rem;line-height:1.6;overflow-wrap:anywhere}
