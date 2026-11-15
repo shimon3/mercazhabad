@@ -69,7 +69,7 @@ function photo(product, lazy = false) {
   return image;
 }
 function whatsappContact(product) {
-  const text = 'שלום, אשמח לקבל מידע על המוצר '+product.name_he+' (מק"ט: '+product.id+').';
+  const text = 'שלום, אשמח לקבל מידע על המוצר '+product.name_he+' (מק"ט: '+(product.sku||product.id)+').';
   const link = element('a', 'שאלה על המוצר ב־WhatsApp', 'whatsapp-product');
   link.href = 'https://wa.me/972533770073?text=' + encodeURIComponent(text);
   link.target = '_blank';
@@ -166,7 +166,7 @@ function renderProducts() {
   for (const control of filters.children) control.setAttribute('aria-pressed', control.dataset.badge === badge);
   const terms = normalize(byId('search').value).trim().split(/\s+/);
   const items = products.filter(product => {
-    const fields = normalize([product.name_he, product.name_fr, product.id, labels[product.category], badgeLabels[badgeFor(product.id)], badgeFor(product.id) === 'police' ? 'סמל משטרה' : ''].join(' '));
+    const fields = normalize([product.name_he, product.name_fr, product.id, product.sku, labels[product.category], badgeLabels[badgeFor(product.id)], badgeFor(product.id) === 'police' ? 'סמל משטרה' : ''].join(' '));
     return (!category || product.category === category) && (!badge || badgeFor(product.id) === badge) && terms.every(term => fields.includes(term));
   });
   const sort = byId('sort').value;
@@ -192,7 +192,7 @@ function card(product) {
   const info = element('div', '', 'item-info');
   const title = element('h3');
   title.append(button(product.name_he, () => details(product)));
-  info.append(element('bdi', product.id, 'sku'), title, priceLabel(product));
+  info.append(element('bdi', 'מק״ט '+(product.sku||product.id), 'sku'), title, priceLabel(product));
   node.append(image, info);
   const choices = options(product);
   if (choices.length > 1) node.append(button('בחירת מארז ←', () => details(product), 'add'));
@@ -213,7 +213,7 @@ function openDialog(title, body) {
 function details(product) {
   if (!product) return;
   const body = element('div', '', 'detail');
-  body.append(photo(product), element('bdi', product.id, 'sku'), priceLabel(product));
+  body.append(photo(product), element('bdi', 'מק״ט '+(product.sku||product.id), 'sku'), priceLabel(product));
   const detailBadge = stockBadge(product);
   if (detailBadge) body.append(detailBadge);
   if (product.description && product.description !== product.name_he) {
@@ -346,7 +346,7 @@ byId('reset').addEventListener('click', () => {
 });
 
 try {
-  const response = await fetch(SUPABASE_URL + '/rest/v1/mercaz_products?select=id,category,name_he,name_fr,description,price_agorot,old_price_agorot,image_key,active,stock,stock_tracking_enabled&active=eq.true&order=created_at.asc', {
+  const response = await fetch(SUPABASE_URL + '/rest/v1/mercaz_products?select=id,sku,category,name_he,name_fr,description,price_agorot,old_price_agorot,image_key,active,stock,stock_tracking_enabled&active=eq.true&order=created_at.asc', {
     headers: {apikey: SUPABASE_PUBLISHABLE_KEY},
   });
   if (!response.ok) throw new Error('Catalog fetch failed');
