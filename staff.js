@@ -94,6 +94,59 @@ async function loadDeliverySettings(){
   }
  }catch(err){notice('לא ניתן לטעון הגדרות מסירה: '+err.message,true,'deliverySettingsStatus')}
 }
+const HERO_PHOTO_TARGETS=Object.freeze({
+ 'messiah-black-gold.webp':'s/3',
+ 'messiah-gold-black.webp':'s/1',
+ 'messiah-israel-blue-white.webp':'hero/israel',
+ 'messiah-white-black.webp':'s/2',
+ 'messiah-silver-white.webp':'hero/silver',
+ 'messiah-blue-rings.webp':'hero/blue',
+ 'messiah-green-rings.webp':'hero/green',
+ 'messiah-pink.webp':'hero/pink',
+ 'messiah-orange-rings.webp':'hero/orange',
+ 'messiah-brown-rings.webp':'hero/brown',
+ 'messiah-yellow-blue-red.webp':'hero/yellow',
+ 'messiah-turquoise-rings.webp':'hero/turquoise',
+ 'messiah-magenta-rings.webp':'hero/magenta',
+ 'messiah-temple.webp':'hero/temple',
+ 'messiah-set-10-colors.webp':'hero/set-10',
+ 'messiah-770.webp':'hero/770',
+ 'messiah-black-white.webp':'hero/black-white',
+ 'messiah-purple-pink.webp':'hero/purple'
+});
+const heroImporter=$('importHeroPhotos');
+if(heroImporter)heroImporter.onclick=async()=>{
+ const files=Array.from($('heroPhotoFiles').files||[]);
+ const status=$('heroPhotoImportStatus');
+ const report=(text,bad=false)=>{status.textContent=text;status.className='status '+(bad?'error':'ok')};
+ if(role!=='admin'||getAal()!=='aal2'){report('נדרשת כניסת מנהל עם אימות דו־שלבי.',true);return}
+ if(!files.length){report('בחרו את קובצי התמונה שהתקבלו מחבילת ה־WebP.',true);return}
+ if(files.length>18){report('החבילה מכילה לכל היותר 18 קובצי תמונה.',true);return}
+ const targets=new Set(),jobs=[];
+ for(const file of files){
+  const id=HERO_PHOTO_TARGETS[file.name.toLowerCase()];
+  if(!id||targets.has(id)){report('שם קובץ אינו מוכר או כפול: '+file.name,true);return}
+  if(file.type!=='image/webp'||file.size>5*1024*1024){report('קובץ WebP לא תקין (עד 5MB): '+file.name,true);return}
+  const p=products.find(item=>item.id===id&&item.category==='PhoneStickers'&&item.subcategory==='HeroesOfMessiah');
+  if(!p){report('מוצר מתאים לא נמצא במסד הנתונים: '+file.name,true);return}
+  targets.add(id);jobs.push([file,p]);
+ }
+ heroImporter.disabled=true;
+ let done=0;const failed=[];
+ try{
+  for(const [file,p] of jobs){
+   report('מעלה '+(done+failed.length+1)+'/'+jobs.length+': '+file.name);
+   try{
+    const url=await upload(file);
+    if(!url)throw Error('לא נוצר קישור לתמונה');
+    await api('/rest/v1/mercaz_products?id=eq.'+encodeURIComponent(p.id),'PATCH',{image_key:url});
+    done++;
+   }catch(e){failed.push(file.name+' ('+e.message+')')}
+  }
+  await loadProducts();
+  report('עודכנו '+done+' מתוך '+jobs.length+' תמונות'+(failed.length?'. שגיאות: '+failed.join('; '):'. כל התמונות נשמרו.'),failed.length>0);
+ }finally{heroImporter.disabled=false}
+};
 function fields(p){const categoryOptions=Object.entries(CATEGORY).map(([v,label])=>'<option value="'+clean(v)+'" '+(v===p.category?'selected':'')+'>'+clean(label)+'</option>').join('');
 return '<div class="sku-display"><strong>מק״ט: '+clean(p.sku||'טרם הוקצה')+'</strong><button type="button" class="secondary copy-sku">העתקת מק״ט</button><small>מספר קבוע וייחודי שהמערכת מקצה אוטומטית. מזהה פנימי: '+clean(p.id)+'</small></div><div class="grid"><div class="field"><label>שם בעברית</label><input name="name_he" required maxlength="250" value="'+clean(p.name_he)+'"></div>'+
 '<div class="field"><label>שם בצרפתית</label><input name="name_fr" maxlength="250" value="'+clean(p.name_fr)+'"></div>'+
