@@ -9,7 +9,7 @@
 <script type="module" src="catalogue-editorial.js"></script>
 </head>
 <body>
-<header class="mast"><a href="#" class="brand">מרכז חב״ד משיח</a><nav aria-label="ניווט ראשי"><a class="account-link" href="/account/">החשבון שלי</a><a href="#catalog">לקטלוג ↓</a><button id="basket" type="button">סל קניות <b id="count">0</b></button></nav></header>
+<header class="mast"><a href="#" class="brand">מרכז חב״ד משיח</a><nav aria-label="ניווט ראשי"><a class="account-link" href="/account/">החשבון שלי</a><a href="#catalog">לקטלוג ↓</a><button id="basket" type="button" aria-label="פתיחת סל הקניות"><span aria-hidden="true">🛒</span> סל קניות <b id="count">0</b></button></nav></header>
 <main>
 <section class="cover" aria-labelledby="cover-title">
 <div class="cover-copy"><p>מרכז חב״ד משיח</p><h1 id="cover-title">מוצרי דגל<br>המשיח<span>.</span></h1><p>מפרסם את הגאולה בעזרת מוצרי דגל המשיח.</p><a class="ink-link" href="#catalog">גלו את הקטלוג <span aria-hidden="true">↓</span></a></div>
@@ -23,6 +23,16 @@
 </section>
 </main>
 <footer><strong>מרכז חב״ד משיח</strong><a href="tel:+972533770073" dir="ltr">053-377-0073</a><a href="/privacy/">מדיניות פרטיות</a></footer>
+<button id="floating-cart" class="floating-cart" type="button" hidden aria-label="פתיחת סל הקניות">
+  <span class="floating-cart-icon" aria-hidden="true">🛒</span>
+  <span class="floating-cart-description"><strong>הסל שלי <span id="floating-cart-count">0</span> פריטים</strong><small>לצפייה בסל ולעדכון כמויות</small></span>
+  <strong id="floating-cart-total" class="floating-cart-total" dir="ltr">₪0</strong>
+  <span class="floating-cart-arrow" aria-hidden="true">←</span>
+</button>
+<dialog id="cart-dialog" class="cart-drawer" aria-labelledby="cart-dialog-title">
+  <div class="cart-drawer-header"><div><span class="cart-overline">ההזמנה שלך</span><h2 id="cart-dialog-title">סל הקניות <span id="drawer-count"></span></h2></div><button id="close-cart" type="button" class="cart-close" aria-label="סגירת סל הקניות">×</button></div>
+  <div id="cart-dialog-body" class="cart-drawer-content"></div>
+</dialog>
 <dialog id="dialog"><div class="dialog-top"><button id="close" type="button" aria-label="סגירה">×</button></div><div id="dialog-body"></div></dialog>
 <p class="sr-only" id="announcement" role="status"></p>
 </body>
