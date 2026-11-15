@@ -43,18 +43,20 @@ function photo(product, lazy = false) {
 }
 
 function options(product) {
+  const tracked = product.stock_tracking_enabled === true;
   if (product.category === 'PhoneStickers' && !product.id.startsWith('mix-')) {
     return [
-      {key: product.id + '::4', label: 'מארז 4 יח׳', price: 1500},
-      {key: product.id + '::10', label: 'מארז 10 יח׳', price: 3000},
-    ];
+      {key: product.id + '::4', label: 'מארז 4 יח׳', price: 1500, units: 4},
+      {key: product.id + '::10', label: 'מארז 10 יח׳', price: 3000, units: 10},
+    ].filter(choice => !tracked || product.stock >= choice.units);
   }
-  return product.price_agorot == null ? [] : [{key: product.id, label: '', price: product.price_agorot}];
+  return product.price_agorot == null || (tracked && product.stock < 1)
+    ? [] : [{key: product.id, label: '', price: product.price_agorot, units: 1}];
 }
 
 function priceLabel(product) {
   const choices = options(product);
-  if (!choices.length) return element('p', 'מחיר בבירור', 'price');
+  if (!choices.length) return element('p', product.stock_tracking_enabled ? 'אזל מהמלאי' : 'מחיר בבירור', 'price');
   const prefix = choices.length > 1 ? 'החל מ־' : '';
   const line = element('p', prefix + format(choices[0].price), 'price');
   if (!prefix && product.old_price_agorot > choices[0].price) line.append(element('del', format(product.old_price_agorot)));
@@ -147,7 +149,7 @@ function add(key) {
 }
 
 function updateCart(key, amount) {
-  if (amount > 0) cart[key] = amount;
+  if (amount > 0) cart[key] = Math.min(100, amount);
   else delete cart[key];
   try { localStorage.setItem('mercaz-basket-v1', JSON.stringify(cart)); } catch {}
   updateCount();
@@ -226,13 +228,13 @@ byId('reset').addEventListener('click', () => {
 });
 
 try {
-  const response = await fetch(SUPABASE_URL + '/rest/v1/mercaz_products?select=id,category,name_he,name_fr,description,price_agorot,old_price_agorot,image_key,active&active=eq.true&order=created_at.asc', {
+  const response = await fetch(SUPABASE_URL + '/rest/v1/mercaz_products?select=id,category,name_he,name_fr,description,price_agorot,old_price_agorot,image_key,active,stock,stock_tracking_enabled&active=eq.true&order=created_at.asc', {
     headers: {apikey: SUPABASE_PUBLISHABLE_KEY},
   });
   if (!response.ok) throw new Error('Catalog fetch failed');
   products = await response.json();
   const keys = new Set(products.flatMap(product => options(product).map(choice => choice.key)));
-  cart = Object.fromEntries(Object.entries(initialCart).filter(([key, count]) => keys.has(key) && Number.isSafeInteger(count) && count > 0));
+  cart = Object.fromEntries(Object.entries(initialCart).filter(([key, count]) => keys.has(key) && Number.isSafeInteger(count) && count > 0 && count <= 100));
   renderCategories();
   renderProducts();
   updateCount();
