@@ -83,3 +83,18 @@ body.has-floating-cart{padding-bottom:100px}
   .cart-drawer-footer{padding-inline:17px}
 }
 @media(prefers-reduced-motion:reduce){.floating-cart:not([hidden]){transition:none}.floating-cart:hover{transform:none}}
+
+
+/* Product inquiries and missing-photo fallback. */
+.photo-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;width:100%;min-height:145px;color:#4c503e;text-align:center;padding:18px;background:#e4dfce}
+.photo-placeholder>span{font-weight:700;font-size:.82rem}
+.photo-placeholder svg{flex:none}
+.photo>.photo-placeholder{height:100%}
+.detail>.photo-placeholder{min-height:230px}
+.cart-thumb>.photo-placeholder{height:100%;min-height:0;padding:4px;gap:3px}
+.cart-thumb>.photo-placeholder svg{width:25px;height:25px}
+.cart-thumb>.photo-placeholder span{font-size:.56rem}
+.whatsapp-product{display:flex;align-items:center;justify-content:center;text-align:center;min-height:40px;padding:9px 12px;border:1px solid #256547;background:#e2ede2;color:#174b31;font-size:.84rem;font-weight:800;text-decoration:none}
+.item>.whatsapp-product{margin:0 12px 12px}
+.whatsapp-product:hover,.whatsapp-product:focus-visible{background:#cee3d1}
+.dialog-actions>.whatsapp-product{flex:1}
