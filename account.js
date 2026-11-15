@@ -1,17 +1,69 @@
 'use strict';
 const BASE='https://bdalhyqpruefdbyirykp.supabase.co', KEY='sb_publishable_K6ciGUejNpRfLeIEc598Iw_L3VoMJYM';
 const $=x=>document.getElementById(x),money=v=>'₪'+(v/100).toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2});
-let token=sessionStorage.getItem('merkaz_customer_token')||'',register=false;
+let token=sessionStorage.getItem('merkaz_customer_token')||'',register=false,recoverySession=false,deliveryOptions=[];
 async function api(path,method='GET',data=undefined,authenticated=true){const headers={apikey:KEY};if(authenticated&&token)headers.Authorization='Bearer '+token;if(data!==undefined)headers['Content-Type']='application/json';const res=await fetch(BASE+path,{method,headers,body:data===undefined?undefined:JSON.stringify(data),cache:'no-store'});const raw=await res.text();let out;try{out=raw?JSON.parse(raw):null}catch{out=null}if(!res.ok)throw Error(out?.msg||out?.message||out?.error_description||'HTTP '+res.status);return out}
 function msg(id,t,bad=false){const x=$(id);x.textContent=t;x.className='status '+(bad?'error':'ok')}
 function switchMode(signup){register=signup;$('showSignup').className=signup?'active':'secondary';$('showLogin').className=signup?'secondary':'active';$('authSubmit').textContent=signup?'יצירת חשבון':'כניסה';$('password').autocomplete=signup?'new-password':'current-password'}
-$('showLogin').onclick=()=>switchMode(false);$('showSignup').onclick=()=>switchMode(true);
+$('showLogin').onclick=()=>switchMode(false);
+$('forgotPassword').onclick=()=>{$('recoverSection').classList.remove('hidden');$('authForm').classList.add('hidden');$('forgotPassword').classList.add('hidden');$('recoverEmail').value=$('email').value;$('recoverEmail').focus()};
+$('cancelRecover').onclick=()=>{$('recoverSection').classList.add('hidden');$('authForm').classList.remove('hidden');$('forgotPassword').classList.remove('hidden')};
+$('recoverForm').onsubmit=async e=>{
+ e.preventDefault();const b=e.target.querySelector('button[type="submit"]');b.disabled=true;
+ try{
+  const email=$('recoverEmail').value.trim();
+  await api('/auth/v1/recover?redirect_to='+encodeURIComponent(location.origin+'/account/'),'POST',{email},false);
+  msg('recoverStatus','אם הכתובת רשומה, יישלח אליה קישור לאיפוס הסיסמה. בדקו גם בדואר הזבל.');
+ }catch(err){msg('recoverStatus','לא ניתן לשלוח כעת קישור. נסו מאוחר יותר.',true)}
+ finally{b.disabled=false}
+};
+$('newPasswordForm').onsubmit=async e=>{
+ e.preventDefault();const b=e.target.querySelector('button[type="submit"]');b.disabled=true;
+ try{
+  const password=$('newPassword').value;
+  if(password!==$('confirmNewPassword').value)throw Error('הסיסמאות אינן זהות');
+  if(password.length<8)throw Error('הסיסמה קצרה מדי');
+  if(!token||!recoverySession)throw Error('קישור האיפוס אינו בתוקף. בקשו קישור חדש.');
+  await api('/auth/v1/user','PUT',{password});
+  msg('newPasswordStatus','הסיסמה עודכנה. ניתן להיכנס באמצעות הסיסמה החדשה.');
+  $('newPassword').value='';$('confirmNewPassword').value='';
+  try{await api('/auth/v1/logout','POST',{})}catch{}
+  token='';recoverySession=false;sessionStorage.removeItem('merkaz_customer_token');
+  $('newPasswordSection').classList.add('hidden');$('authForm').classList.remove('hidden');$('forgotPassword').classList.remove('hidden');
+ }catch(err){msg('newPasswordStatus',err.message,true)}finally{b.disabled=false}
+};$('showSignup').onclick=()=>switchMode(true);
 $('authForm').onsubmit=async e=>{e.preventDefault();const button=$('authSubmit');button.disabled=true;try{const endpoint=register?'/auth/v1/signup?redirect_to='+encodeURIComponent(location.origin+'/account/'):'/auth/v1/token?grant_type=password';const r=await api(endpoint,'POST',{email:$('email').value.trim(),password:$('password').value},false);$('password').value='';
 if(!r.access_token){msg('authStatus','נשלח קישור לאישור הדוא״ל. לאחר האישור חזרו לאתר, בחרו כניסה והתחברו עם אותה סיסמה. לעובדי החנות: ניתן לפתוח /admin/ או /manager/ ישירות.');switchMode(false);return}
 token=r.access_token;sessionStorage.setItem('merkaz_customer_token',token);await showAccount();
 }catch(err){msg('authStatus',err.message,true)}finally{button.disabled=false}};
-async function showAccount(){const u=await api('/auth/v1/user');$('authView').classList.add('hidden');$('accountView').classList.remove('hidden');$('accountEmail').textContent=u.email||'';const draft=readCart();$('checkout').classList.toggle('hidden',!draft.length);try{const roles=await api('/rest/v1/mercaz_roles?select=role&user_id=eq.'+encodeURIComponent(u.id));const staff=roles?.[0]?.role;if(staff==='admin'||staff==='manager'){$('staffShortcut').classList.remove('hidden');$('staffShortcutLink').href=staff==='admin'?'/admin/':'/manager/';$('staffShortcutLink').textContent=staff==='admin'?'כניסה לממשק מנהל ראשי':'כניסה לממשק ניהול הזמנות'}}catch{}await Promise.all([loadOrders(),showCart()])}
+async function showAccount(){const u=await api('/auth/v1/user');$('authView').classList.add('hidden');$('accountView').classList.remove('hidden');$('accountEmail').textContent=u.email||'';const draft=readCart();$('checkout').classList.toggle('hidden',!draft.length);try{const roles=await api('/rest/v1/mercaz_roles?select=role&user_id=eq.'+encodeURIComponent(u.id));const staff=roles?.[0]?.role;if(staff==='admin'||staff==='manager'){$('staffShortcut').classList.remove('hidden');$('staffShortcutLink').href=staff==='admin'?'/admin/':'/manager/';$('staffShortcutLink').textContent=staff==='admin'?'כניסה לממשק מנהל ראשי':'כניסה לממשק ניהול הזמנות'}}catch{}await Promise.all([loadOrders(),showCart(),loadDeliveryOptions()])}
 $('logout').onclick=async()=>{try{await api('/auth/v1/logout','POST',{})}catch{}token='';sessionStorage.removeItem('merkaz_customer_token');sessionStorage.removeItem('merkaz_staff_token');location.reload()};
+async function loadDeliveryOptions(){
+ const selector=$('deliveryMethod');const info=$('deliveryInfo');
+ try{
+  const options=await api('/rest/v1/mercaz_delivery_options?select=id,label_he,enabled,area_description,fee_agorot,instructions&order=id.asc','GET',undefined,false);
+  deliveryOptions=options.filter(x=>x.enabled&&['delivery','pickup'].includes(x.id));
+  selector.replaceChildren();
+  for(const option of deliveryOptions){
+   const el=new Option(option.label_he,option.id);selector.add(el);
+  }
+  if(!deliveryOptions.length){selector.add(new Option('לא הוגדרו אפשרויות להזמנה',''));selector.disabled=true;$('reviewOrder').disabled=true;info.textContent='אפשרויות המסירה אינן זמינות. יש לפנות לחנות לפני שליחת בקשת הזמנה.';return}
+  selector.disabled=false;$('reviewOrder').disabled=false;
+  selector.value=deliveryOptions.some(x=>x.id==='delivery')?'delivery':deliveryOptions[0].id;
+  updateDeliveryMethod();
+ }catch(e){selector.replaceChildren(new Option('לא ניתן לטעון שיטות מסירה',''));selector.disabled=true;$('reviewOrder').disabled=true;info.textContent='לא ניתן לטעון אפשרויות מסירה. נסו לרענן את הדף.'}
+}
+function updateDeliveryMethod(){
+ const option=deliveryOptions.find(x=>x.id===$('deliveryMethod').value);
+ if(!option)return;
+ const pickup=option.id==='pickup';
+ $('addressLabel').textContent=pickup?'פרטי קשר / הערה לאיסוף (אופציונלי)':'כתובת למשלוח';
+ $('customerAddress').required=!pickup;
+ $('customerAddress').minLength=pickup?0:6;
+ const fee=option.fee_agorot==null?'דמי מסירה יקבעו מול החנות':option.fee_agorot===0?'ללא דמי מסירה':'דמי מסירה: '+money(option.fee_agorot);
+ $('deliveryInfo').textContent=[option.area_description,option.instructions,fee,'הסכום לתשלום יאושר מול החנות; לא יתבצע חיוב באתר.'].filter(Boolean).join(' · ');
+}
+$('deliveryMethod').onchange=updateDeliveryMethod;
 function readCart(){try{const c=JSON.parse(sessionStorage.getItem('merkaz_pending_cart')||'[]');if(!Array.isArray(c)||c.length>30)return[];return c.filter(x=>typeof x.key==='string'&&Number.isInteger(x.quantity)&&x.quantity>0&&x.quantity<=100)}catch{return[]}}
 async function showCart(){const items=readCart();if(!items.length)return;try{
 const keys=[...new Set(items.map(i=>i.key.split('::')[0]))];const products=await api('/rest/v1/mercaz_products?select=id,name_he,category,price_agorot,active&active=eq.true', 'GET',undefined,false);const names=new Map(products.map(p=>[p.id,p]));let total=0;
@@ -21,7 +73,7 @@ el.append(list);const cost=document.createElement('strong');cost.textContent='ס
 }catch(e){msg('checkoutStatus','לא ניתן לטעון את פרטי הסל. רעננו את הדף.',true)}}
 let reviewDetails=null;
 function shippingInfo(){
-  return {name:$('customerName').value.trim(),phone:$('customerPhone').value.trim(),address:$('customerAddress').value.trim(),notes:$('customerNotes').value.trim()};
+  return {name:$('customerName').value.trim(),phone:$('customerPhone').value.trim(),address:$('customerAddress').value.trim(),notes:$('customerNotes').value.trim(),deliveryMethod:$('deliveryMethod').value};
 }
 function formReviewLabel(label,value){
   const block=document.createElement('p');
@@ -36,6 +88,12 @@ $('checkoutForm').onsubmit=async e=>{
   const cart=readCart();
   if(!cart.length){msg('checkoutStatus','הסל ריק',true);return}
   reviewDetails=shippingInfo();
+  const selected=deliveryOptions.find(x=>x.id===reviewDetails.deliveryMethod&&x.enabled);
+  if(!selected){msg('checkoutStatus','יש לבחור דרך מסירה זמינה',true);return}
+  reviewDetails.deliveryLabel=selected.label_he;
+  reviewDetails.deliveryNotes=selected.instructions;
+  reviewDetails.deliveryFee=selected.fee_agorot;
+  if(reviewDetails.deliveryMethod==='pickup')reviewDetails.address='איסוף עצמי בתיאום מראש';
   const host=$('reviewSummary');
   host.replaceChildren();
   const cartDisplay=$('cartSummary').cloneNode(true);
@@ -43,7 +101,9 @@ $('checkoutForm').onsubmit=async e=>{
   host.append(cartDisplay,
     formReviewLabel('שם:',reviewDetails.name),
     formReviewLabel('טלפון:',reviewDetails.phone),
-    formReviewLabel('כתובת:',reviewDetails.address),
+    formReviewLabel('דרך מסירה:',reviewDetails.deliveryLabel),
+    formReviewLabel('דמי מסירה:',reviewDetails.deliveryFee==null?'ייקבעו מול החנות':money(reviewDetails.deliveryFee)),
+    formReviewLabel('כתובת / איסוף:',reviewDetails.address),
     formReviewLabel('הערות:',reviewDetails.notes));
   $('checkoutForm').classList.add('hidden');
   $('orderReview').classList.remove('hidden');
@@ -61,7 +121,12 @@ $('confirmOrder').onclick=async()=>{
     const cart=readCart();
     if(!cart.length)throw Error('הסל ריק');
     const items=cart.map(x=>{const parts=x.key.split('::');return {id:parts[0],quantity:x.quantity,...(parts[1]?{pack:Number(parts[1])}:{})}});
-    const created=await api('/rest/v1/rpc/mercaz_create_order','POST',{p_items:items,p_name:reviewDetails.name,p_phone:reviewDetails.phone,p_address:reviewDetails.address,p_notes:reviewDetails.notes});
+    const chosen=deliveryOptions.find(x=>x.id===reviewDetails.deliveryMethod&&x.enabled);
+    if(!chosen)throw Error('אפשרות המסירה אינה זמינה. יש לבדוק שוב את ההזמנה');
+    const deliveryText='דרך מסירה: '+chosen.label_he+' ('+chosen.id+')';
+    const notes=[deliveryText,reviewDetails.notes].filter(Boolean).join(' | ');
+    if(notes.length>800)throw Error('ההערות ארוכות מדי');
+    const created=await api('/rest/v1/rpc/mercaz_create_order','POST',{p_items:items,p_name:reviewDetails.name,p_phone:reviewDetails.phone,p_address:reviewDetails.address,p_notes:notes});
     sessionStorage.removeItem('merkaz_pending_cart');
     $('checkout').classList.add('hidden');
     reviewDetails=null;
@@ -87,8 +152,15 @@ if(fragment.has('access_token')&&fragment.get('token_type')==='bearer'){
   const incoming=fragment.get('access_token');
   if(incoming&&incoming.split('.').length===3){
     token=incoming;
-    sessionStorage.setItem('merkaz_customer_token',token);
+    recoverySession=fragment.get('type')==='recovery';
+    if(!recoverySession)sessionStorage.setItem('merkaz_customer_token',token);
+    else sessionStorage.removeItem('merkaz_customer_token');
   }
   history.replaceState(null,'',location.pathname+location.search);
 }
-if(token)showAccount().catch(()=>{sessionStorage.removeItem('merkaz_customer_token');token='';$('authView').classList.remove('hidden');$('accountView').classList.add('hidden');msg('authStatus','יש להתחבר מחדש',true)});
+if(recoverySession){
+ $('authForm').classList.add('hidden');
+ $('forgotPassword').classList.add('hidden');
+ $('newPasswordSection').classList.remove('hidden');
+ $('newPassword').focus();
+}else if(token)showAccount().catch(()=>{sessionStorage.removeItem('merkaz_customer_token');token='';$('authView').classList.remove('hidden');$('accountView').classList.add('hidden');msg('authStatus','יש להתחבר מחדש',true)});
