@@ -19,10 +19,61 @@ const el=$('cartSummary');el.replaceChildren();const list=document.createElement
 for(const line of items){const id=line.key.split('::')[0],pack=line.key.split('::')[1],p=names.get(id);if(!p)continue;const unit=pack==='4'?1500:pack==='10'?3000:p.price_agorot;if(unit==null)continue;total+=unit*line.quantity;const li=document.createElement('li');li.textContent=p.name_he+(pack?' ('+pack+' יח׳)':'')+' × '+line.quantity+' — '+money(unit*line.quantity);list.append(li)}
 el.append(list);const cost=document.createElement('strong');cost.textContent='סה״כ מוצרים: '+money(total)+' (לפני דמי משלוח אם יחולו)';el.append(cost);
 }catch(e){msg('checkoutStatus','לא ניתן לטעון את פרטי הסל. רעננו את הדף.',true)}}
-$('checkoutForm').onsubmit=async e=>{e.preventDefault();const b=e.target.querySelector('button');b.disabled=true;try{const cart=readCart();if(!cart.length)throw Error('הסל ריק');const items=cart.map(x=>{const parts=x.key.split('::');return {id:parts[0],quantity:x.quantity,...(parts[1]?{pack:Number(parts[1])}:{})}});
-const created=await api('/rest/v1/rpc/mercaz_create_order','POST',{p_items:items,p_name:$('customerName').value.trim(),p_phone:$('customerPhone').value.trim(),p_address:$('customerAddress').value.trim(),p_notes:$('customerNotes').value.trim()});
-sessionStorage.removeItem('merkaz_pending_cart');$('checkout').classList.add('hidden');msg('authStatus','');await loadOrders();const message='בקשת ההזמנה נרשמה. מספר הזמנה: '+created+'. לא בוצע חיוב בכרטיס.';const p=document.createElement('p');p.className='ok';p.textContent=message;$('orders').prepend(p);
-}catch(err){msg('checkoutStatus',err.message,true)}finally{b.disabled=false}};
+let reviewDetails=null;
+function shippingInfo(){
+  return {name:$('customerName').value.trim(),phone:$('customerPhone').value.trim(),address:$('customerAddress').value.trim(),notes:$('customerNotes').value.trim()};
+}
+function formReviewLabel(label,value){
+  const block=document.createElement('p');
+  const title=document.createElement('strong');
+  title.textContent=label+' ';
+  block.append(title,document.createTextNode(value||'—'));
+  return block;
+}
+$('checkoutForm').onsubmit=async e=>{
+  e.preventDefault();
+  if(!$('checkoutForm').reportValidity())return;
+  const cart=readCart();
+  if(!cart.length){msg('checkoutStatus','הסל ריק',true);return}
+  reviewDetails=shippingInfo();
+  const host=$('reviewSummary');
+  host.replaceChildren();
+  const cartDisplay=$('cartSummary').cloneNode(true);
+  cartDisplay.removeAttribute('id');
+  host.append(cartDisplay,
+    formReviewLabel('שם:',reviewDetails.name),
+    formReviewLabel('טלפון:',reviewDetails.phone),
+    formReviewLabel('כתובת:',reviewDetails.address),
+    formReviewLabel('הערות:',reviewDetails.notes));
+  $('checkoutForm').classList.add('hidden');
+  $('orderReview').classList.remove('hidden');
+  msg('checkoutStatus','');
+};
+$('editOrder').onclick=()=>{
+  reviewDetails=null;
+  $('orderReview').classList.add('hidden');
+  $('checkoutForm').classList.remove('hidden');
+};
+$('confirmOrder').onclick=async()=>{
+  const b=$('confirmOrder');b.disabled=true;
+  try{
+    if(!reviewDetails)throw Error('יש לבדוק שוב את פרטי ההזמנה');
+    const cart=readCart();
+    if(!cart.length)throw Error('הסל ריק');
+    const items=cart.map(x=>{const parts=x.key.split('::');return {id:parts[0],quantity:x.quantity,...(parts[1]?{pack:Number(parts[1])}:{})}});
+    const created=await api('/rest/v1/rpc/mercaz_create_order','POST',{p_items:items,p_name:reviewDetails.name,p_phone:reviewDetails.phone,p_address:reviewDetails.address,p_notes:reviewDetails.notes});
+    sessionStorage.removeItem('merkaz_pending_cart');
+    $('checkout').classList.add('hidden');
+    reviewDetails=null;
+    await loadOrders();
+    const p=document.createElement('p');
+    p.className='ok';
+    p.textContent='בקשת ההזמנה נרשמה. מספר הזמנה: '+created+'. לא בוצע חיוב בכרטיס.';
+    $('orders').prepend(p);
+  }catch(err){
+    msg('checkoutStatus',err.message,true);
+  }finally{b.disabled=false}
+};
 const payText={pending_payment:'ממתין לתשלום',paid:'שולם',failed:'נכשל',refunded:'הוחזר'},deliverText={new:'התקבלה',processing:'בטיפול',shipped:'נשלחה',completed:'הושלמה',cancelled:'בוטלה'};
 async function loadOrders(){const orders=await api('/rest/v1/mercaz_orders?select=id,customer_name,total_agorot,payment_status,fulfillment_status,created_at&order=created_at.desc&limit=100');const host=$('orders');host.replaceChildren();if(!orders.length){host.textContent='עדיין אין הזמנות בחשבון';return}
 for(const o of orders){const block=document.createElement('div');block.className='order';const h=document.createElement('strong');h.textContent='הזמנה '+o.id.slice(0,8)+' · '+money(o.total_agorot);block.append(h);const p=document.createElement('p');p.className='muted';p.textContent=new Date(o.created_at).toLocaleString('he-IL')+' · תשלום: '+(payText[o.payment_status]||o.payment_status)+' · משלוח: '+(deliverText[o.fulfillment_status]||o.fulfillment_status);block.append(p);
