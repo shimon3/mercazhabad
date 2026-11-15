@@ -6,7 +6,7 @@ async function api(path,method='GET',data=undefined,authenticated=true){const he
 function msg(id,t,bad=false){const x=$(id);x.textContent=t;x.className='status '+(bad?'error':'ok')}
 function switchMode(signup){register=signup;$('showSignup').className=signup?'active':'secondary';$('showLogin').className=signup?'secondary':'active';$('authSubmit').textContent=signup?'יצירת חשבון':'כניסה';$('password').autocomplete=signup?'new-password':'current-password'}
 $('showLogin').onclick=()=>switchMode(false);$('showSignup').onclick=()=>switchMode(true);
-$('authForm').onsubmit=async e=>{e.preventDefault();const button=$('authSubmit');button.disabled=true;try{const endpoint=register?'/auth/v1/signup':'/auth/v1/token?grant_type=password';const r=await api(endpoint,'POST',{email:$('email').value.trim(),password:$('password').value},false);$('password').value='';
+$('authForm').onsubmit=async e=>{e.preventDefault();const button=$('authSubmit');button.disabled=true;try{const endpoint=register?'/auth/v1/signup?redirect_to='+encodeURIComponent(location.origin+'/account/'):'/auth/v1/token?grant_type=password';const r=await api(endpoint,'POST',{email:$('email').value.trim(),password:$('password').value},false);$('password').value='';
 if(!r.access_token){msg('authStatus','נשלח קישור לאישור הדוא״ל. לאחר האישור חזרו לאתר, בחרו כניסה והתחברו עם אותה סיסמה. לעובדי החנות: ניתן לפתוח /admin/ או /manager/ ישירות.');switchMode(false);return}
 token=r.access_token;sessionStorage.setItem('merkaz_customer_token',token);await showAccount();
 }catch(err){msg('authStatus',err.message,true)}finally{button.disabled=false}};
@@ -30,4 +30,14 @@ const names=document.createElement('div');names.className='muted';names.textCont
 api('/rest/v1/mercaz_order_items?select=product_name,quantity,pack_size,line_total_agorot&order_id=eq.'+encodeURIComponent(o.id)).then(items=>{names.textContent=items.map(x=>x.product_name+(x.pack_size?' ('+x.pack_size+' יח׳)':'')+' × '+x.quantity+' — '+money(x.line_total_agorot)).join(' | ')}).catch(()=>names.textContent='פרטי הפריטים אינם זמינים כעת')}
 }
 $('reload').onclick=()=>loadOrders().catch(e=>msg('authStatus',e.message,true));
+// Supabase email confirmation may return a session in the URL fragment.
+const fragment=new URLSearchParams(location.hash.slice(1));
+if(fragment.has('access_token')&&fragment.get('token_type')==='bearer'){
+  const incoming=fragment.get('access_token');
+  if(incoming&&incoming.split('.').length===3){
+    token=incoming;
+    sessionStorage.setItem('merkaz_customer_token',token);
+  }
+  history.replaceState(null,'',location.pathname+location.search);
+}
 if(token)showAccount().catch(()=>{sessionStorage.removeItem('merkaz_customer_token');token='';$('authView').classList.remove('hidden');$('accountView').classList.add('hidden');msg('authStatus','יש להתחבר מחדש',true)});
