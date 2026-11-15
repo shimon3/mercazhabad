@@ -28,8 +28,16 @@ export async function onRequestPost({request,env}){
   const info=await growCall(base,'getTransactionInfo',{pageCode:env.GROW_PAGE_CODE,transactionId:id,transactionToken:token});
   if(String(info?.transactionId)!==id||String(info?.transactionToken)!==token)return answer(409,{error:'Grow verification mismatch'});
   if(String(info?.statusCode)!=='2')return answer(409,{error:'Transaction not settled'});
-  const growOrder=normalizeUuid(info?.customFields?.cField1);
-  if(!growOrder||growOrder!==orderId)return answer(409,{error:'Verified order reference mismatch'});
+  // Never trust callback order references without independent Grow correlation.
+  const ref=info?.customFields?.cField1
+    ?? (Array.isArray(info?.customField)
+      ? info.customField.find(v=>v?.cField1)?.cField1
+      : info?.customField?.cField1);
+  const verifiedOrder=normalizeUuid(String(ref||''));
+  const verifiedDescription=String(info?.description||'').trim();
+  const expectedDescription='Order '+orderId.replace(/-/g,'');
+  if(verifiedOrder!==orderId && verifiedDescription!==expectedDescription)
+    return answer(409,{error:'Verified order reference mismatch'});
   const amount=asAgorot(info.sum);
   if(!amount||amount<=0)return answer(409,{error:'Verified amount invalid'});
   // A single transactionId is accepted once, and DB checks the order amount
