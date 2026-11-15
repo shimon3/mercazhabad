@@ -197,9 +197,37 @@ function fulfillmentLabel(s){return {'new':'חדשה','processing':'בטיפול
 async function loadOrders(){orders=await api('/rest/v1/mercaz_orders?select=*&order=created_at.desc&limit=100');const paid=orders.filter(x=>x.payment_status==='paid');$('ordersCount').textContent=orders.length;$('paidTotal').textContent=money(paid.reduce((x,o)=>x+o.total_agorot,0));$('pendingCount').textContent=orders.filter(x=>x.payment_status==='pending_payment').length;showOrders();updateSellerInsights()}
 async function showOrders(){const host=$('orders');host.replaceChildren();$('resetOrderFilter').hidden=!orderFilter;const q=$('findOrder').value.toLowerCase().trim();for(const o of orders.filter(o=>(!orderFilter||orderFilter!=='pending'||['new','processing'].includes(o.fulfillment_status))&&(o.id+' '+o.customer_name+' '+o.customer_phone).toLowerCase().includes(q))){const block=document.createElement('div');block.className='order';const head=document.createElement('div');head.className='row';const title=document.createElement('strong');title.textContent=o.customer_name+' · '+money(o.total_agorot);head.append(title);const id=document.createElement('span');id.className='muted';id.textContent=o.id.slice(0,8)+' · '+new Date(o.created_at).toLocaleString('he-IL');head.append(id);block.append(head);
 const info=document.createElement('p');info.className='muted';info.textContent='תשלום: '+statusLabel(o.payment_status)+' · סטטוס: '+fulfillmentLabel(o.fulfillment_status);block.append(info);
+if(o.manual_payment_confirmed_at){
+ const audit=document.createElement('p');audit.className='manual-payment-audit';
+ audit.textContent='תשלום ידני אושר ב־'+new Date(o.manual_payment_confirmed_at).toLocaleString('he-IL')+' · מאשר: '+(o.manual_payment_confirmed_by||'לא ידוע')+' · אסמכתא: '+(o.manual_payment_reference||'לא צוינה');
+ block.append(audit);
+}
 const contact=document.createElement('p');contact.className='muted';contact.textContent=o.customer_phone+' · '+o.shipping_address+(o.notes?' · '+o.notes:'');block.append(contact);
 const itemList=document.createElement('div');itemList.className='muted';itemList.textContent='טוען פריטים...';block.append(itemList);
-const row=document.createElement('div');row.className='row';const status=document.createElement('select');status.classList.add('order-status-select');for(const v of ['new','processing','shipped','completed','cancelled'])status.add(new Option(fulfillmentLabel(v),v));status.value=o.fulfillment_status;const save=document.createElement('button');save.textContent='עדכון סטטוס';save.onclick=async()=>{save.disabled=true;try{await api('/rest/v1/rpc/mercaz_set_fulfillment_status','POST',{p_order:o.id,p_status:status.value});notice('עודכן סטטוס ההזמנה');await loadOrders()}catch(e){notice(e.message,true)}finally{save.disabled=false}};row.append(status,save);block.append(row);host.append(block);
+const row=document.createElement('div');row.className='row';const status=document.createElement('select');status.classList.add('order-status-select');for(const v of ['new','processing','shipped','completed','cancelled'])status.add(new Option(fulfillmentLabel(v),v));status.value=o.fulfillment_status;const save=document.createElement('button');save.textContent='עדכון סטטוס';save.onclick=async()=>{save.disabled=true;try{await api('/rest/v1/rpc/mercaz_set_fulfillment_status','POST',{p_order:o.id,p_status:status.value});notice('עודכן סטטוס ההזמנה');await loadOrders()}catch(e){notice(e.message,true)}finally{save.disabled=false}};row.append(status,save);
+if(o.payment_status==='pending_payment'&&o.fulfillment_status!=='cancelled'){
+ const confirmPayment=document.createElement('button');
+ confirmPayment.type='button';confirmPayment.className='manual-payment-button';
+ confirmPayment.textContent='אישור קבלת תשלום ידני';
+ confirmPayment.setAttribute('aria-label','אישור תשלום ידני להזמנה '+o.id.slice(0,8));
+ confirmPayment.onclick=async()=>{
+  const ref=window.prompt('הזינו אמצעי תשלום / אסמכתא (למשל מזומן או מספר העברה). אשרו רק לאחר שקיבלתם את הכסף בפועל.');
+  if(ref===null)return;
+  const reference=ref.trim();
+  if(reference.length<3||reference.length>300){notice('יש להזין אמצעי תשלום או אסמכתא באורך 3–300 תווים.',true);return}
+  const text='אישור קבלת תשלום בפועל בסך '+money(o.total_agorot)+' עבור הזמנה '+o.id.slice(0,8)+'? פעולה זו מעדכנת את ההזמנה ל"שולם" ומפחיתה מלאי מנוהל. לא ניתן לאשר פעמיים.';
+  if(!window.confirm(text))return;
+  confirmPayment.disabled=true;
+  try{
+   await api('/rest/v1/rpc/mercaz_confirm_manual_payment','POST',{p_order:o.id,p_reference:reference,p_confirmed:true});
+   await loadOrders();
+   notice('התשלום הידני אושר ונרשם ביומן הביקורת.');
+  }catch(err){notice('התשלום לא אושר: '+err.message,true);await loadOrders().catch(()=>{})}
+  finally{confirmPayment.disabled=false}
+ };
+ row.append(confirmPayment);
+}
+block.append(row);host.append(block);
 api('/rest/v1/mercaz_order_items?select=product_name,quantity,pack_size,line_total_agorot&order_id=eq.'+encodeURIComponent(o.id)).then(items=>{itemList.textContent=items.map(x=>x.product_name+(x.pack_size?' (×'+x.pack_size+')':'')+' · '+x.quantity+' · '+money(x.line_total_agorot)).join(' | ')||'אין פריטים'}).catch(()=>itemList.textContent='לא ניתן לטעון פריטים');}
 if(!host.children.length)host.textContent='אין הזמנות להצגה';}
 $('findOrder').oninput=showOrders;
