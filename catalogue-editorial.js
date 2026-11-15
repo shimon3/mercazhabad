@@ -272,6 +272,8 @@ function updateCount() {
 }
 
 function showCart() {
+  // A product dialog and the cart drawer must never be visible simultaneously.
+  if (dialog.open) dialog.close();
   const body = element('div');
   const choices = new Map(products.flatMap(product => options(product).map(choice => [choice.key, {...choice, product}])));
   let total = 0;
