@@ -59,13 +59,14 @@ return '<div class="grid"><div class="field"><label>שם בעברית</label><in
 '<div class="field"><label>קטגוריה</label><select name="category">'+categoryOptions+'</select></div>'+
 '<div class="field"><label>מחיר (₪)</label><input name="price" type="number" min="0" step="0.01" value="'+(p.price_agorot==null?'':p.price_agorot/100)+'"></div>'+
 '<div class="field"><label>מלאי</label><input name="stock" type="number" min="0" step="1" value="'+(p.stock||0)+'"></div>'+
+'<div class="field"><label><input name="stock_tracking_enabled" type="checkbox" '+(p.stock_tracking_enabled?'checked':'')+'> הגבלת הזמנות לפי מלאי שהוזן</label><small>יש לסמן רק אם הכמות אמיתית ומעודכנת (למדבקות: מספר מדבקות בודדות).</small></div>'+
 '<div class="field"><label>תמונה חדשה (עד 5MB)</label><input name="photo" type="file" accept="image/jpeg,image/png,image/webp"></div>'+
 '<div class="field"><label>תיאור</label><input name="description" maxlength="800" value="'+clean(p.description)+'"></div>'+
 '<div class="field"><label>קישור / נתיב לתמונה</label><input name="image_key" maxlength="800" value="'+clean(p.image_key)+'"></div>'+
 '<div class="field"><label><input name="active" type="checkbox" '+(p.active?'checked':'')+'> מוצר פעיל</label></div></div>';
 }
 function makePayload(form){const v=new FormData(form), price=(v.get('price')||'').toString().trim(), stock=Number(v.get('stock'));if(!Number.isInteger(stock)||stock<0)throw Error('מלאי לא תקין');const agorot=price===''?null:Math.round(Number(price)*100);if(agorot!==null&&(!Number.isFinite(agorot)||agorot<0||agorot>100000000))throw Error('מחיר לא תקין');
-const name=(v.get('name_he')||'').toString().trim();if(!name)throw Error('שם חובה');return {name_he:name,name_fr:String(v.get('name_fr')||'').trim(),category:String(v.get('category')),price_agorot:agorot,stock,description:String(v.get('description')||'').trim(),image_key:String(v.get('image_key')||'').trim(),active:v.has('active')}}
+const name=(v.get('name_he')||'').toString().trim();if(!name)throw Error('שם חובה');return {name_he:name,name_fr:String(v.get('name_fr')||'').trim(),category:String(v.get('category')),price_agorot:agorot,stock,description:String(v.get('description')||'').trim(),image_key:String(v.get('image_key')||'').trim(),stock_tracking_enabled:v.has('stock_tracking_enabled'),active:v.has('active')}}
 async function upload(file){if(!file||!file.size)return null;if(file.size>5*1024*1024||!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('יש לבחור קובץ תמונה JPG/PNG/WebP עד 5MB');
 const ext={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[file.type],key=crypto.randomUUID()+'.'+ext;const res=await fetch(BASE+'/storage/v1/object/mercaz-product-images/'+key,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':file.type,'cache-control':'3600'},body:file});if(!res.ok)throw Error('העלאת התמונה נכשלה: '+res.status);return BASE+'/storage/v1/object/public/mercaz-product-images/'+key;}
 async function loadProducts(){products=await api('/rest/v1/mercaz_products?select=*&order=created_at.desc&limit=300');showProducts()}
