@@ -9,9 +9,11 @@ export function environment(env){
  return env.GROW_MODE==='sandbox'?'https://sandbox.meshulam.co.il/api/light/server/1.0':'https://secure.meshulam.co.il/api/light/server/1.0';
 }
 export async function growCall(base,endpoint,params){
- const fields=new URLSearchParams();
+ const fields=new FormData();
  for(const [k,v] of Object.entries(params))if(v!==undefined&&v!==null)fields.set(k,String(v));
- const resp=await fetch(base+'/'+endpoint,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','Accept':'application/json'},body:fields,signal:AbortSignal.timeout(12000)});
+ // Grow's documented backend protocol uses multipart/form-data.
+ // Let fetch set the boundary; do not create custom Content-Type headers.
+ const resp=await fetch(base+'/'+endpoint,{method:'POST',headers:{Accept:'application/json'},body:fields,signal:AbortSignal.timeout(12000)});
  if(!resp.ok)throw Error('Grow upstream HTTP failure');
  const result=await resp.json();
  if(String(result?.status)!=='1')throw Error('Grow rejected the request');
