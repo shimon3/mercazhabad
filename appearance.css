@@ -1,18 +1,17 @@
 :root{font-size:var(--cms-text-size,100%)}
-.mast .brand{font-size:calc(clamp(1rem,2.5vw,1.55rem) * var(--cms-brand-scale,1));min-width:0;overflow-wrap:anywhere}
-.cover h1{font-size:calc(clamp(4rem,8vw,9rem) * var(--cms-title-scale,1));overflow-wrap:anywhere}
-.cover-copy .ink-link{background:var(--cms-button-bg,var(--ink));color:var(--cms-button-text,var(--paper))}
-.cover-copy .ink-link:hover{filter:brightness(.9)}
+.mast .brand{font-size:calc(clamp(1.05rem,2vw,1.35rem) * var(--cms-brand-scale,1));min-width:0;overflow-wrap:anywhere}
+.cover h1{font-size:calc(clamp(3rem,7vw,6.25rem) * var(--cms-title-scale,1));overflow-wrap:anywhere}
+.cover-copy .ink-link.primary{background:var(--cms-button-bg,var(--gold));color:var(--cms-button-text,var(--ink))}
 [data-cms-button-size] :is(.cover-copy .ink-link,.mast button,.add,.dialog-actions button,.whatsapp-product){font-size:var(--cms-button-size)}
 [data-cms-button-radius] :is(.cover-copy .ink-link,.mast button,.add,.dialog-actions button,.whatsapp-product){border-radius:var(--cms-button-radius)}
-[data-cms-button-colors] :is(.mast button,.add,.dialog-actions button,.whatsapp-product){
+[data-cms-button-colors] :is(.mast button,.add:not(.sold-out-action,.is-added),.dialog-actions button:not(.sold-out-action)){
   background:var(--cms-button-bg,var(--ink));color:var(--cms-button-text,var(--paper))
 }
 [data-appearance-link][hidden]{display:none!important}
 .mast nav{flex-wrap:wrap;justify-content:flex-end}
-.mast nav a,.mast nav button,.cover-copy .ink-link{white-space:normal;overflow-wrap:anywhere}
+.mast nav a,.cover-copy .ink-link{white-space:normal;overflow-wrap:anywhere}
 @media(max-width:660px){
-  .cover h1{font-size:calc(clamp(3.3rem,13vw,5rem) * var(--cms-title-scale,1))}
+  .cover h1{font-size:calc(clamp(2.7rem,12vw,4rem) * var(--cms-title-scale,1))}
   [data-cms-menu] .mast nav [data-appearance-link="catalog"]:not([hidden]){display:inline}
 }
 
