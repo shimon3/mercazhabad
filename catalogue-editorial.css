@@ -290,7 +290,7 @@ body.has-floating-cart{padding-bottom:96px}
   .cover-actions{width:100%}
   .cover-actions .btn{flex:1 1 140px;padding-inline:14px}
   .promo{min-height:150px}
-  .perks{display:flex;overflow-x:auto;gap:10px;margin-inline:calc(var(--gutter) * -1);padding-inline:var(--gutter);scrollbar-width:none}
+  .perks{display:flex;overflow-x:auto;gap:10px;scrollbar-width:none}
   .perks li{flex:none;width:72%}
   .index nav{display:flex;overflow-x:auto;gap:10px;margin-inline:calc(var(--gutter) * -1);padding:4px var(--gutter) 12px;scrollbar-width:none}
   .index button{flex:none;width:104px;padding:10px 6px}
