@@ -270,29 +270,59 @@ function card(product) {
   image.setAttribute('aria-label', product.name_he);
   image.append(photo(product, true));
   const choices = options(product);
-  const badge = stockBadge(product);
-  if (badge) image.append(badge);
-  if (badge) node.classList.add('is-sold-out');
-  const saving = discount(product, choices);
-  if (saving) {
-    const sale = element('span', '−' + saving + '%', 'sale-badge');
-    sale.dir = 'ltr';
-    image.append(sale);
+  const badges = element('span', '', 'badges');
+  const stock = stockBadge(product);
+  if (stock) {
+    badges.append(stock);
+    node.classList.add('is-sold-out');
   }
+  const saving = discount(product, choices);
+  if (saving) badges.append(element('span', 'חסכו ' + saving + '%', 'sale-badge'));
+  if (product.subcategory === 'HeroesOfMessiah') badges.append(element('span', 'חדש', 'tag-badge'));
+  if (badges.children.length) image.append(badges);
   const info = element('div', '', 'item-info');
   const title = element('h3');
   title.append(button(product.name_he, () => details(product)));
   info.append(title, priceLabel(product));
+  if (saving) info.append(element('p', 'חוסכים ' + format(product.old_price_agorot - choices[0].price), 'save'));
   const actions = element('div', '', 'item-actions');
-  if (choices.length > 1) actions.append(button('בחירת מארז', () => details(product), 'add'));
+  if (choices.length > 1) {
+    for (const choice of choices) {
+      const control = button('', () => add(choice.key, control), 'add pack');
+      control.append(element('b', choice.label.replace('מארז ', '')), element('span', format(choice.price)));
+      control.setAttribute('aria-label', 'הוספת ' + choice.label + ' של ' + product.name_he + ' לסל, ' + format(choice.price));
+      actions.append(control);
+    }
+  }
   if (choices.length === 1) {
     const control = button('הוספה לסל', () => add(choices[0].key, control), 'add');
     actions.append(control);
   }
-  if (!choices.length && badge) actions.append(soldOutButton(product));
+  if (!choices.length && stock) actions.append(soldOutButton(product));
   actions.append(whatsappContact(product, actions.children.length > 0));
   node.append(image, info, actions);
   return node;
+}
+
+function renderRails() {
+  const deals = products
+    .filter(product => discount(product) > 0 && !['out', 'insufficient'].includes(stockState(product)))
+    .sort((a, b) => discount(b) - discount(a))
+    .slice(0, 10);
+  byId('deals-rail').replaceChildren(...deals.map(card));
+  byId('deals').hidden = !deals.length;
+  const heroes = products.filter(product => product.subcategory === 'HeroesOfMessiah');
+  byId('heroes-rail').replaceChildren(...heroes.map(card));
+  byId('heroes').hidden = !heroes.length;
+}
+
+let toastTimer;
+function showToast(text) {
+  const toast = byId('toast');
+  toast.textContent = text;
+  toast.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toast.hidden = true; }, 1800);
 }
 
 function openDialog(title, body) {
@@ -334,11 +364,12 @@ function add(key, control) {
   void counter.offsetWidth;
   counter.classList.add('bump');
   if (control && !control.classList.contains('is-added')) {
-    const label = control.textContent;
-    control.textContent = 'נוסף לסל ✓';
+    const saved = [...control.childNodes];
+    control.replaceChildren('נוסף ✓');
     control.classList.add('is-added');
-    setTimeout(() => { control.textContent = label; control.classList.remove('is-added'); }, 1400);
+    setTimeout(() => { control.replaceChildren(...saved); control.classList.remove('is-added'); }, 1400);
   }
+  showToast('✓ המוצר נוסף לסל');
   byId('announcement').textContent = 'נוסף לסל. פריטים בסל ' + byId('count').textContent;
 }
 
@@ -434,7 +465,11 @@ byId('cart-dialog').addEventListener('click', event => {
   if (event.target === byId('cart-dialog')) byId('cart-dialog').close();
 });
 byId('feature').addEventListener('click', () => details(products.find(product => product.id === 's/3-temple')));
-byId('search').addEventListener('input', renderProducts);
+byId('search').addEventListener('input', () => {
+  renderProducts();
+  const box = byId('catalog').getBoundingClientRect();
+  if (box.top > innerHeight * .6 || box.bottom < 0) byId('catalog').scrollIntoView({behavior: 'smooth'});
+});
 byId('sort').addEventListener('change', renderProducts);
 
 for (const [key, label] of Object.entries(badgeLabels)) {
@@ -464,11 +499,15 @@ try {
     category = 'PhoneStickers';
     badge = 'heroes';
     byId('catalog-title').textContent = badgeLabels.heroes;
+  } else if (Object.hasOwn(labels, params.get('category'))) {
+    category = params.get('category');
+    byId('catalog-title').textContent = labels[category];
   }
   products = [...stickerModels, ...await response.json()];
   const keys = new Set(products.flatMap(product => options(product).map(choice => choice.key)));
   cart = Object.fromEntries(Object.entries(initialCart).filter(([key, count]) => keys.has(key) && Number.isSafeInteger(count) && count > 0 && count <= 100));
   renderCategories();
+  renderRails();
   const skuFromQr = params.get('sku');
   if (skuFromQr && /^MH-[0-9]{6,}$/.test(skuFromQr)) {
     const match = products.find(product => product.sku === skuFromQr);
@@ -483,7 +522,7 @@ try {
   } else {
     renderProducts();
   }
-  if (legacyGalleryLink) byId('catalog').scrollIntoView();
+  if (legacyGalleryLink || location.hash === '#catalog') byId('catalog').scrollIntoView();
   updateCount();
 } catch {
   byId('result-count').textContent = 'לא ניתן לטעון את הקטלוג. בדקו את החיבור ונסו לרענן.';
