@@ -71,7 +71,7 @@ main>*,.mast,footer,.announce{padding-inline:max(var(--gutter),(100% - var(--wra
 .subtitle{font-size:clamp(1rem,1.4vw,1.15rem);max-width:36ch}
 .cover-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
 .exhibit{position:relative;display:grid;place-items:center;padding:0;border:0;background:none;min-width:0}
-.exhibit img{width:100%;max-width:380px;aspect-ratio:1;object-fit:contain;mix-blend-mode:multiply;filter:drop-shadow(0 24px 30px rgb(15 27 77/.25));animation:float 6s ease-in-out infinite;transition:scale .3s}
+.exhibit img{width:100%;max-width:380px;height:auto;aspect-ratio:1;object-fit:contain;mix-blend-mode:multiply;animation:float 6s ease-in-out infinite;transition:scale .3s}
 .exhibit:hover img{scale:1.04}
 @keyframes float{50%{transform:translateY(-10px) rotate(-3deg)}}
 .exhibit-tag{position:absolute;bottom:4%;inset-inline-end:2%;display:grid;padding:8px 14px;border-radius:12px;background:#fff;box-shadow:var(--shadow-lift);font-weight:800;font-size:.92rem;text-align:start;line-height:1.25}
