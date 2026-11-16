@@ -2,7 +2,7 @@ const endpoint = 'https://bdalhyqpruefdbyirykp.supabase.co/rest/v1/mercaz_storef
 const apikey = 'sb_publishable_K6ciGUejNpRfLeIEc598Iw_L3VoMJYM';
 
 const typographyTargets = [
-  ['brand', 'שם החנות בסרגל העליון', 60, 150],
+  ['brand', 'שם החנות בסרגל העליון', 60, 300],
   ['eyebrow', 'שם החנות באזור הפתיחה', 60, 300],
   ['title', 'כותרת ראשית', 65, 150],
   ['subtitle', 'משפט מתחת לכותרת', 60, 150],
@@ -71,6 +71,7 @@ export function applyAppearance(root, raw) {
   root.toggleAttribute('data-cms-button-size', settings.buttonSize !== undefined);
   root.toggleAttribute('data-cms-button-radius', settings.buttonRadius !== undefined);
   root.toggleAttribute('data-cms-button-colors', settings.buttonBackground !== undefined || settings.buttonText !== undefined);
+  root.toggleAttribute('data-cms-large-brand', settings.brandSize > 150);
   root.toggleAttribute('data-cms-menu', settings.menuCatalog !== undefined || settings.menuOrder !== undefined);
   for (const node of root.querySelectorAll('[data-appearance-text]')) {
     const key = node.dataset.appearanceText;

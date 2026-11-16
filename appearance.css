@@ -15,3 +15,8 @@
   .cover h1{font-size:calc(clamp(3.3rem,13vw,5rem) * var(--cms-title-scale,1))}
   [data-cms-menu] .mast nav [data-appearance-link="catalog"]:not([hidden]){display:inline}
 }
+
+@media(max-width:660px){
+  [data-cms-large-brand] .mast{flex-wrap:wrap}
+  [data-cms-large-brand] .mast .brand{flex-basis:100%}
+}

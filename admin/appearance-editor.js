@@ -1,4 +1,4 @@
-import {applyAppearance, publishAppearance, readAppearance, sections} from '/appearance.js?v=4';
+import {applyAppearance, publishAppearance, readAppearance, sections} from '/appearance.js?v=5';
 
 export async function mountAppearanceEditor(host, getToken) {
   const template = document.getElementById('appearance-template');
