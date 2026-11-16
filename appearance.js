@@ -21,6 +21,7 @@ export const sections = [
     ['buttonBackground', 'רקע כפתורים ראשיים', 'color', '#202218', '--cms-button-bg'],
     ['buttonText', 'טקסט כפתורים ראשיים', 'color', '#f4f0e4', '--cms-button-text'],
     ['textSize', 'גודל הטקסט הכללי (%)', 'number', 100, '--cms-text-size', 85, 125, '%'],
+    ['brandSize', 'גודל שם החנות בראש העמוד (%)', 'number', 100, '--cms-brand-scale', 60, 150, 'scale'],
     ['titleSize', 'גודל הכותרת הראשית (%)', 'number', 100, '--cms-title-scale', 65, 115, 'scale'],
     ['buttonSize', 'גודל טקסט בכפתורים (פיקסלים)', 'number', 16, '--cms-button-size', 12, 22, 'px'],
     ['buttonRadius', 'עיגול פינות כפתורים (פיקסלים)', 'number', 0, '--cms-button-radius', 0, 32, 'px'],

@@ -1,4 +1,5 @@
 :root{font-size:var(--cms-text-size,100%)}
+.mast .brand{font-size:calc(clamp(1rem,2.5vw,1.55rem) * var(--cms-brand-scale,1));min-width:0;overflow-wrap:anywhere}
 .cover h1{font-size:calc(clamp(4rem,8vw,9rem) * var(--cms-title-scale,1));overflow-wrap:anywhere}
 .cover-copy .ink-link{background:var(--cms-button-bg,var(--ink));color:var(--cms-button-text,var(--paper))}
 .cover-copy .ink-link:hover{filter:brightness(.9)}
