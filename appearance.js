@@ -3,7 +3,7 @@ const apikey = 'sb_publishable_K6ciGUejNpRfLeIEc598Iw_L3VoMJYM';
 
 const typographyTargets = [
   ['brand', 'שם החנות בסרגל העליון', 60, 150],
-  ['eyebrow', 'שם החנות באזור הפתיחה', 60, 150],
+  ['eyebrow', 'שם החנות באזור הפתיחה', 60, 300],
   ['title', 'כותרת ראשית', 65, 150],
   ['subtitle', 'משפט מתחת לכותרת', 60, 150],
 ];

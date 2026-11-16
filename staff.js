@@ -32,7 +32,7 @@ function bindDashboardHandlers(){
  handlersBound=true;
  const appearanceEditor = $('appearanceEditor');
  if (appearanceEditor && role === 'admin' && getAal() === 'aal2') {
-   import('/admin/appearance-editor.js?v=3')
+   import('/admin/appearance-editor.js?v=4')
      .then(({mountAppearanceEditor}) => mountAppearanceEditor(appearanceEditor, () => token))
      .catch(() => { appearanceEditor.textContent = 'עורך העיצוב לא נטען. רעננו את הדף.'; });
  }

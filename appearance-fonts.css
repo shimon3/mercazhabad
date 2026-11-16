@@ -5,6 +5,6 @@
 @font-face{font-family:"Noto Rashi Hebrew CMS";src:url("/assets/fonts/noto-rashi-regular.ttf") format("truetype");font-weight:400;font-style:normal;font-display:swap}
 @font-face{font-family:"Noto Rashi Hebrew CMS";src:url("/assets/fonts/noto-rashi-bold.ttf") format("truetype");font-weight:700;font-style:normal;font-display:swap}
 
-[data-appearance-type="eyebrow"]{font-size:calc(1em * var(--cms-eyebrow-scale,1))}
+[data-appearance-type="eyebrow"]{font-size:calc(1em * var(--cms-eyebrow-scale,1));max-inline-size:100%;overflow-wrap:anywhere}
 [data-appearance-type="subtitle"]{font-size:calc(1em * var(--cms-subtitle-scale,1))}
 [data-appearance-type]{text-underline-offset:.12em}
