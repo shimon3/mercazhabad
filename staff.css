@@ -61,3 +61,11 @@
 .manual-payment-button{background:#28563a;color:#fff;min-height:40px;font-weight:700}
 .manual-payment-button:hover,.manual-payment-button:focus-visible{background:#1b452c}
 .manual-payment-audit{padding:10px 12px;margin:9px 0;background:#e9f1e8;color:#21452a;border-inline-start:3px solid #357345;border-radius:6px;font-size:.84rem;line-height:1.6;overflow-wrap:anywhere}
+
+/* Product summary thumbnails and status chips (shared staff script). */
+.product summary{display:flex;align-items:center;gap:10px}
+.product-thumb{flex:none;width:44px;height:44px;border-radius:8px;object-fit:contain;background:#f4f0e7;display:grid;place-items:center}
+.product-main{display:grid;min-width:0;gap:2px}
+.product-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12px;font-weight:400;color:#756c60}
+.product-price{margin-inline-start:auto;flex:none}
+.chip{display:inline-block;padding:2px 8px;border-radius:20px;background:#f1e8d4;font-size:12px;font-weight:700}
