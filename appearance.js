@@ -1,8 +1,18 @@
 const endpoint = 'https://bdalhyqpruefdbyirykp.supabase.co/rest/v1/mercaz_storefront_appearance?id=eq.1';
 const apikey = 'sb_publishable_K6ciGUejNpRfLeIEc598Iw_L3VoMJYM';
 
+const typographyTargets = [
+  ['brand', 'שם החנות בסרגל העליון', 60, 150],
+  ['eyebrow', 'שם החנות באזור הפתיחה', 60, 150],
+  ['title', 'כותרת ראשית', 65, 150],
+  ['subtitle', 'משפט מתחת לכותרת', 60, 150],
+];
+const fontLabels = {original:'ברירת מחדל', sans:'Noto Sans Hebrew', serif:'Noto Serif Hebrew', rashi:'Noto Rashi Hebrew'};
+const fontFamilies = {sans:'"Noto Sans Hebrew CMS", Arial, sans-serif', serif:'"Noto Serif Hebrew CMS", David, serif', rashi:'"Noto Rashi Hebrew CMS", David, serif'};
+
 export const sections = [
   ['טקסטים ותפריט', [
+    ['eyebrow', 'שם החנות באזור הפתיחה', 'text', 'מרכז חב״ד משיח'],
     ['title', 'כותרת ראשית', 'text', 'מוצרי דגל המשיח.'],
     ['subtitle', 'טקסט פתיחה', 'text', 'מפרסם את הגאולה בעזרת מוצרי דגל המשיח.'],
     ['catalogButton', 'כפתור הקטלוג', 'text', 'גלו את הקטלוג'],
@@ -21,12 +31,17 @@ export const sections = [
     ['buttonBackground', 'רקע כפתורים ראשיים', 'color', '#202218', '--cms-button-bg'],
     ['buttonText', 'טקסט כפתורים ראשיים', 'color', '#f4f0e4', '--cms-button-text'],
     ['textSize', 'גודל הטקסט הכללי (%)', 'number', 100, '--cms-text-size', 85, 125, '%'],
-    ['brandSize', 'גודל שם החנות בראש העמוד (%)', 'number', 100, '--cms-brand-scale', 60, 150, 'scale'],
-    ['titleSize', 'גודל הכותרת הראשית (%)', 'number', 100, '--cms-title-scale', 65, 115, 'scale'],
     ['buttonSize', 'גודל טקסט בכפתורים (פיקסלים)', 'number', 16, '--cms-button-size', 12, 22, 'px'],
     ['buttonRadius', 'עיגול פינות כפתורים (פיקסלים)', 'number', 0, '--cms-button-radius', 0, 32, 'px'],
   ]],
 ];
+
+sections.push(...typographyTargets.map(([key, label, min, max]) => [label, [
+  [key + 'Size', 'גודל (%)', 'number', 100, '--cms-' + key + '-scale', min, max, 'scale'],
+  [key + 'Font', 'גופן', 'select', 'original', fontLabels],
+  [key + 'Weight', 'משקל', 'select', 'original', {original:'ברירת מחדל', normal:'רגיל', bold:'מודגש'}],
+  [key + 'Underline', 'קו תחתון', 'checkbox', false],
+]]));
 
 export function sanitizeAppearance(raw) {
   const settings = {};
@@ -60,6 +75,13 @@ export function applyAppearance(root, raw) {
   for (const node of root.querySelectorAll('[data-appearance-text]')) {
     const key = node.dataset.appearanceText;
     if (settings[key] !== undefined) node.textContent = settings[key];
+  }
+  for (const node of root.querySelectorAll('[data-appearance-type]')) {
+    const key = node.dataset.appearanceType;
+    const weight = settings[key + 'Weight'];
+    node.style.fontFamily = fontFamilies[settings[key + 'Font']] || '';
+    node.style.fontWeight = weight === 'normal' || weight === 'bold' ? weight : '';
+    node.style.textDecorationLine = settings[key + 'Underline'] ? 'underline' : '';
   }
   const account = root.querySelector('[data-appearance-link="account"]');
   const catalog = root.querySelector('[data-appearance-link="catalog"]');

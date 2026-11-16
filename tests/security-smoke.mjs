@@ -23,7 +23,7 @@ check(manager.includes('<div id="dashboard" class="hidden"></div>')&&!manager.in
 check(staff.includes('await loadProtectedDashboard();bindDashboardHandlers();'),'Dashboard handlers may only load after MFA');
 check(!account.includes('href="/admin/"')&&!account.includes('id="staffShortcut"'),'Customer page must not expose admin shortcut');
 check(!admin.includes('supabase.com/dashboard/project/')&&!manager.includes('supabase.com/dashboard/project/'),'No Supabase Dashboard link in staff pages');
-check(home.includes('<a href="/" class="brand">')&&!home.includes('s/3-temple</bdi>'),'Storefront legend and logo corrected');
+check(home.includes('<a href="/" class="brand" ')&&!home.includes('s/3-temple</bdi>'),'Storefront legend and logo corrected');
 check(home.includes('<noscript>')&&account.includes('<noscript>'),'No-script fallbacks exist');
 check(['he','fr','en'].every(id=>privacy.includes('id="'+id+'"')),'Privacy language anchors resolve');
 const headers=read('_headers');

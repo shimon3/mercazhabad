@@ -1,0 +1,10 @@
+@font-face{font-family:"Noto Sans Hebrew CMS";src:url("/assets/fonts/noto-sans-regular.ttf") format("truetype");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Noto Sans Hebrew CMS";src:url("/assets/fonts/noto-sans-bold.ttf") format("truetype");font-weight:700;font-style:normal;font-display:swap}
+@font-face{font-family:"Noto Serif Hebrew CMS";src:url("/assets/fonts/noto-serif-regular.ttf") format("truetype");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Noto Serif Hebrew CMS";src:url("/assets/fonts/noto-serif-bold.ttf") format("truetype");font-weight:700;font-style:normal;font-display:swap}
+@font-face{font-family:"Noto Rashi Hebrew CMS";src:url("/assets/fonts/noto-rashi-regular.ttf") format("truetype");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Noto Rashi Hebrew CMS";src:url("/assets/fonts/noto-rashi-bold.ttf") format("truetype");font-weight:700;font-style:normal;font-display:swap}
+
+[data-appearance-type="eyebrow"]{font-size:calc(1em * var(--cms-eyebrow-scale,1))}
+[data-appearance-type="subtitle"]{font-size:calc(1em * var(--cms-subtitle-scale,1))}
+[data-appearance-type]{text-underline-offset:.12em}

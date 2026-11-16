@@ -1,4 +1,4 @@
-import {applyAppearance, readAppearance} from '/appearance.js?v=2';
+import {applyAppearance, readAppearance} from '/appearance.js?v=3';
 
 readAppearance(AbortSignal.timeout(4000))
   .then(({settings}) => applyAppearance(document.documentElement, settings))

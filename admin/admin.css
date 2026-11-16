@@ -80,3 +80,5 @@
 .preview-cover{background:var(--gold,#edc54d);display:grid;gap:12px}
 .preview-cover strong{font-size:calc(2em * var(--cms-title-scale,1))}
 .preview-buttons span{background:var(--cms-button-bg,var(--ink,#202218));color:var(--cms-button-text,var(--paper,#f4f0e4));font-size:var(--cms-button-size,1em);border-radius:var(--cms-button-radius,0);padding:8px 12px}
+
+.preview-cover [data-appearance-type="eyebrow"]{font-weight:700}
