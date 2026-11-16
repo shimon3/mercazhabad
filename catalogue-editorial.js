@@ -9,6 +9,23 @@ const normalize = value => String(value ?? '').toLowerCase().normalize('NFKC').r
 const money = new Intl.NumberFormat('he-IL', {style: 'currency', currency: 'ILS', maximumFractionDigits: 2, minimumFractionDigits: 0});
 const format = cents => money.format(cents / 100);
 const dialog = byId('dialog');
+const stickerModels = [
+  ['salute', 'דגליה בהצדעה'],
+  ['parachute', 'דגליה עם מצנח'],
+  ['green', 'דגליה ירוק'],
+  ['pink-flag', 'דגלית עם דגל ורוד'],
+  ['gold-770', 'דגליה עם מסגרת זהב ו־770'],
+  ['blue-flag', 'דגליה עם דגל משיח צהוב'],
+  ['pink-shield', 'דגלית עם מגן'],
+].map(([model, name_he]) => ({
+  id: 'degaliya/' + model,
+  name_he,
+  category: 'PhoneStickers',
+  subcategory: 'HeroesOfMessiah',
+  image_key: '/assets-v8/degaliya/' + model + '.webp',
+  thumbnail_key: '/assets-v8/degaliya/' + model + '-thumb.webp',
+  inquiryOnly: true,
+}));
 let products = [];
 let category = '';
 let badge = '';
@@ -58,7 +75,7 @@ function photo(product, lazy = false) {
   // Permit existing relative catalogue paths, root paths and trusted HTTPS images.
   // Never allow javascript:, data:, protocol-relative URLs or unrelated remote hosts.
   let url;
-  try { url = new URL(product.image_key, location.origin); }
+  try { url = new URL((lazy && product.thumbnail_key) || product.image_key, location.origin); }
   catch { return fallback; }
   if (url.protocol !== 'https:' || ![location.origin,'https://bdalhyqpruefdbyirykp.supabase.co'].includes(url.origin)) return fallback;
   const image = element('img');
@@ -69,7 +86,8 @@ function photo(product, lazy = false) {
   return image;
 }
 function whatsappContact(product) {
-  const text = 'שלום, אשמח לקבל מידע על המוצר '+product.name_he+' (מק"ט: '+(product.sku||product.id)+').';
+  const reference = product.inquiryOnly ? '' : ' (מק"ט: ' + (product.sku || product.id) + ')';
+  const text = 'שלום, אשמח לקבל מידע על המוצר ' + product.name_he + reference + '.';
   const link = element('a', 'שאלה על המוצר ב־WhatsApp', 'whatsapp-product');
   link.href = 'https://wa.me/972533770073?text=' + encodeURIComponent(text);
   link.target = '_blank';
@@ -79,6 +97,7 @@ function whatsappContact(product) {
 }
 
 function options(product) {
+  if (product.inquiryOnly) return [];
   const tracked = product.stock_tracking_enabled === true;
   if (product.category === 'PhoneStickers' && !product.id.startsWith('mix-')) {
     return [
@@ -174,7 +193,6 @@ function renderProducts() {
   filters.hidden = category !== 'PhoneStickers';
   for (const control of filters.children) control.setAttribute('aria-pressed', control.dataset.badge === badge);
   const query = normalize(byId('search').value).trim();
-  byId('model-gallery').hidden = category !== 'PhoneStickers' || badge !== 'heroes' || Boolean(query);
   const terms = query.split(/\s+/);
   const items = products.filter(product => {
     const fields = normalize([product.name_he, product.name_fr, product.id, product.sku, labels[product.category], product.subcategory === 'HeroesOfMessiah' ? 'גיבורי אל משיח' : '', badgeLabels[badgeFor(product)], badgeFor(product) === 'police' ? 'סמל משטרה' : ''].join(' '));
@@ -203,7 +221,8 @@ function card(product) {
   const info = element('div', '', 'item-info');
   const title = element('h3');
   title.append(button(product.name_he, () => details(product)));
-  info.append(element('bdi', 'מק״ט '+(product.sku||product.id), 'sku'), title, priceLabel(product));
+  if (!product.inquiryOnly) info.append(element('bdi', 'מק״ט '+(product.sku||product.id), 'sku'));
+  info.append(title, priceLabel(product));
   node.append(image, info);
   const choices = options(product);
   if (choices.length > 1) node.append(button('בחירת מארז ←', () => details(product), 'add'));
@@ -221,21 +240,12 @@ function openDialog(title, body) {
   if (!dialog.open) dialog.showModal();
 }
 
-byId('model-gallery').addEventListener('click', event => {
-  const link = event.target.closest('a');
-  if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-  event.preventDefault();
-  const image = element('img', '', 'model-gallery-full');
-  const title = link.textContent.trim();
-  image.src = link.href;
-  image.alt = title;
-  openDialog(title, image);
-});
-
 function details(product) {
   if (!product) return;
   const body = element('div', '', 'detail');
-  body.append(photo(product), element('bdi', 'מק״ט '+(product.sku||product.id), 'sku'), priceLabel(product));
+  body.append(photo(product));
+  if (!product.inquiryOnly) body.append(element('bdi', 'מק״ט '+(product.sku||product.id), 'sku'));
+  body.append(priceLabel(product));
   const detailBadge = stockBadge(product);
   if (detailBadge) body.append(detailBadge);
   if (product.description && product.description !== product.name_he) {
@@ -374,11 +384,19 @@ try {
     headers: {apikey: SUPABASE_PUBLISHABLE_KEY},
   });
   if (!response.ok) throw new Error('Catalog fetch failed');
-  products = await response.json();
+  const params = new URLSearchParams(location.search);
+  const legacyGalleryLink = location.hash === '#model-gallery';
+  const openHeroes = params.get('collection') === 'heroes' || legacyGalleryLink;
+  if (openHeroes) {
+    category = 'PhoneStickers';
+    badge = 'heroes';
+    byId('catalog-title').textContent = badgeLabels.heroes;
+  }
+  products = [...stickerModels, ...await response.json()];
   const keys = new Set(products.flatMap(product => options(product).map(choice => choice.key)));
   cart = Object.fromEntries(Object.entries(initialCart).filter(([key, count]) => keys.has(key) && Number.isSafeInteger(count) && count > 0 && count <= 100));
   renderCategories();
-  const skuFromQr = new URLSearchParams(location.search).get('sku');
+  const skuFromQr = params.get('sku');
   if (skuFromQr && /^MH-[0-9]{6,}$/.test(skuFromQr)) {
     const match = products.find(product => product.sku === skuFromQr);
     if (match) {
@@ -392,6 +410,7 @@ try {
   } else {
     renderProducts();
   }
+  if (legacyGalleryLink) byId('catalog').scrollIntoView();
   updateCount();
 } catch {
   byId('result-count').textContent = 'לא ניתן לטעון את הקטלוג. בדקו את החיבור ונסו לרענן.';
