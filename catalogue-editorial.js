@@ -1,3 +1,9 @@
+import {applyAppearance, readAppearance} from '/appearance.js?v=1';
+
+readAppearance(AbortSignal.timeout(4000))
+  .then(({settings}) => applyAppearance(document.documentElement, settings))
+  .catch(() => {});
+
 const SUPABASE_URL='https://bdalhyqpruefdbyirykp.supabase.co';const SUPABASE_PUBLISHABLE_KEY='sb_publishable_K6ciGUejNpRfLeIEc598Iw_L3VoMJYM';
 const byId = id => document.getElementById(id);
 const labels = {
