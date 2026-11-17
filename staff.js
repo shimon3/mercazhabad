@@ -34,8 +34,8 @@ function bindDashboardHandlers(){
  if (appearanceEditor && role === 'admin' && getAal() === 'aal2') {
    const appearanceTab = document.querySelector('[data-view="appearance"]');
    appearanceTab.addEventListener('click', () => {
-     import('/admin/appearance-editor.js?v=9')
-       .then(({mountAppearanceEditor}) => mountAppearanceEditor(appearanceEditor, () => token, upload))
+     import('/admin/appearance-editor.js?v=10')
+       .then(({mountAppearanceEditor}) => mountAppearanceEditor(appearanceEditor, () => token))
        .catch(() => { appearanceEditor.textContent = 'עורך העיצוב לא נטען. רעננו את הדף.'; });
    }, {once:true});
  }

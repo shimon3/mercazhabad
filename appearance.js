@@ -29,7 +29,6 @@ export const pages = {
 export const elements = {
   home: [
     ['brand', 'שם החנות בסרגל העליון', 'מרכז חב״ד משיח', 300],
-    ['featureImage', 'תמונת הסיכה בראש דף הבית'],
     ['eyebrow', 'שם החנות באזור הפתיחה', 'מרכז חב״ד משיח', 300],
     ['title', 'כותרת ראשית', 'מוצרי דגל המשיח.', 200],
     ['subtitle', 'טקסט פתיחה', 'מפרסם את הגאולה בעזרת מוצרי דגל המשיח.', 200],
@@ -58,13 +57,9 @@ export const elements = {
 
 const alignments = {original:'ברירת מחדל', right:'ימין', center:'מרכז', left:'שמאל'};
 const positions = {original:'ברירת מחדל', before:'לפני שאר הטקסטים', after:'אחרי שאר הטקסטים'};
-const featureImageDefault = '/assets-v8/temple-home.webp';
-const featureImagePrefix = new URL(endpoint).origin + '/storage/v1/object/public/mercaz-product-images/';
 const heroElements = new Set(['eyebrow', 'title', 'subtitle']);
 
-export const elementFields = Object.fromEntries(Object.values(elements).flat().map(([key, , label, max = 200]) => [key, key === 'featureImage' ? [
-  [key, 'בחירת תמונה (JPG, PNG, WebP עד 5MB)', 'image', featureImageDefault],
-] : [
+export const elementFields = Object.fromEntries(Object.values(elements).flat().map(([key, , label, max = 200]) => [key, [
   [key, 'טקסט', 'text', label],
   [key + 'Size', 'גודל (%)', 'number', 100, null, 60, max, 'scale'],
   [key + 'Font', 'גופן', 'select', 'original', fontLabels],
@@ -80,7 +75,7 @@ export const elementFields = Object.fromEntries(Object.values(elements).flat().m
 
 export const pageFields = {
   home: [...homeStyle, ...menuFields,
-    ['heroLayout', 'מיקום התמונה באזור הפתיחה', 'select', 'original', {original:'ברירת מחדל', opposite:'החלפת צד עם הטקסט'}]],
+    ['heroLayout', 'מיקום הסרטון באזור הפתיחה', 'select', 'original', {original:'ברירת מחדל', opposite:'החלפת צד עם הטקסט'}]],
   account: [
     ['accountBackground', 'רקע העמוד', 'color', null, '--cms-account-bg'],
     ['accountInk', 'צבע הטקסט בעמוד', 'color', null, '--cms-account-ink'],
@@ -98,8 +93,6 @@ export function sanitizeAppearance(raw) {
   for (const [key, , type, , choices, min, max] of Object.values(fieldsByKey)) {
     const value = raw?.[key];
     if (type === 'text' && typeof value === 'string' && value.trim() && value.length <= 120) settings[key] = value.trim();
-    if (type === 'image' && typeof value === 'string' && value.startsWith(featureImagePrefix) &&
-        /^[a-f0-9-]{36}\.(jpg|png|webp)$/.test(value.slice(featureImagePrefix.length))) settings[key] = value;
     if (type === 'color' && typeof value === 'string' && /^#[\da-f]{6}$/i.test(value)) settings[key] = value;
     if (type === 'number' && Number.isInteger(value) && value >= min && value <= max) settings[key] = value;
     if (type === 'select' && Object.hasOwn(choices, value)) settings[key] = value;
@@ -125,11 +118,6 @@ export function applyAppearance(root, raw, page = 'home') {
   for (const node of root.querySelectorAll('[data-appearance-text]')) {
     const key = node.dataset.appearanceText;
     if (!Object.hasOwn(elementFields, key)) continue;
-    if (key === 'featureImage') {
-      node.src = settings.featureImage ?? featureImageDefault;
-      node.hidden = settings.featureImage === undefined;
-      continue;
-    }
     node.textContent = settings[key] ?? elementFields[key][0][3];
     const size = settings[key + 'Size'];
     if (size === undefined) node.style.removeProperty('--cms-element-scale');
