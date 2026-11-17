@@ -459,7 +459,6 @@ byId('close-cart').addEventListener('click', () => byId('cart-dialog').close());
 byId('cart-dialog').addEventListener('click', event => {
   if (event.target === byId('cart-dialog')) byId('cart-dialog').close();
 });
-byId('feature').addEventListener('click', () => details(products.find(product => product.id === 's/3-temple')));
 byId('search').addEventListener('input', () => {
   renderProducts();
   const box = byId('catalog').getBoundingClientRect();
