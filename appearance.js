@@ -64,6 +64,7 @@ export const elementFields = Object.fromEntries(Object.values(elements).flat().m
   [key + 'Size', 'גודל (%)', 'number', 100, null, 60, max, 'scale'],
   [key + 'Font', 'גופן', 'select', 'original', fontLabels],
   [key + 'Color', 'צבע הטקסט', 'color', null],
+  ...(key === 'eyebrow' ? [[key + 'Background', 'צבע רקע התגית', 'color', '#0f1b4d']] : []),
   [key + 'Weight', 'משקל', 'select', 'original', {original:'ברירת מחדל', normal:'רגיל', bold:'מודגש'}],
   [key + 'Underline', 'קו תחתון', 'checkbox', false],
   ...(heroElements.has(key) ? [
@@ -122,6 +123,7 @@ export function applyAppearance(root, raw, page = 'home') {
     if (size === undefined) node.style.removeProperty('--cms-element-scale');
     else node.style.setProperty('--cms-element-scale', String(size / 100));
     node.style.color = settings[key + 'Color'] || '';
+    if (key === 'eyebrow') node.style.backgroundColor = settings.eyebrowBackground || '';
     const align = settings[key + 'Align'];
     if (align && align !== 'original') node.dataset.cmsAlign = align;
     else delete node.dataset.cmsAlign;

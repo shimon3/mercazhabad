@@ -1,4 +1,4 @@
-import {applyAppearance, pages, readAppearance} from '/appearance.js?v=6';
+import {applyAppearance, pages, readAppearance} from '/appearance.js?v=7';
 
 const page = document.body.dataset.appearancePage;
 readAppearance(AbortSignal.timeout(4000))
