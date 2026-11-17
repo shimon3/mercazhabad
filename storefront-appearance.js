@@ -1,15 +1,26 @@
 import {applyAppearance, pages, readAppearance} from '/appearance.js?v=10';
 
 const page = document.body.dataset.appearancePage;
+const video = document.querySelector('.exhibit-video');
+const replay = document.querySelector('.exhibit-replay');
+
+if (video && replay) {
+  const playVideo = () => {
+    replay.hidden = true;
+    return video.play().catch(() => { replay.hidden = false; });
+  };
+  video.addEventListener('ended', () => { replay.hidden = false; });
+  replay.addEventListener('click', () => {
+    if (video.ended) video.currentTime = 0;
+    playVideo();
+  });
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) playVideo();
+  else replay.hidden = false;
+}
+
 readAppearance(AbortSignal.timeout(4000))
   .then(({settings}) => applyAppearance(document.documentElement, settings, page))
-  .catch(() => {})
-  .then(() => {
-    const video = document.querySelector('.exhibit-video');
-    if (video?.getClientRects().length && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      video.play().catch(() => {});
-    }
-  });
+  .catch(() => {});
 
 async function showCustomizeShortcut() {
   const token = sessionStorage.getItem('merkaz_staff_token');
