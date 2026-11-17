@@ -1,9 +1,9 @@
 import {
   applyAppearance, elementFields, elements, pageFields, pages,
   publishAppearance, readAppearance, sanitizeAppearance,
-} from '/appearance.js?v=7';
+} from '/appearance.js?v=8';
 
-export async function mountAppearanceEditor(host, getToken) {
+export async function mountAppearanceEditor(host, getToken, uploadImage) {
   host.replaceChildren(document.getElementById('appearance-template').content.cloneNode(true));
   const form = host.querySelector('form');
   const status = form.querySelector('[role="status"]');
@@ -18,6 +18,7 @@ export async function mountAppearanceEditor(host, getToken) {
   let revision;
   let settings = {};
   let busy = false;
+  let pendingImage;
   let previewRequest;
   let previewDocument;
 
@@ -34,6 +35,8 @@ export async function mountAppearanceEditor(host, getToken) {
       previewDocument.getElementById('accountView').classList.toggle('hidden', !signedIn);
     }
     applyAppearance(previewDocument.documentElement, settings, pageSelect.value);
+    const featured = previewDocument.querySelector('[data-appearance-text="featureImage"]');
+    if (featured && pendingImage) featured.src = pendingImage.preview;
     for (const node of previewDocument.querySelectorAll('[data-appearance-text]')) {
       node.toggleAttribute('data-editor-selected', node.dataset.appearanceText === element);
     }
@@ -50,6 +53,41 @@ export async function mountAppearanceEditor(host, getToken) {
       const label = document.createElement('label');
       label.textContent = caption;
       const input = document.createElement(type === 'select' ? 'select' : 'input');
+      if (type === 'image') {
+        input.type = 'file';
+        input.accept = 'image/jpeg,image/png,image/webp';
+        label.append(input);
+        controls.append(label);
+        input.addEventListener('change', async () => {
+          const file = input.files[0];
+          if (!file) return;
+          setBusy(true);
+          try {
+            if (!file.size || file.size > 5 * 1024 * 1024 ||
+                !['image/jpeg','image/png','image/webp'].includes(file.type)) {
+              throw new Error('יש לבחור קובץ תמונה JPG/PNG/WebP עד 5MB');
+            }
+            const preview = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(file);
+            });
+            const image = new Image();
+            image.src = preview;
+            await image.decode();
+            pendingImage = {file, preview};
+            syncPreview();
+            status.textContent = 'התמונה מוכנה לפרסום.';
+          } catch {
+            input.value = '';
+            status.textContent = 'יש לבחור תמונה תקינה מסוג JPG, PNG או WebP עד 5MB.';
+          } finally {
+            setBusy(false);
+          }
+        });
+        continue;
+      }
       if (type === 'select') {
         for (const [value, name] of Object.entries(options)) input.add(new Option(name, value));
       } else {
@@ -170,6 +208,7 @@ export async function mountAppearanceEditor(host, getToken) {
       const published = await readAppearance(AbortSignal.timeout(8000));
       revision = published.revision;
       settings = sanitizeAppearance(published.settings);
+      pendingImage = undefined;
       renderControls();
       syncPreview();
       status.textContent = '';
@@ -192,7 +231,10 @@ export async function mountAppearanceEditor(host, getToken) {
   });
   reload.addEventListener('click', loadPublished);
   reset.addEventListener('click', () => {
-    for (const [key] of selectedFields()) delete settings[key];
+    for (const [key, , type] of selectedFields()) {
+      delete settings[key];
+      if (type === 'image') pendingImage = undefined;
+    }
     renderControls();
     syncPreview();
     status.textContent = 'ההגדרות שנבחרו אופסו בתצוגה. לחצו על פרסום כדי להחיל בחנות.';
@@ -202,6 +244,13 @@ export async function mountAppearanceEditor(host, getToken) {
     if (busy || revision === undefined) return;
     setBusy(true);
     try {
+      if (pendingImage) {
+        const url = await uploadImage(pendingImage.file);
+        const {featureImage} = sanitizeAppearance({featureImage:url});
+        if (!featureImage) throw new Error('כתובת התמונה שהועלתה אינה תקינה.');
+        settings.featureImage = featureImage;
+        pendingImage = undefined;
+      }
       const published = await publishAppearance(settings, revision, getToken());
       revision = published.revision;
       status.textContent = 'העיצוב פורסם בחנות.';
