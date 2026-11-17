@@ -1,7 +1,8 @@
-import {applyAppearance, pages, readAppearance} from '/appearance.js?v=10';
+import {applyAppearance, pages, readAppearance} from '/appearance.js?v=11';
 
 const page = document.body.dataset.appearancePage;
 readAppearance(AbortSignal.timeout(4000))
+  .catch(() => readAppearance(AbortSignal.timeout(8000)))
   .then(({settings}) => applyAppearance(document.documentElement, settings, page))
   .catch(() => {})
   .then(() => {
