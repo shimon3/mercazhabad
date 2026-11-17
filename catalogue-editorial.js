@@ -1,11 +1,6 @@
-import {applyAppearance, readAppearance} from '/appearance.js?v=5';
-
-readAppearance(AbortSignal.timeout(4000))
-  .then(({settings}) => applyAppearance(document.documentElement, settings))
-  .catch(() => {});
-
 const SUPABASE_URL='https://bdalhyqpruefdbyirykp.supabase.co';const SUPABASE_PUBLISHABLE_KEY='sb_publishable_K6ciGUejNpRfLeIEc598Iw_L3VoMJYM';
 const byId = id => document.getElementById(id);
+const storefrontOrigin = new URL(document.baseURI).origin;
 const labels = {
   PhoneStickers: 'מדבקות לפלאפון', CarMagnets: 'מגנטים לרכב',
   Pins: 'סיכות משיח', Kippas: 'כיפות משיח', Caps: 'כובעי משיח',
@@ -40,7 +35,7 @@ const badgeFor = product => product.subcategory === 'HeroesOfMessiah' ? 'heroes'
 
 let cart = {};
 let initialCart = {};
-try { initialCart = JSON.parse(localStorage.getItem('mercaz-basket-v1')) || {}; } catch {}
+if (!document.documentElement.hasAttribute('data-editor-preview')) try { initialCart = JSON.parse(localStorage.getItem('mercaz-basket-v1')) || {}; } catch {}
 
 function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -98,9 +93,9 @@ function photo(product, lazy = false) {
   // Permit existing relative catalogue paths, root paths and trusted HTTPS images.
   // Never allow javascript:, data:, protocol-relative URLs or unrelated remote hosts.
   let url;
-  try { url = new URL((lazy && product.thumbnail_key) || product.image_key, location.origin); }
+  try { url = new URL((lazy && product.thumbnail_key) || product.image_key, storefrontOrigin); }
   catch { return fallback; }
-  if (url.protocol !== 'https:' || ![location.origin,'https://bdalhyqpruefdbyirykp.supabase.co'].includes(url.origin)) return fallback;
+  if (url.protocol !== 'https:' || ![storefrontOrigin,'https://bdalhyqpruefdbyirykp.supabase.co'].includes(url.origin)) return fallback;
   const image = element('img');
   image.src = url.href;
   image.alt = product.name_he;

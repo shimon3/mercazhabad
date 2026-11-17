@@ -1,6 +1,5 @@
 :root{font-size:var(--cms-text-size,100%)}
-.mast .brand{font-size:calc(clamp(1.05rem,1.8vw,1.3rem) * var(--cms-brand-scale,1));min-width:0;overflow-wrap:anywhere}
-.cover h1{font-size:calc(clamp(2.4rem,4.6vw,4.4rem) * var(--cms-title-scale,1));overflow-wrap:anywhere}
+.mast .brand{font-size:clamp(1.05rem,1.8vw,1.3rem);min-width:0;overflow-wrap:anywhere}
 .cover-copy .btn-dark{background:var(--cms-button-bg,var(--ink));color:var(--cms-button-text,#fff)}
 [data-cms-button-size] :is(.cover-copy .btn,#basket,.add,.dialog-actions button,.whatsapp-product){font-size:var(--cms-button-size)}
 [data-cms-button-radius] :is(.cover-copy .btn,#basket,.add,.dialog-actions button,.whatsapp-product,.checkout){border-radius:var(--cms-button-radius)}
@@ -10,6 +9,40 @@
 [data-appearance-link][hidden]{display:none!important}
 .cover-copy .btn{white-space:normal;overflow-wrap:anywhere}
 @media(max-width:720px){
-  .cover h1{font-size:calc(clamp(2.1rem,10vw,3rem) * var(--cms-title-scale,1))}
   [data-cms-large-brand] .mast .brand{flex-basis:100%}
 }
+
+/* Editable text keeps each page's native sizing unless a scale is selected. */
+.mast .brand [data-appearance-text="brand"]{font-size:calc(1em * var(--cms-element-scale,1))}
+.cover h1{font-size:calc(clamp(2.4rem,4.6vw,4.4rem) * var(--cms-element-scale,1));overflow-wrap:anywhere}
+.cover .eyebrow{font-size:calc(.85rem * var(--cms-element-scale,1))}
+.cover .subtitle{font-size:calc(clamp(1rem,1.4vw,1.15rem) * var(--cms-element-scale,1))}
+.cover-actions [data-appearance-text="catalogButton"],#basket [data-appearance-text],.account-link [data-appearance-text]{font-size:calc(1em * var(--cms-element-scale,1))}
+.mast nav [data-appearance-text="menuCatalog"]{font-size:calc(.92rem * var(--cms-element-scale,1))}
+.promo strong[data-appearance-text]{font-size:calc(clamp(1.3rem,2.2vw,1.9rem) * var(--cms-element-scale,1))}
+.shelf-head h2[data-appearance-text]{font-size:calc(clamp(1.35rem,2.6vw,1.9rem) * var(--cms-element-scale,1))}
+.help-band h2[data-appearance-text]{font-size:calc(clamp(1.3rem,2.4vw,1.8rem) * var(--cms-element-scale,1))}
+.cover-copy [data-cms-align="right"]{align-self:flex-start;text-align:right}
+.cover-copy [data-cms-align="center"]{align-self:center;text-align:center}
+.cover-copy [data-cms-align="left"]{align-self:flex-end;text-align:left}
+.cover-copy .cover-actions{order:2}
+[data-cms-hero-opposite] .hero-main{grid-template-columns:1fr 1.15fr}
+[data-cms-hero-opposite] .hero-main .exhibit{order:-1}
+@media(max-width:720px){
+  .cover h1{font-size:calc(clamp(2.1rem,10vw,3rem) * var(--cms-element-scale,1))}
+  [data-cms-hero-opposite] .hero-main{grid-template-columns:1fr}
+  [data-cms-hero-opposite] .hero-main .exhibit{order:1}
+}
+
+body[data-appearance-page="account"]{background:var(--cms-account-bg,#f8f5ef);color:var(--cms-account-ink,#29251e)}
+[data-appearance-page="account"] h1[data-appearance-text]{font-size:calc(25px * var(--cms-element-scale,1))}
+[data-appearance-page="account"] h2[data-appearance-text]{font-size:calc(19px * var(--cms-element-scale,1))}
+[data-appearance-text="accountBrand"],[data-appearance-text="accountIntro"],[data-appearance-text="privacyBack"]{font-size:calc(1em * var(--cms-element-scale,1))}
+body[data-appearance-page="privacy"]{background:var(--cms-privacy-bg,var(--bg));color:var(--cms-privacy-ink,var(--ink))}
+[data-appearance-text="privacyTitle"]{font-size:calc(30px * var(--cms-element-scale,1))}
+@media(max-width:640px){[data-appearance-text="privacyTitle"]{font-size:calc(25px * var(--cms-element-scale,1))}}
+
+[data-editor-preview] [data-appearance-text]{cursor:pointer}
+[data-editor-preview] :is([data-editor-selected],[data-appearance-text]:hover){outline:2px solid #2262df;outline-offset:3px}
+.appearance-shortcut{position:fixed;top:35%;right:0;z-index:55;padding:12px 16px;border:1px solid #999;border-right:0;border-radius:10px 0 0 10px;background:#10295a;color:#fff;font:700 15px Arial,sans-serif;text-decoration:none;box-shadow:0 2px 12px #0003}
+.appearance-shortcut:focus-visible{outline:3px solid #4295ff;outline-offset:2px}
