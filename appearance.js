@@ -30,7 +30,7 @@ export const elements = {
   home: [
     ['brand', 'שם החנות בסרגל העליון', 'מרכז חב״ד משיח', 300],
     ['eyebrow', 'שם החנות באזור הפתיחה', 'מרכז חב״ד משיח', 600],
-    ['title', 'כותרת ראשית', 'מוצרי דגל המשיח.', 200],
+    ['title', 'כותרת ראשית', 'מוצרי דגל המשיח.', 200, 10],
     ['subtitle', 'טקסט פתיחה', 'מפרסם את הגאולה בעזרת מוצרי דגל המשיח.', 200],
     ['catalogButton', 'כפתור הקטלוג', 'גלו את הקטלוג'],
     ['modelsButton', 'כותרת דגמי דגליה ודגלית', 'דגמי דגליה ודגלית'],
@@ -59,9 +59,9 @@ const alignments = {original:'ברירת מחדל', right:'ימין', center:'מ
 const positions = {original:'ברירת מחדל', before:'לפני שאר הטקסטים', after:'אחרי שאר הטקסטים'};
 const heroElements = new Set(['eyebrow', 'title', 'subtitle']);
 
-export const elementFields = Object.fromEntries(Object.values(elements).flat().map(([key, , label, max = 200]) => [key, [
+export const elementFields = Object.fromEntries(Object.values(elements).flat().map(([key, , label, max = 200, min = 60]) => [key, [
   [key, 'טקסט', 'text', label],
-  [key + 'Size', 'גודל (%)', 'number', 100, null, 60, max, 'scale'],
+  [key + 'Size', 'גודל (%)', 'number', 100, null, min, max, 'scale'],
   [key + 'Font', 'גופן', 'select', 'original', fontLabels],
   [key + 'Color', 'צבע הטקסט', 'color', null],
   ...(key === 'eyebrow' ? [[key + 'Background', 'צבע רקע התגית', 'color', '#0f1b4d']] : []),
