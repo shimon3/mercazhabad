@@ -1,7 +1,7 @@
 import {
   applyAppearance, elementFields, elements, pageFields, pages,
   publishAppearance, readAppearance, sanitizeAppearance,
-} from '/appearance.js?v=10';
+} from '/appearance.js?v=11';
 
 export async function mountAppearanceEditor(host, getToken) {
   host.replaceChildren(document.getElementById('appearance-template').content.cloneNode(true));

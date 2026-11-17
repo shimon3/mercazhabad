@@ -55,6 +55,8 @@ export const elements = {
   ],
 };
 
+const fontWeights = {original:'ברירת מחדל', light:'דק (300)', normal:'רגיל (400)', bold:'מודגש (700)'};
+const cssFontWeights = {light:'300', normal:'400', bold:'700'};
 const alignments = {original:'ברירת מחדל', right:'ימין', center:'מרכז', left:'שמאל'};
 const positions = {original:'ברירת מחדל', before:'לפני שאר הטקסטים', after:'אחרי שאר הטקסטים'};
 const heroElements = new Set(['eyebrow', 'title', 'subtitle']);
@@ -65,7 +67,7 @@ export const elementFields = Object.fromEntries(Object.values(elements).flat().m
   [key + 'Font', 'גופן', 'select', 'original', fontLabels],
   [key + 'Color', 'צבע הטקסט', 'color', null],
   ...(key === 'eyebrow' ? [[key + 'Background', 'צבע רקע התגית', 'color', '#0f1b4d']] : []),
-  [key + 'Weight', 'משקל', 'select', 'original', {original:'ברירת מחדל', normal:'רגיל', bold:'מודגש'}],
+  [key + 'Weight', 'משקל', 'select', 'original', fontWeights],
   [key + 'Underline', 'קו תחתון', 'checkbox', false],
   ...(heroElements.has(key) ? [
     [key + 'Align', 'יישור', 'select', 'original', alignments],
@@ -131,7 +133,7 @@ export function applyAppearance(root, raw, page = 'home') {
     node.style.order = position === 'before' ? '-1' : position === 'after' ? '1' : '';
     const weight = settings[key + 'Weight'];
     node.style.fontFamily = fontFamilies[settings[key + 'Font']] || '';
-    node.style.fontWeight = weight === 'normal' || weight === 'bold' ? weight : '';
+    node.style.fontWeight = cssFontWeights[weight] ?? '';
     node.style.textDecorationLine = settings[key + 'Underline'] ? 'underline' : '';
   }
   const account = root.querySelector('[data-appearance-link="account"]');
