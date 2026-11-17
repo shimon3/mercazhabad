@@ -1,7 +1,7 @@
 import {
   applyAppearance, elementFields, elements, pageFields, pages,
   publishAppearance, readAppearance, sanitizeAppearance,
-} from '/appearance.js?v=8';
+} from '/appearance.js?v=9';
 
 export async function mountAppearanceEditor(host, getToken, uploadImage) {
   host.replaceChildren(document.getElementById('appearance-template').content.cloneNode(true));
@@ -36,7 +36,10 @@ export async function mountAppearanceEditor(host, getToken, uploadImage) {
     }
     applyAppearance(previewDocument.documentElement, settings, pageSelect.value);
     const featured = previewDocument.querySelector('[data-appearance-text="featureImage"]');
-    if (featured && pendingImage) featured.src = pendingImage.preview;
+    if (featured && pendingImage) {
+      featured.src = pendingImage.preview;
+      featured.hidden = false;
+    }
     for (const node of previewDocument.querySelectorAll('[data-appearance-text]')) {
       node.toggleAttribute('data-editor-selected', node.dataset.appearanceText === element);
     }

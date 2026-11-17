@@ -1,9 +1,15 @@
-import {applyAppearance, pages, readAppearance} from '/appearance.js?v=8';
+import {applyAppearance, pages, readAppearance} from '/appearance.js?v=9';
 
 const page = document.body.dataset.appearancePage;
 readAppearance(AbortSignal.timeout(4000))
   .then(({settings}) => applyAppearance(document.documentElement, settings, page))
-  .catch(() => {});
+  .catch(() => {})
+  .then(() => {
+    const video = document.querySelector('.exhibit-video');
+    if (video?.getClientRects().length && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      video.play().catch(() => {});
+    }
+  });
 
 async function showCustomizeShortcut() {
   const token = sessionStorage.getItem('merkaz_staff_token');

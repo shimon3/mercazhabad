@@ -127,6 +127,7 @@ export function applyAppearance(root, raw, page = 'home') {
     if (!Object.hasOwn(elementFields, key)) continue;
     if (key === 'featureImage') {
       node.src = settings.featureImage ?? featureImageDefault;
+      node.hidden = settings.featureImage === undefined;
       continue;
     }
     node.textContent = settings[key] ?? elementFields[key][0][3];
