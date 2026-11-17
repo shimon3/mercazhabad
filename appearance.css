@@ -15,7 +15,7 @@
 /* Editable text keeps each page's native sizing unless a scale is selected. */
 .mast .brand [data-appearance-text="brand"]{font-size:calc(1em * var(--cms-element-scale,1))}
 .cover h1{font-size:calc(clamp(2.4rem,4.6vw,4.4rem) * var(--cms-element-scale,1));overflow-wrap:anywhere}
-.cover .eyebrow{font-size:calc(.85rem * var(--cms-element-scale,1))}
+.cover .eyebrow{font-size:calc(.85rem * var(--cms-element-scale,1));max-width:100%;overflow-wrap:anywhere}
 .cover .subtitle{font-size:calc(clamp(1rem,1.4vw,1.15rem) * var(--cms-element-scale,1))}
 .cover-actions [data-appearance-text="catalogButton"],#basket [data-appearance-text],.account-link [data-appearance-text]{font-size:calc(1em * var(--cms-element-scale,1))}
 .mast nav [data-appearance-text="menuCatalog"]{font-size:calc(.92rem * var(--cms-element-scale,1))}
