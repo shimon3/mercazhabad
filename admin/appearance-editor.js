@@ -10,11 +10,11 @@ export async function mountAppearanceEditor(host, getToken) {
   const productButton = document.createElement('button');
   productButton.type = 'button';
   productButton.textContent = 'עריכת מוצרים: תמונות, מחירים ומבצעים';
-  productButton.addEventListener('click', async () => {
+  async function openProductEditor(productId = null, field = null) {
     productButton.disabled = true;
     try {
       const {mountProductVisualEditor} = await import('/admin/product-visual-editor.js?v=1');
-      await mountProductVisualEditor(host, getToken, () => mountAppearanceEditor(host, getToken));
+      await mountProductVisualEditor(host, getToken, () => mountAppearanceEditor(host, getToken), productId, field);
     } catch (error) {
       productButton.disabled = false;
       const message = document.createElement('p');
@@ -22,7 +22,8 @@ export async function mountAppearanceEditor(host, getToken) {
       message.textContent = 'טעינת עורך המוצרים נכשלה: ' + error.message;
       switcher.append(message);
     }
-  });
+  }
+  productButton.addEventListener('click', () => { void openProductEditor(); });
   switcher.append(productButton);
   host.prepend(switcher);
   const form = host.querySelector('form');
@@ -161,6 +162,12 @@ export async function mountAppearanceEditor(host, getToken) {
     doc.addEventListener('click', event => {
       event.preventDefault();
       event.stopImmediatePropagation();
+      const productCard = event.target.closest('[data-product-id]');
+      if (productCard && pageSelect.value === 'home') {
+        const field = event.target.closest('[data-product-field]')?.dataset.productField || 'image';
+        void openProductEditor(productCard.dataset.productId, field);
+        return;
+      }
       const target = event.target.closest('[data-appearance-text], a, button');
       const editable = target?.matches('[data-appearance-text]') ? target : target?.querySelector('[data-appearance-text]');
       if (editable) {
