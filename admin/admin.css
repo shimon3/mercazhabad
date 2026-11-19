@@ -214,3 +214,10 @@
 }
 @media(prefers-reduced-motion:reduce){.admin-console *{animation:none!important;transition:none!important}}
 @media print{.admin-console>header,.admin-console .navtabs{position:static}}
+
+/* Visual product editor */
+.cms-editor-switcher{margin-block:0 12px}
+.cms-crop-preview{display:block;width:min(100%,260px);height:auto;aspect-ratio:1;object-fit:contain;border:1px solid var(--line);border-radius:10px;background:white}
+.appearance-sidebar textarea{width:100%;min-height:70px;resize:vertical}
+.appearance-sidebar input[type=range]{width:100%;max-width:190px}
+.appearance-sidebar input[type=file]{max-width:100%;font-size:.8rem}
