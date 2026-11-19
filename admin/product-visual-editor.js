@@ -25,6 +25,30 @@ export async function mountProductVisualEditor(host, getToken, back, initialProd
   const fields = sidebar.querySelector('[data-fields]');
   const status = sidebar.querySelector('[role="status"]');
   const iframe = preview.querySelector('iframe');
+  async function loadPreview() {
+    report('טוען תצוגה מקדימה…');
+    try {
+      // The public storefront deliberately sends X-Frame-Options: DENY and
+      // CSP frame-ancestors 'none'. A direct iframe.src request is therefore
+      // blocked. Build an isolated same-origin srcdoc preview instead.
+      const url = new URL('/', location.origin);
+      const response = await fetch(url, {cache:'no-store', signal:AbortSignal.timeout(10000)});
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      const html = new DOMParser().parseFromString(await response.text(), 'text/html');
+      html.documentElement.dataset.cmsProductPreview = 'true';
+      for (const node of html.querySelectorAll('[src], [href]')) {
+        for (const attribute of ['src', 'href']) {
+          const value = node.getAttribute(attribute);
+          if (!value || value.startsWith('#')) continue;
+          try { node.setAttribute(attribute, new URL(value, url).href); } catch {}
+        }
+      }
+      iframe.srcdoc = '<!doctype html>' + html.documentElement.outerHTML;
+      report('');
+    } catch (error) {
+      report('טעינת התצוגה המקדימה נכשלה: ' + error.message, true);
+    }
+  }
   let products = [], selected = null, cropFile = null, dirty = false, loading = false;
   const report = (message, bad = false) => { status.textContent = message; status.className = 'status ' + (bad ? 'error' : 'ok'); };
   const request = async (path, opts = {}) => {
@@ -151,7 +175,7 @@ export async function mountProductVisualEditor(host, getToken, back, initialProd
   preview.querySelector('[data-mobile]').addEventListener('click',()=>iframe.classList.toggle('mobile'));
   iframe.addEventListener('load',()=>{
     const doc=iframe.contentDocument;
-    if (!doc) return;
+    if (!doc || doc.documentElement.dataset.cmsProductPreview !== 'true') return;
     doc.addEventListener('click',event=>{
       const card=event.target.closest('[data-product-id]');
       event.preventDefault();event.stopImmediatePropagation();
@@ -161,6 +185,24 @@ export async function mountProductVisualEditor(host, getToken, back, initialProd
     const style=doc.createElement('style');
     style.textContent='.cms-product-selected{outline:3px solid #e9b800!important;outline-offset:-3px}.item [data-product-field="subtitle"]{display:block;font-size:.78rem;color:#59647a}.item [data-product-field="subtitle"][hidden]{display:none}';
     doc.head.append(style);
+    // Catalogue cards are populated asynchronously by the storefront module.
+    // Keep the clicked product selected when those cards appear.
+    const listing = doc.getElementById('products');
+    if (listing) {
+      const observer = new MutationObserver(() => {
+        if (!listing.querySelector('[data-product-id]')) return;
+        observer.disconnect();
+        const selectedCard = [...listing.querySelectorAll('[data-product-id]')]
+          .find(card => card.dataset.productId === selected?.id);
+        selectedCard?.scrollIntoView({block:'center'});
+        updatePreview();
+      });
+      observer.observe(listing, {childList:true});
+      if (listing.querySelector('[data-product-id]')) {
+        observer.disconnect();
+        updatePreview();
+      }
+    }
     updatePreview();
   });
   sidebar.addEventListener('submit',async event=>{
@@ -185,7 +227,7 @@ export async function mountProductVisualEditor(host, getToken, back, initialProd
       products=products.map(p=>p.id===selected.id?{...p,...payload}:p);
       dirty=false;
       report('המוצר נשמר. התצוגה תתעדכן.',false);
-      iframe.src='/?cms-preview='+Date.now()+'#catalog';
+      await loadPreview();
       cropFile=null;
     }catch(err){report(err.message,true);}
     finally{loading=false;sidebar.querySelector('[type="submit"]').disabled=false;}
@@ -202,6 +244,6 @@ export async function mountProductVisualEditor(host, getToken, back, initialProd
         if (focusField.type !== 'file') focusField.focus({preventScroll:true});
       }
     }
-    iframe.src='/?cms-preview=1#catalog';
+    await loadPreview();
   } catch(err){report('לא ניתן לטעון מוצרים: '+err.message,true);}
 }
