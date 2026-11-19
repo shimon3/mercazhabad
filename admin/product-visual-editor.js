@@ -123,10 +123,26 @@ export async function mountProductVisualEditor(host, getToken, back) {
       source.onload=()=>{URL.revokeObjectURL(url);redraw();};
       source.src=url;
     });
-    for(const control of [zoom,x,y]) control.addEventListener('input',redraw);
-    // Existing images are not automatically re-uploaded when selecting a product.
+    for(const control of [zoom,x,y]) control.addEventListener('input', () => {
+      if (!source.naturalWidth) {
+        report('כדי לחתוך תמונה קיימת יש לבחור אותה כקובץ מהמחשב.',true);
+        return;
+      }
+      redraw();
+    });
+    // Display the stored photo without generating an upload or changing it.
     const original=validImage(product.image_key);
-    if (original) { const img = new Image(); img.crossOrigin='anonymous'; img.onload=()=>{const ctx=cropPreview.getContext('2d');ctx.clearRect(0,0,320,320);ctx.fillStyle='#fff';ctx.fillRect(0,0,320,320);const ratio=Math.min(320/img.naturalWidth,320/img.naturalHeight);ctx.drawImage(img,(320-img.naturalWidth*ratio)/2,(320-img.naturalHeight*ratio)/2,img.naturalWidth*ratio,img.naturalHeight*ratio);};img.src=original; }
+    if (original) {
+      const img = new Image();
+      img.crossOrigin='anonymous';
+      img.onload=()=>{
+        const ctx=cropPreview.getContext('2d');
+        ctx.clearRect(0,0,320,320);ctx.fillStyle='#fff';ctx.fillRect(0,0,320,320);
+        const ratio=Math.min(320/img.naturalWidth,320/img.naturalHeight);
+        ctx.drawImage(img,(320-img.naturalWidth*ratio)/2,(320-img.naturalHeight*ratio)/2,img.naturalWidth*ratio,img.naturalHeight*ratio);
+      };
+      img.src=original;
+    }
     for (const card of currentCard() || []) card.classList.toggle('cms-product-selected',card.dataset.productId===id);
     updatePreview();
   }
