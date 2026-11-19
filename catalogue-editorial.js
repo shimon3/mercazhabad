@@ -261,8 +261,10 @@ function renderProducts() {
 
 function card(product) {
   const node = element('article', '', 'item');
+  node.dataset.productId = product.id;
   const image = button('', () => details(product), 'photo');
   image.setAttribute('aria-label', product.name_he);
+  image.dataset.productField = 'image';
   image.append(photo(product, true));
   const choices = options(product);
   const badges = element('span', '', 'badges');
@@ -272,13 +274,20 @@ function card(product) {
     node.classList.add('is-sold-out');
   }
   const saving = discount(product, choices);
-  if (saving) badges.append(element('span', 'חסכו ' + saving + '%', 'sale-badge'));
+  if (saving) { const badge = element('span', 'חסכו ' + saving + '%', 'sale-badge'); badge.dataset.productField = 'discount'; badges.append(badge); }
   if (product.subcategory === 'HeroesOfMessiah') badges.append(element('span', 'חדש', 'tag-badge'));
   if (badges.children.length) image.append(badges);
   const info = element('div', '', 'item-info');
   const title = element('h3');
-  title.append(button(product.name_he, () => details(product)));
-  info.append(title, priceLabel(product));
+  const titleButton = button(product.name_he, () => details(product));
+  titleButton.dataset.productField = 'title';
+  title.append(titleButton);
+  const priceNode = priceLabel(product);
+  priceNode.dataset.productField = 'price';
+  const subtitle = element('p', product.description && product.description !== product.name_he ? product.description : '', 'product-subtitle');
+  subtitle.dataset.productField = 'subtitle';
+  subtitle.hidden = !subtitle.textContent;
+  info.append(title, subtitle, priceNode);
   if (saving) info.append(element('p', 'חוסכים ' + format(product.old_price_agorot - choices[0].price), 'save'));
   const actions = element('div', '', 'item-actions');
   if (choices.length > 1) {
