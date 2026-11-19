@@ -5,6 +5,26 @@ import {
 
 export async function mountAppearanceEditor(host, getToken) {
   host.replaceChildren(document.getElementById('appearance-template').content.cloneNode(true));
+  const switcher = document.createElement('div');
+  switcher.className = 'appearance-actions cms-editor-switcher';
+  const productButton = document.createElement('button');
+  productButton.type = 'button';
+  productButton.textContent = 'עריכת מוצרים: תמונות, מחירים ומבצעים';
+  productButton.addEventListener('click', async () => {
+    productButton.disabled = true;
+    try {
+      const {mountProductVisualEditor} = await import('/admin/product-visual-editor.js?v=1');
+      await mountProductVisualEditor(host, getToken, () => mountAppearanceEditor(host, getToken));
+    } catch (error) {
+      productButton.disabled = false;
+      const message = document.createElement('p');
+      message.setAttribute('role','status');
+      message.textContent = 'טעינת עורך המוצרים נכשלה: ' + error.message;
+      switcher.append(message);
+    }
+  });
+  switcher.append(productButton);
+  host.prepend(switcher);
   const form = host.querySelector('form');
   const status = form.querySelector('[role="status"]');
   const previewStatus = host.querySelector('[data-preview-status]');
