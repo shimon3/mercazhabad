@@ -13,7 +13,7 @@ export async function mountAppearanceEditor(host, getToken) {
   async function openProductEditor(productId = null, field = null) {
     productButton.disabled = true;
     try {
-      const {mountProductVisualEditor} = await import('/admin/product-visual-editor.js?v=2');
+      const {mountProductVisualEditor} = await import('/admin/product-visual-editor.js?v=3');
       await mountProductVisualEditor(host, getToken, () => mountAppearanceEditor(host, getToken), productId, field);
     } catch (error) {
       productButton.disabled = false;
