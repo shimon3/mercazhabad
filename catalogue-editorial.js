@@ -10,23 +10,6 @@ const normalize = value => String(value ?? '').toLowerCase().normalize('NFKC').r
 const money = new Intl.NumberFormat('he-IL', {style: 'currency', currency: 'ILS', maximumFractionDigits: 2, minimumFractionDigits: 0});
 const format = cents => money.format(cents / 100);
 const dialog = byId('dialog');
-const stickerModels = [
-  ['salute', 'דגליה בהצדעה'],
-  ['parachute', 'דגליה עם מצנח'],
-  ['green', 'דגליה ירוק'],
-  ['pink-flag', 'דגלית עם דגל ורוד'],
-  ['gold-770', 'דגליה עם מסגרת זהב ו־770'],
-  ['blue-flag', 'דגליה עם דגל משיח צהוב'],
-  ['pink-shield', 'דגלית עם מגן'],
-].map(([model, name_he]) => ({
-  id: 'degaliya/' + model,
-  name_he,
-  category: 'PhoneStickers',
-  subcategory: 'HeroesOfMessiah',
-  image_key: '/assets-v8/degaliya/' + model + '.webp',
-  thumbnail_key: '/assets-v8/degaliya/' + model + '-thumb.webp',
-  inquiryOnly: true,
-}));
 let products = [];
 let category = '';
 let badge = '';
@@ -175,11 +158,21 @@ function soldOutButton(product) {
 }
 
 function discount(product, choices = options(product)) {
-  if (choices.length !== 1 || !(product.old_price_agorot > choices[0].price)) return 0;
-  return Math.round((1 - choices[0].price / product.old_price_agorot) * 100);
+  const currentPrice = product.inquiryOnly ? product.price_agorot : choices.length === 1 ? choices[0].price : null;
+  if (currentPrice == null || !(product.old_price_agorot > currentPrice)) return 0;
+  return Math.round((1 - currentPrice / product.old_price_agorot) * 100);
 }
 
 function priceLabel(product) {
+  if (product.inquiryOnly && product.price_agorot != null) {
+    const line = element('p', '', 'price');
+    line.append(element('span', format(product.price_agorot)));
+    if (discount(product)) {
+      line.classList.add('has-sale');
+      line.append(element('del', format(product.old_price_agorot)));
+    }
+    return line;
+  }
   const choices = options(product);
   if (!choices.length) return element('p', ['out','insufficient'].includes(stockState(product)) ? unavailableLabel(product) : 'מחיר בבירור', 'price is-ask');
   const prefix = choices.length > 1 ? 'החל מ־' : '';
@@ -288,7 +281,7 @@ function card(product) {
   subtitle.dataset.productField = 'subtitle';
   subtitle.hidden = !subtitle.textContent;
   info.append(title, subtitle, priceNode);
-  if (saving) info.append(element('p', 'חוסכים ' + format(product.old_price_agorot - choices[0].price), 'save'));
+  if (saving) info.append(element('p', 'חוסכים ' + format(product.old_price_agorot - (product.inquiryOnly ? product.price_agorot : choices[0].price)), 'save'));
   const actions = element('div', '', 'item-actions');
   if (choices.length > 1) {
     for (const choice of choices) {
@@ -506,7 +499,17 @@ try {
     category = params.get('category');
     byId('catalog-title').textContent = labels[category];
   }
-  products = [...stickerModels, ...await response.json()];
+  const databaseProducts = await response.json();
+  // Keep the original WhatsApp-only ordering flow for Degaliya/Daglit.
+  // Their images, captions and optional display prices now come from Supabase,
+  // so edits made in the visual CMS are reflected in the storefront.
+  products = databaseProducts.map(product => {
+    if (!product.id.startsWith('degaliya/')) return product;
+    const model = product.id.slice('degaliya/'.length);
+    const originalImage = '/assets-v8/degaliya/' + model + '.webp';
+    return {...product, inquiryOnly:true,
+      thumbnail_key:product.image_key === originalImage ? '/assets-v8/degaliya/' + model + '-thumb.webp' : null};
+  });
   const keys = new Set(products.flatMap(product => options(product).map(choice => choice.key)));
   cart = Object.fromEntries(Object.entries(initialCart).filter(([key, count]) => keys.has(key) && Number.isSafeInteger(count) && count > 0 && count <= 100));
   renderCategories();
