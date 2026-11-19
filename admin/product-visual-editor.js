@@ -9,7 +9,7 @@ const validImage = url => {
   } catch { return ''; }
 };
 
-export async function mountProductVisualEditor(host, getToken, back) {
+export async function mountProductVisualEditor(host, getToken, back, initialProductId = null, initialField = null) {
   host.replaceChildren();
   const layout = document.createElement('div');
   layout.className = 'appearance-workspace';
@@ -193,7 +193,15 @@ export async function mountProductVisualEditor(host, getToken, back) {
   try {
     products=await request('/rest/v1/mercaz_products?select=id,sku,name_he,description,price_agorot,old_price_agorot,image_key,active&order=name_he.asc&limit=300');
     for (const p of products) select.add(new Option(p.name_he+' · '+(p.sku||p.id),p.id));
-    if (products.length) selectProduct(products[0].id);
+    if (products.length) {
+      selectProduct(products.some(p => p.id === initialProductId) ? initialProductId : products[0].id);
+      const fieldName = {image:'photo', title:'name_he',subtitle:'description',price:'price',discount:'old_price'}[initialField];
+      const focusField = fieldName && sidebar.elements.namedItem(fieldName);
+      if (focusField) {
+        focusField.scrollIntoView({block:'nearest'});
+        if (focusField.type !== 'file') focusField.focus({preventScroll:true});
+      }
+    }
     iframe.src='/?cms-preview=1#catalog';
   } catch(err){report('לא ניתן לטעון מוצרים: '+err.message,true);}
 }
