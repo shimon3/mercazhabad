@@ -221,3 +221,48 @@
 .appearance-sidebar textarea{width:100%;min-height:70px;resize:vertical}
 .appearance-sidebar input[type=range]{width:100%;max-width:190px}
 .appearance-sidebar input[type=file]{max-width:100%;font-size:.8rem}
+
+/* Full-size, ergonomic visual CMS workspace.
+   Only applies while the appearance editor is open. */
+@media (min-width: 900px) {
+  .admin-console main:has(#appearanceEditor:not(.hidden) .appearance-workspace) {
+    max-width: none;
+    width: 100%;
+    padding-inline: clamp(12px, 1.5vw, 28px);
+  }
+  .admin-console #appearanceEditor .appearance-workspace {
+    grid-template-columns: minmax(290px, 350px) minmax(0, 1fr);
+    align-items: start;
+    gap: 12px;
+  }
+  .admin-console #appearanceEditor .appearance-sidebar {
+    position: sticky;
+    top: 85px;
+    max-height: calc(100dvh - 100px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+.admin-console #appearanceEditor .appearance-preview {
+  min-width: 0;
+}
+.admin-console #appearanceEditor .appearance-preview iframe {
+  height: max(800px, calc(100dvh - 135px));
+  max-height: none;
+}
+.admin-console #appearanceEditor .appearance-preview iframe.mobile {
+  width: min(430px, 100%);
+}
+@media (max-width: 899px) {
+  .admin-console #appearanceEditor .appearance-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .admin-console #appearanceEditor .appearance-sidebar {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+  .admin-console #appearanceEditor .appearance-preview iframe {
+    height: max(850px, 88dvh);
+  }
+}
