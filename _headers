@@ -23,3 +23,6 @@
 
 /vendor/*
   X-Content-Type-Options: nosniff
+
+/customize/*
+  Cache-Control: no-store, max-age=0
