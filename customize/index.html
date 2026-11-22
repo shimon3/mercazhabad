@@ -1,5 +1,110 @@
-<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>עיצוב כיסוי אישי — תצוגה מקדימה</title><link rel="stylesheet" href="/customize/studio.css?v=8"></head><body>
-<header><h1>עיצוב כיסוי אישי <small>תצוגה מקדימה בלבד</small></h1><a href="/">חזרה לחנות</a></header>
-<main><section class="panel"><h2>בחרו כיסוי</h2><label for="brand">מותג</label><select id="brand"><option value="Samsung">Samsung Galaxy</option><option value="iPhone">iPhone</option></select><label for="model">דגם</label><select id="model"></select><label>צבע הכיסוי</label><div class="colors"><button data-color="black" class="selected">שחור</button><button data-color="white">לבן</button><button data-color="clear">שקוף</button></div></section>
-<section class="panel"><h2>התוצאה שלכם</h2><div class="stage"><div class="phone" id="phone"><div class="camera"><span></span><span></span><span></span></div></div></div><div class="controls"><label>גודל <input type="range" id="size" min="35" max="160" value="95"></label><label>סיבוב <input type="range" id="angle" min="-180" max="180" value="0"></label></div><div class="actions"><button id="remove">הסר מדבקה נבחרת</button><button id="clear">נקה הכל</button><button id="save">שמור תמונה</button></div><p class="hint">גררו מדבקה באצבע או בעכבר. בחרו מדבקה כדי לשנות גודל וסיבוב. זהו הדמיה בלבד, לא מוצר להזמנה. תמונות המוצרים עשויות להכיל רקע.</p></section><section class="panel sticker-panel"><h3>מדבקות מהחנות</h3><p class="hint">בחרו מדבקות אמיתיות מקטלוג מרכז חב״ד. אפשר להוסיף כמה מדבקות.</p><div id="assets" aria-live="polite">טוען מדבקות…</div><p id="error" class="notice"></p></section></main>
-<script defer src="/customize/studio.js?v=7"></script></body></html>
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f1b4d">
+<meta name="description" content="סטודיו לעיצוב כיסוי לטלפון עם מדבקות מרכז חב״ד משיח — הדמיה בלבד.">
+<title>סטודיו לעיצוב כיסוי — מרכז חב״ד משיח</title>
+<link rel="stylesheet" href="/appearance-fonts.css?v=2">
+<link rel="stylesheet" href="/customize/studio.css?v=20">
+</head>
+<body>
+<header class="top">
+  <a class="back" href="/"><span aria-hidden="true">→</span> חזרה לחנות</a>
+  <div class="brandline">
+    <h1>סטודיו לעיצוב כיסוי</h1>
+    <span class="badge">הדמיה בלבד</span>
+  </div>
+  <div class="history" role="group" aria-label="היסטוריה">
+    <button type="button" id="undo" class="hbtn" aria-label="ביטול פעולה (Ctrl+Z)" title="ביטול (Ctrl+Z)" disabled>↶</button>
+    <button type="button" id="redo" class="hbtn" aria-label="ביצוע מחדש (Ctrl+Y)" title="ביצוע מחדש (Ctrl+Y)" disabled>↷</button>
+  </div>
+</header>
+
+<main class="studio">
+  <section class="stage-wrap" aria-label="תצוגה מקדימה">
+    <div class="stage" id="stage">
+      <div class="case" id="case" aria-label="הדמיית הכיסוי">
+        <div class="skin" aria-hidden="true"></div>
+        <div class="items" id="items"></div>
+        <div class="gloss" aria-hidden="true"></div>
+        <div class="camera" id="camera" aria-hidden="true"></div>
+        <div class="guide v" id="guideV" aria-hidden="true"></div>
+        <div class="guide h" id="guideH" aria-hidden="true"></div>
+      </div>
+      <p class="caption" id="caption"></p>
+    </div>
+
+    <div class="selbar" id="selbar">
+      <p class="selhint" id="selhint">בחרו מדבקה או הוסיפו טקסט ✨ · גררו להזזה · צביטה או הידית הצהובה לשינוי גודל וסיבוב</p>
+      <div class="seltools" id="seltools" hidden>
+        <div class="iconrow" role="group" aria-label="פעולות על הפריט הנבחר">
+          <button type="button" class="ib" id="dup" title="שכפול (Ctrl+D)"><span aria-hidden="true">⧉</span><small>שכפול</small></button>
+          <button type="button" class="ib" id="fwd" title="קדימה"><span aria-hidden="true">⬆</span><small>קדימה</small></button>
+          <button type="button" class="ib" id="bwd" title="אחורה"><span aria-hidden="true">⬇</span><small>אחורה</small></button>
+          <button type="button" class="ib" id="flip" title="היפוך"><span aria-hidden="true">⇋</span><small>היפוך</small></button>
+          <button type="button" class="ib" id="center" title="מרכוז"><span aria-hidden="true">⊕</span><small>מרכוז</small></button>
+          <button type="button" class="ib danger" id="remove" title="מחיקה (Delete)"><span aria-hidden="true">✕</span><small>מחיקה</small></button>
+        </div>
+        <div class="sliders">
+          <label>גודל <input type="range" id="size" min="10" max="120" value="36"></label>
+          <label>סיבוב <input type="range" id="angle" min="-180" max="180" value="0"></label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="panel" aria-label="אפשרויות עיצוב">
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="t-case" aria-controls="p-case" aria-selected="true"><span aria-hidden="true">📱</span> כיסוי</button>
+      <button type="button" role="tab" id="t-stickers" aria-controls="p-stickers" aria-selected="false" tabindex="-1"><span aria-hidden="true">⭐</span> מדבקות</button>
+      <button type="button" role="tab" id="t-text" aria-controls="p-text" aria-selected="false" tabindex="-1"><span aria-hidden="true">✍</span> טקסט</button>
+    </div>
+
+    <div class="tabpanel" role="tabpanel" id="p-case" aria-labelledby="t-case">
+      <h2 class="lbl">מותג</h2>
+      <div class="seg" id="brands" role="group" aria-label="מותג"></div>
+      <h2 class="lbl">דגם</h2>
+      <div class="chips" id="models" role="group" aria-label="דגם"></div>
+      <h2 class="lbl">צבע הכיסוי <span class="val" id="colorName"></span></h2>
+      <div class="swatches" id="colors" role="group" aria-label="צבע הכיסוי"></div>
+      <h2 class="lbl">גימור</h2>
+      <div class="seg" id="finishes" role="group" aria-label="גימור"></div>
+    </div>
+
+    <div class="tabpanel" role="tabpanel" id="p-stickers" aria-labelledby="t-stickers" hidden>
+      <div class="searchrow">
+        <input type="search" id="q" placeholder="חיפוש מדבקה…" aria-label="חיפוש מדבקה" autocomplete="off">
+        <button type="button" id="surprise" class="ghost" title="3 מדבקות אקראיות">🎲 הפתיעו אותי</button>
+      </div>
+      <div class="grid" id="assets" aria-live="polite"></div>
+      <p class="notice" id="error" role="alert"></p>
+      <p class="hint">מדבקות אמיתיות מהקטלוג של מרכז חב״ד. אפשר להוסיף כמה שרוצים.</p>
+    </div>
+
+    <div class="tabpanel" role="tabpanel" id="p-text" aria-labelledby="t-text" hidden>
+      <label class="lbl" for="txt">הטקסט שלכם</label>
+      <input type="text" id="txt" maxlength="32" value="יחי המלך" autocomplete="off">
+      <h2 class="lbl">גופן</h2>
+      <div class="fonts" id="fonts" role="group" aria-label="גופן"></div>
+      <h2 class="lbl">צבע הטקסט</h2>
+      <div class="swatches small" id="inks" role="group" aria-label="צבע הטקסט"></div>
+      <label class="check"><input type="checkbox" id="outline" checked> קו מתאר לטקסט</label>
+      <button type="button" id="addText" class="primary wide">+ הוסיפו טקסט לכיסוי</button>
+      <p class="hint" id="textHint">טיפ: בחרו טקסט על הכיסוי כדי לערוך אותו כאן.</p>
+    </div>
+  </aside>
+
+  <section class="export" aria-label="שמירה ושיתוף">
+    <button type="button" id="save" class="primary"><span aria-hidden="true">⬇</span> שמירת תמונה</button>
+    <button type="button" id="share" class="gold"><span aria-hidden="true">↗</span> שיתוף</button>
+    <a id="wa" class="ghost" href="https://wa.me/972533770073" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">💬</span> שאלו בוואטסאפ</a>
+    <button type="button" id="clear" class="ghost subtle">ניקוי הכיסוי</button>
+    <p class="hint wide">הדמיה בלבד — צבעים, מידות ומיקום המצלמה משוערים. העיצוב נשמר אוטומטית במכשיר הזה.</p>
+  </section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script defer src="/customize/studio.js?v=20"></script>
+</body>
+</html>
