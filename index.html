@@ -8,16 +8,16 @@
 <title>מרכז חב״ד משיח — קטלוג</title>
 <link rel="stylesheet" href="/appearance-fonts.css?v=2">
 <link rel="stylesheet" href="catalogue-editorial.css?v=shop-8">
-<link rel="stylesheet" href="/appearance.css?v=6">
-<script type="module" src="catalogue-editorial.js?v=shop-5"></script>
-<script type="module" src="/storefront-appearance.js?v=12"></script>
+<link rel="stylesheet" href="/appearance.css?v=7">
+<script type="module" src="catalogue-editorial.js?v=shop-6"></script>
+<script type="module" src="/storefront-appearance.js?v=13"></script>
 </head>
 <body data-appearance-page="home">
-<div class="announce"><span>🔥 מבצע מדבקות לפלאפון: <b>4 ב־₪15</b> · <b>10 ב־₪30</b></span><span class="announce-sep" aria-hidden="true">|</span><span>שאלות? <a href="https://wa.me/972533770073" target="_blank" rel="noopener noreferrer">כתבו לנו ב־WhatsApp</a> או <a href="tel:+972533770073" dir="ltr">053-377-0073</a></span></div>
+<div class="announce" data-appearance-section="announce"><span data-appearance-text="announcePromo">🔥 מבצע מדבקות לפלאפון: <b>4 ב־₪15</b> · <b>10 ב־₪30</b></span><span class="announce-sep" aria-hidden="true">|</span><span><span data-appearance-text="announceAsk">שאלות?</span> <a href="https://wa.me/972533770073" target="_blank" rel="noopener noreferrer" data-appearance-text="announceWhatsapp">כתבו לנו ב־WhatsApp</a> <span data-appearance-text="announceOr">או</span> <a href="tel:+972533770073" dir="ltr" data-appearance-phone>053-377-0073</a></span></div>
 
 <header class="mast">
   <a href="/" class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.2 17.5 1.5 7.6l5.6 4.1L12 3.8l4.9 7.9 5.6-4.1-1.7 9.9H3.2Zm.3 1.7h17v1.6h-17v-1.6Z"/></svg></span><span data-appearance-text="brand">מרכז חב״ד משיח</span></a>
-  <label class="mast-search"><span class="sr-only">חיפוש מוצרים</span><input id="search" type="search" placeholder="מה מחפשים? כיפות, מגנטים, מדבקות…" autocomplete="off"></label>
+  <label class="mast-search"><span class="sr-only">חיפוש מוצרים</span><input id="search" type="search" data-appearance-placeholder="searchPlaceholder" placeholder="מה מחפשים? כיפות, מגנטים, מדבקות…" autocomplete="off"></label>
   <nav aria-label="ניווט ראשי">
     <a class="account-link" href="/account/" data-appearance-link="account"><svg class="icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span data-appearance-text="menuAccount">החשבון שלי</span></a>
     <a class="catalog-link" href="#catalog" data-appearance-text="menuCatalog" data-appearance-link="catalog">לקטלוג ↓</a>
@@ -32,75 +32,76 @@
       <p class="eyebrow" data-appearance-text="eyebrow">מרכז חב״ד משיח</p>
       <h1 id="cover-title" data-appearance-text="title">מוצרי דגל המשיח.</h1>
       <p class="subtitle" data-appearance-text="subtitle">מפרסם את הגאולה בעזרת מוצרי דגל המשיח.</p>
-      <div class="cover-actions"><a class="btn btn-dark" href="#catalog"><span data-appearance-text="catalogButton">גלו את הקטלוג</span> <span aria-hidden="true">←</span></a><a class="btn btn-light" href="#deals">למבצעים 🔥</a></div>
+      <div class="cover-actions"><a class="btn btn-dark" href="#catalog" data-appearance-href="catalogButton"><span data-appearance-text="catalogButton">גלו את הקטלוג</span> <span aria-hidden="true">←</span></a><a class="btn btn-light" href="#deals" data-appearance-href="dealsButton" data-appearance-text="dealsButton">למבצעים 🔥</a></div>
     </div>
     <div class="exhibit">
-      <video class="exhibit-video" src="/assets-v8/temple-home.mp4" poster="/assets-v8/temple-video-poster.webp" width="400" height="736" preload="metadata" muted playsinline aria-hidden="true"></video>
+      <img class="exhibit-photo" data-appearance-image="heroMediaImage" data-appearance-optional data-cms-empty alt="" width="640" height="640">
+      <video class="exhibit-video" data-appearance-media="heroMedia" src="/assets-v8/temple-home.mp4" poster="/assets-v8/temple-video-poster.webp" width="400" height="736" preload="metadata" muted playsinline aria-hidden="true"></video>
       <button type="button" class="exhibit-replay" aria-label="נגן שוב" title="נגן שוב" hidden><span aria-hidden="true">↻</span></button>
     </div>
   </div>
-  <a class="promo promo-heroes" href="/?collection=heroes#catalog">
-    <span class="promo-text"><small>קולקציה חדשה</small><strong data-appearance-text="modelsButton">דגמי דגליה ודגלית</strong><em>גיבורי אל משיח לילדים ←</em></span>
-    <img src="assets-v8/degaliya/salute-thumb.webp" alt="" loading="lazy"><img src="assets-v8/degaliya/pink-shield-thumb.webp" alt="" loading="lazy">
+  <a class="promo promo-heroes" href="/?collection=heroes#catalog" data-appearance-section="promoHeroes" data-appearance-href="promoHeroes">
+    <span class="promo-text"><small data-appearance-text="promoHeroesSmall">קולקציה חדשה</small><strong data-appearance-text="modelsButton">דגמי דגליה ודגלית</strong><em data-appearance-text="promoHeroesNote">גיבורי אל משיח לילדים ←</em></span>
+    <img data-appearance-image="promoHeroesImage1" src="assets-v8/degaliya/salute-thumb.webp" alt="" loading="lazy"><img data-appearance-image="promoHeroesImage2" src="assets-v8/degaliya/pink-shield-thumb.webp" alt="" loading="lazy">
   </a>
-  <a class="promo promo-stickers" href="/?category=PhoneStickers#catalog">
-    <span class="promo-text"><small>מדבקות לפלאפון</small><strong>4 ב־₪15</strong><em>מעל 40 עיצובים ←</em></span>
-    <img src="assets-v8/sc_13.webp" alt="" loading="lazy"><img src="assets-v8/sc_1.webp" alt="" loading="lazy">
+  <a class="promo promo-stickers" href="/?category=PhoneStickers#catalog" data-appearance-section="promoStickers" data-appearance-href="promoStickers">
+    <span class="promo-text"><small data-appearance-text="promoStickersSmall">מדבקות לפלאפון</small><strong data-appearance-text="promoStickersTitle">4 ב־₪15</strong><em data-appearance-text="promoStickersNote">מעל 40 עיצובים ←</em></span>
+    <img data-appearance-image="promoStickersImage1" src="assets-v8/sc_13.webp" alt="" loading="lazy"><img data-appearance-image="promoStickersImage2" src="assets-v8/sc_1.webp" alt="" loading="lazy">
   </a>
 </section>
 
-<ul class="perks" aria-label="למה לקנות אצלנו">
-  <li><span class="perk-icon" aria-hidden="true">💬</span><div><strong>מענה אישי ומהיר</strong><small>ב־WhatsApp ובטלפון</small></div></li>
-  <li><span class="perk-icon" aria-hidden="true">🏷️</span><div><strong>מחירי מבצע</strong><small>הנחות על רוב המוצרים</small></div></li>
-  <li><span class="perk-icon" aria-hidden="true">👑</span><div><strong>מעל 90 מוצרים</strong><small>מדבקות, מגנטים, סיכות וכיפות</small></div></li>
-  <li><span class="perk-icon" aria-hidden="true">🛒</span><div><strong>הזמנה פשוטה</strong><small>אין חיוב בכרטיס בשלב הסל</small></div></li>
+<ul class="perks" aria-label="למה לקנות אצלנו" data-appearance-section="perks">
+  <li data-appearance-section="perk1"><span class="perk-icon" aria-hidden="true" data-appearance-text="perk1Icon">💬</span><div><strong data-appearance-text="perk1Title">מענה אישי ומהיר</strong><small data-appearance-text="perk1Text">ב־WhatsApp ובטלפון</small></div></li>
+  <li data-appearance-section="perk2"><span class="perk-icon" aria-hidden="true" data-appearance-text="perk2Icon">🏷️</span><div><strong data-appearance-text="perk2Title">מחירי מבצע</strong><small data-appearance-text="perk2Text">הנחות על רוב המוצרים</small></div></li>
+  <li data-appearance-section="perk3"><span class="perk-icon" aria-hidden="true" data-appearance-text="perk3Icon">👑</span><div><strong data-appearance-text="perk3Title">מעל 90 מוצרים</strong><small data-appearance-text="perk3Text">מדבקות, מגנטים, סיכות וכיפות</small></div></li>
+  <li data-appearance-section="perk4"><span class="perk-icon" aria-hidden="true" data-appearance-text="perk4Icon">🛒</span><div><strong data-appearance-text="perk4Title">הזמנה פשוטה</strong><small data-appearance-text="perk4Text">אין חיוב בכרטיס בשלב הסל</small></div></li>
 </ul>
 
-<section class="shelf" aria-labelledby="cats-title">
+<section class="shelf" aria-labelledby="cats-title" data-appearance-section="categoriesShelf">
   <div class="shelf-head"><h2 id="cats-title" data-appearance-text="categoriesTitle">קנו לפי קטגוריה</h2></div>
-  <aside class="index"><nav id="categories" aria-label="קטגוריות מוצרים"></nav><noscript><p role="alert">יש להפעיל JavaScript בדפדפן כדי לראות את הקטגוריות והמוצרים. אפשר לפנות לחנות בטלפון 053-377-0073.</p></noscript></aside>
+  <aside class="index"><nav id="categories" aria-label="קטגוריות מוצרים" data-appearance-edit="categoryNames"></nav><noscript><p role="alert">יש להפעיל JavaScript בדפדפן כדי לראות את הקטגוריות והמוצרים. אפשר לפנות לחנות בטלפון 053-377-0073.</p></noscript></aside>
 </section>
 
-<section class="shelf" id="deals" aria-labelledby="deals-title" hidden>
-  <div class="shelf-head"><h2 id="deals-title" data-appearance-text="dealsTitle">🔥 המבצעים הכי שווים</h2><a href="#catalog">לכל המוצרים ←</a></div>
+<section class="shelf" id="deals" aria-labelledby="deals-title" hidden data-appearance-section="deals">
+  <div class="shelf-head"><h2 id="deals-title" data-appearance-text="dealsTitle">🔥 המבצעים הכי שווים</h2><a href="#catalog" data-appearance-text="dealsLink" data-appearance-href="dealsLink">לכל המוצרים ←</a></div>
   <div class="rail" id="deals-rail"></div>
 </section>
 
-<section class="shelf" id="heroes" aria-labelledby="heroes-title" hidden>
-  <div class="shelf-head"><h2 id="heroes-title" data-appearance-text="heroesTitle">✨ גיבורי אל משיח</h2><a href="/?collection=heroes#catalog">לכל הדגמים ←</a></div>
+<section class="shelf" id="heroes" aria-labelledby="heroes-title" hidden data-appearance-section="heroes">
+  <div class="shelf-head"><h2 id="heroes-title" data-appearance-text="heroesTitle">✨ גיבורי אל משיח</h2><a href="/?collection=heroes#catalog" data-appearance-text="heroesLink" data-appearance-href="heroesLink">לכל הדגמים ←</a></div>
   <div class="rail" id="heroes-rail"></div>
 </section>
 
 <section class="catalog" id="catalog" aria-labelledby="catalog-title">
   <div class="catalog-bar">
-    <div class="heading"><h2 id="catalog-title">כל המוצרים</h2><p id="result-count" role="status">טוען קטלוג…</p></div>
-    <div class="controls"><label>מיון<select id="sort"><option value="catalog">מומלצים</option><option value="low">מחיר: מהנמוך לגבוה</option><option value="high">מחיר: מהגבוה לנמוך</option></select></label><button id="reset" type="button">איפוס</button></div>
+    <div class="heading"><h2 id="catalog-title" data-appearance-edit="catalogTexts">כל המוצרים</h2><p id="result-count" role="status" data-appearance-edit="catalogTexts">טוען קטלוג…</p></div>
+    <div class="controls"><label><span data-appearance-text="sortLabel">מיון</span><select id="sort"><option value="catalog" data-appearance-text="sortRecommended">מומלצים</option><option value="low" data-appearance-text="sortLow">מחיר: מהנמוך לגבוה</option><option value="high" data-appearance-text="sortHigh">מחיר: מהגבוה לנמוך</option></select></label><button id="reset" type="button" data-appearance-text="resetButton">איפוס</button></div>
   </div>
   <div id="badge-filters" class="badge-filters" hidden aria-label="סינון מדבקות"></div>
   <div id="products" class="products"><div class="item skeleton" aria-hidden="true"></div><div class="item skeleton" aria-hidden="true"></div><div class="item skeleton" aria-hidden="true"></div><div class="item skeleton" aria-hidden="true"></div><div class="item skeleton" aria-hidden="true"></div><div class="item skeleton" aria-hidden="true"></div><div class="item skeleton" aria-hidden="true"></div><div class="item skeleton" aria-hidden="true"></div></div>
   <noscript><p>קטלוג מוצרי משיח: מדבקות לפלאפון, דגלים, סיכות, כיפות, מחזיקי מפתחות ומוצרים נוספים. לעיון במלאי ובמחירים יש להפעיל JavaScript.</p></noscript>
 </section>
 
-<section class="help-band" aria-labelledby="help-title">
-  <div><h2 id="help-title" data-appearance-text="helpTitle">לא בטוחים מה לבחור?</h2><p>מזמינים לקהילה, לחלוקה או למבצע? כתבו לנו ונעזור להרכיב הזמנה.</p></div>
-  <a class="btn btn-wa" href="https://wa.me/972533770073?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%A2%D7%96%D7%A8%D7%94%20%D7%91%D7%91%D7%97%D7%99%D7%A8%D7%AA%20%D7%9E%D7%95%D7%A6%D7%A8%D7%99%D7%9D" target="_blank" rel="noopener noreferrer">דברו איתנו ב־WhatsApp</a>
+<section class="help-band" aria-labelledby="help-title" data-appearance-section="helpBand">
+  <div><h2 id="help-title" data-appearance-text="helpTitle">לא בטוחים מה לבחור?</h2><p data-appearance-text="helpText">מזמינים לקהילה, לחלוקה או למבצע? כתבו לנו ונעזור להרכיב הזמנה.</p></div>
+  <a class="btn btn-wa" href="https://wa.me/972533770073?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%A2%D7%96%D7%A8%D7%94%20%D7%91%D7%91%D7%97%D7%99%D7%A8%D7%AA%20%D7%9E%D7%95%D7%A6%D7%A8%D7%99%D7%9D" target="_blank" rel="noopener noreferrer" data-appearance-text="helpButton" data-appearance-href="helpButton">דברו איתנו ב־WhatsApp</a>
 </section>
 </main>
 
-<footer>
-  <div><strong>מרכז חב״ד משיח</strong><p>מפרסמים את הגאולה בעזרת מוצרי דגל המשיח.</p></div>
-  <div class="footer-links"><a href="tel:+972533770073" dir="ltr">053-377-0073</a><a href="https://wa.me/972533770073" target="_blank" rel="noopener noreferrer">WhatsApp</a><a href="/account/">החשבון שלי</a><a href="/privacy/">מדיניות פרטיות</a></div>
+<footer data-appearance-section="footer">
+  <div><strong data-appearance-text="footerName">מרכז חב״ד משיח</strong><p data-appearance-text="footerTagline">מפרסמים את הגאולה בעזרת מוצרי דגל המשיח.</p></div>
+  <div class="footer-links"><a href="tel:+972533770073" dir="ltr" data-appearance-phone>053-377-0073</a><a href="https://wa.me/972533770073" target="_blank" rel="noopener noreferrer" data-appearance-text="footerWhatsapp">WhatsApp</a><a href="/account/" data-appearance-text="footerAccount">החשבון שלי</a><a href="/privacy/" data-appearance-text="footerPrivacy">מדיניות פרטיות</a></div>
 </footer>
 
-<a class="wa-float" href="https://wa.me/972533770073" target="_blank" rel="noopener noreferrer" aria-label="שיחה ב־WhatsApp"><svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-3.3-.8-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.7 1.2 1.6 2 1.1 1 2 1.3 2.3 1.4.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.7-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3Z"/></svg></a>
+<a class="wa-float" data-appearance-section="waFloat" href="https://wa.me/972533770073" target="_blank" rel="noopener noreferrer" aria-label="שיחה ב־WhatsApp"><svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-3.3-.8-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.7 1.2 1.6 2 1.1 1 2 1.3 2.3 1.4.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.7-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3Z"/></svg></a>
 
 <button id="floating-cart" class="floating-cart" type="button" hidden aria-label="פתיחת סל הקניות">
-  <span class="floating-cart-description"><strong>הסל שלי · <span id="floating-cart-count">0</span> פריטים</strong></span>
+  <span class="floating-cart-description"><strong><span data-appearance-text="floatingCartLabel">הסל שלי</span> · <span id="floating-cart-count">0</span> פריטים</strong></span>
   <strong id="floating-cart-total" class="floating-cart-total" dir="ltr">₪0</strong>
-  <span class="floating-cart-arrow" aria-hidden="true">לתשלום ←</span>
+  <span class="floating-cart-arrow" aria-hidden="true" data-appearance-text="floatingCartGo">לתשלום ←</span>
 </button>
 <dialog id="cart-dialog" class="cart-drawer" aria-labelledby="cart-dialog-title">
-  <div class="cart-drawer-header"><div><span class="cart-overline">ההזמנה שלך</span><h2 id="cart-dialog-title">סל הקניות <span id="drawer-count"></span></h2></div><button id="close-cart" type="button" class="cart-close" aria-label="סגירת סל הקניות">×</button></div>
+  <div class="cart-drawer-header"><div><span class="cart-overline" data-appearance-text="cartOverline">ההזמנה שלך</span><h2 id="cart-dialog-title"><span data-appearance-text="cartTitle">סל הקניות</span> <span id="drawer-count"></span></h2></div><button id="close-cart" type="button" class="cart-close" aria-label="סגירת סל הקניות">×</button></div>
   <div id="cart-dialog-body" class="cart-drawer-content"></div>
 </dialog>
 <dialog id="dialog"><div class="dialog-top"><button id="close" type="button" aria-label="סגירה">×</button></div><div id="dialog-body"></div></dialog>

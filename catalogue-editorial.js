@@ -14,6 +14,21 @@ let products = [];
 let category = '';
 let badge = '';
 const badgeLabels = {'':'כל המדבקות',heroes:'גיבורי אל משיח',country:'סמלי מדינות',idf:'סמלי יחידות צה״ל'};
+// Texts editable from the admin CMS (published settings applied by /appearance.js).
+const cmsText = (key, fallback) => {
+  const value = document.cmsSettings?.[key];
+  return typeof value === 'string' && value ? value : fallback;
+};
+const label = key => cmsText('cat' + key, labels[key]);
+const badgeKeys = {'':'badgeAll', heroes:'badgeHeroes', country:'badgeCountry', idf:'badgeIdf'};
+const badgeLabel = key => cmsText(badgeKeys[key], badgeLabels[key]);
+const whatsappNumber = () => (document.cmsSettings?.contactWhatsapp || '972533770073').replace(/\D/g, '');
+function currentTitle() {
+  if (category === 'PhoneStickers' && badge === 'heroes') return badgeLabel('heroes');
+  if (category) return label(category);
+  return cmsText('catalogAllTitle', 'כל המוצרים');
+}
+const setTitle = () => { byId('catalog-title').textContent = currentTitle(); };
 const badgeFor = product => product.subcategory === 'HeroesOfMessiah' ? 'heroes' : /^sc\/(?!11$)/.test(product.id) ? 'country' : /^z\/(?!15$)/.test(product.id) ? 'idf' : product.id === 'z/15' ? 'police' : '';
 
 let cart = {};
@@ -66,7 +81,7 @@ function missingPhoto(product) {
     path.setAttribute('d', d);
     icon.append(path);
   }
-  fallback.append(icon, element('span', 'תמונה בקרוב'));
+  fallback.append(icon, element('span', cmsText('uiNoPhoto', 'תמונה בקרוב')));
   fallback.title = product.name_he;
   return fallback;
 }
@@ -88,12 +103,12 @@ function photo(product, lazy = false) {
 }
 function whatsappContact(product, compact = false) {
   const reference = product.inquiryOnly ? '' : ' (מק"ט: ' + (product.sku || product.id) + ')';
-  const text = 'שלום, אשמח לקבל מידע על המוצר ' + product.name_he + reference + '.';
+  const text = cmsText('uiWhatsappMessage', 'שלום, אשמח לקבל מידע על המוצר') + ' ' + product.name_he + reference + '.';
   const link = element('a', '', 'whatsapp-product' + (compact ? ' is-compact' : ''));
   link.append(icon('whatsapp', compact ? 22 : 20));
-  if (compact) link.title = 'שאלה על המוצר ב־WhatsApp';
-  else link.append(element('span', 'שאלה ב־WhatsApp'));
-  link.href = 'https://wa.me/972533770073?text=' + encodeURIComponent(text);
+  if (compact) link.title = cmsText('uiAskWhatsapp', 'שאלה על המוצר ב־WhatsApp');
+  else link.append(element('span', cmsText('uiAskWhatsapp', 'שאלה ב־WhatsApp')));
+  link.href = 'https://wa.me/' + whatsappNumber() + '?text=' + encodeURIComponent(text);
   link.target = '_blank';
   link.rel = 'noopener noreferrer';
   link.setAttribute('aria-label', 'פנייה ב־WhatsApp לגבי '+product.name_he);
@@ -105,8 +120,8 @@ function options(product) {
   const tracked = product.stock_tracking_enabled === true;
   if (product.category === 'PhoneStickers' && !product.id.startsWith('mix-')) {
     return [
-      {key: product.id + '::4', label: 'מארז 4 יח׳', price: 1500, units: 4},
-      {key: product.id + '::10', label: 'מארז 10 יח׳', price: 3000, units: 10},
+      {key: product.id + '::4', label: cmsText('uiPack4', 'מארז 4 יח׳'), price: 1500, units: 4},
+      {key: product.id + '::10', label: cmsText('uiPack10', 'מארז 10 יח׳'), price: 3000, units: 10},
     ].filter(choice => !tracked || product.stock >= choice.units);
   }
   return product.price_agorot == null || (tracked && product.stock < 1)
@@ -141,7 +156,7 @@ function stockSymbol() {
   return svg;
 }
 function unavailableLabel(product) {
-  return stockState(product) === 'out' ? 'אזל מהמלאי' : 'אין מספיק מלאי למארז';
+  return stockState(product) === 'out' ? cmsText('uiOutOfStock', 'אזל מהמלאי') : 'אין מספיק מלאי למארז';
 }
 function stockBadge(product) {
   if (!['out','insufficient'].includes(stockState(product))) return null;
@@ -174,8 +189,8 @@ function priceLabel(product) {
     return line;
   }
   const choices = options(product);
-  if (!choices.length) return element('p', ['out','insufficient'].includes(stockState(product)) ? unavailableLabel(product) : 'מחיר בבירור', 'price is-ask');
-  const prefix = choices.length > 1 ? 'החל מ־' : '';
+  if (!choices.length) return element('p', ['out','insufficient'].includes(stockState(product)) ? unavailableLabel(product) : cmsText('uiPriceAsk', 'מחיר בבירור'), 'price is-ask');
+  const prefix = choices.length > 1 ? cmsText('uiFrom', 'החל מ־') : '';
   const line = element('p', '', 'price');
   line.append(element('span', prefix + format(choices[0].price)));
   if (discount(product, choices)) {
@@ -185,11 +200,11 @@ function priceLabel(product) {
   return line;
 }
 
-function categoryControl(key, chipBadge, label, matches) {
+function categoryControl(key, chipBadge, chipLabel, matches) {
   const control = button('', () => {
     category = key;
     badge = chipBadge;
-    byId('catalog-title').textContent = label;
+    setTitle();
     syncCategories();
     renderProducts();
   }, chipBadge ? 'subcategory' : '');
@@ -203,7 +218,7 @@ function categoryControl(key, chipBadge, label, matches) {
     thumb.classList.add('is-all');
     thumb.append(icon('grid', 30));
   }
-  control.append(thumb, element('span', label, 'cat-label'), element('span', String(products.filter(matches).length), 'cat-count'));
+  control.append(thumb, element('span', chipLabel, 'cat-label'), element('span', String(products.filter(matches).length), 'cat-count'));
   control.dataset.key = key;
   control.dataset.badge = chipBadge;
   return control;
@@ -218,13 +233,13 @@ function syncCategories() {
 
 function renderCategories() {
   const heroes = product => product.category === 'PhoneStickers' && product.subcategory === 'HeroesOfMessiah';
-  const controls = [categoryControl('', '', 'כל המוצרים', () => true)];
-  for (const [key, label] of Object.entries(labels)) {
+  const controls = [categoryControl('', '', cmsText('catAll', 'כל המוצרים'), () => true)];
+  for (const key of Object.keys(labels)) {
     const matches = product => product.category === key;
     // Empty categories are not shown to shoppers.
     if (!products.some(matches)) continue;
-    controls.push(categoryControl(key, '', label, matches));
-    if (key === 'PhoneStickers' && products.some(heroes)) controls.push(categoryControl(key, 'heroes', badgeLabels.heroes, heroes));
+    controls.push(categoryControl(key, '', label(key), matches));
+    if (key === 'PhoneStickers' && products.some(heroes)) controls.push(categoryControl(key, 'heroes', badgeLabel('heroes'), heroes));
   }
   byId('categories').replaceChildren(...controls);
   syncCategories();
@@ -237,7 +252,7 @@ function renderProducts() {
   const query = normalize(byId('search').value).trim();
   const terms = query.split(/\s+/);
   const items = products.filter(product => {
-    const fields = normalize([product.name_he, product.name_fr, product.id, product.sku, labels[product.category], product.subcategory === 'HeroesOfMessiah' ? 'גיבורי אל משיח' : '', badgeLabels[badgeFor(product)], badgeFor(product) === 'police' ? 'סמל משטרה' : ''].join(' '));
+    const fields = normalize([product.name_he, product.name_fr, product.id, product.sku, labels[product.category], label(product.category), product.subcategory === 'HeroesOfMessiah' ? 'גיבורי אל משיח' : '', badgeLabels[badgeFor(product)], badgeLabel(badgeFor(product)) || '', badgeFor(product) === 'police' ? 'סמל משטרה' : ''].join(' '));
     return (!category || product.category === category) && (!badge || badgeFor(product) === badge) && terms.every(term => fields.includes(term));
   });
   const sort = byId('sort').value;
@@ -248,8 +263,8 @@ function renderProducts() {
     if (bPrice == null) return -1;
     return sort === 'low' ? aPrice - bPrice : bPrice - aPrice;
   });
-  byId('result-count').textContent = items.length + ' מוצרים';
-  byId('products').replaceChildren(...(items.length ? items.map(card) : [element('p', 'לא נמצאו מוצרים התואמים לחיפוש.', 'empty')]));
+  byId('result-count').textContent = items.length + ' ' + cmsText('uiProductsCount', 'מוצרים');
+  byId('products').replaceChildren(...(items.length ? items.map(card) : [element('p', cmsText('uiNoResults', 'לא נמצאו מוצרים התואמים לחיפוש.'), 'empty')]));
 }
 
 function card(product) {
@@ -267,8 +282,8 @@ function card(product) {
     node.classList.add('is-sold-out');
   }
   const saving = discount(product, choices);
-  if (saving) { const badge = element('span', 'חסכו ' + saving + '%', 'sale-badge'); badge.dataset.productField = 'discount'; badges.append(badge); }
-  if (product.subcategory === 'HeroesOfMessiah') badges.append(element('span', 'חדש', 'tag-badge'));
+  if (saving) { const badge = element('span', cmsText('uiSaveBadge', 'חסכו') + ' ' + saving + '%', 'sale-badge'); badge.dataset.productField = 'discount'; badges.append(badge); }
+  if (product.subcategory === 'HeroesOfMessiah') badges.append(element('span', cmsText('uiNewBadge', 'חדש'), 'tag-badge'));
   if (badges.children.length) image.append(badges);
   const info = element('div', '', 'item-info');
   const title = element('h3');
@@ -281,7 +296,7 @@ function card(product) {
   subtitle.dataset.productField = 'subtitle';
   subtitle.hidden = !subtitle.textContent;
   info.append(title, subtitle, priceNode);
-  if (saving) info.append(element('p', 'חוסכים ' + format(product.old_price_agorot - (product.inquiryOnly ? product.price_agorot : choices[0].price)), 'save'));
+  if (saving) info.append(element('p', cmsText('uiSaveLine', 'חוסכים') + ' ' + format(product.old_price_agorot - (product.inquiryOnly ? product.price_agorot : choices[0].price)), 'save'));
   const actions = element('div', '', 'item-actions');
   if (choices.length > 1) {
     for (const choice of choices) {
@@ -292,7 +307,7 @@ function card(product) {
     }
   }
   if (choices.length === 1) {
-    const control = button('הוספה לסל', () => add(choices[0].key, control), 'add');
+    const control = button(cmsText('uiAddToCart', 'הוספה לסל'), () => add(choices[0].key, control), 'add');
     actions.append(control);
   }
   if (!choices.length && stock) actions.append(soldOutButton(product));
@@ -345,7 +360,7 @@ function details(product) {
   }
   const actions = element('div', '', 'dialog-actions');
   for (const choice of options(product)) {
-    const label = choice.label ? choice.label + ' · ' + format(choice.price) : 'הוספה לסל +';
+    const label = choice.label ? choice.label + ' · ' + format(choice.price) : cmsText('uiAddToCart', 'הוספה לסל') + ' +';
     actions.append(button(label, () => { add(choice.key); dialog.close(); }));
   }
   if (!actions.children.length && detailBadge) actions.append(soldOutButton(product));
@@ -362,11 +377,11 @@ function add(key, control) {
   counter.classList.add('bump');
   if (control && !control.classList.contains('is-added')) {
     const saved = [...control.childNodes];
-    control.replaceChildren('נוסף ✓');
+    control.replaceChildren(cmsText('uiAdded', 'נוסף ✓'));
     control.classList.add('is-added');
     setTimeout(() => { control.replaceChildren(...saved); control.classList.remove('is-added'); }, 1400);
   }
-  showToast('✓ המוצר נוסף לסל');
+  showToast(cmsText('uiToast', '✓ המוצר נוסף לסל'));
   byId('announcement').textContent = 'נוסף לסל. פריטים בסל ' + byId('count').textContent;
 }
 
@@ -425,13 +440,13 @@ function showCart() {
       return control;
     };
     quantity.append(change('−', count - 1, 'הפחתת כמות'), element('span', String(count)),
-      change('+', count + 1, 'הגדלת כמות'), change('הסרה', 0, 'הסרה מהסל'));
+      change('+', count + 1, 'הגדלת כמות'), change(cmsText('uiRemove', 'הסרה'), 0, 'הסרה מהסל'));
     line.append(quantity);
     body.append(line);
   }
-  if (![...Object.keys(cart)].some(key => choices.has(key))) body.append(element('p', 'אין מוצרים זמינים בסל.', 'cart-empty'));
+  if (![...Object.keys(cart)].some(key => choices.has(key))) body.append(element('p', cmsText('uiCartEmpty', 'אין מוצרים זמינים בסל.'), 'cart-empty'));
 
-  const checkout = button('המשך להזמנה', () => {
+  const checkout = button(cmsText('uiCheckout', 'המשך להזמנה'), () => {
     const lines = Object.entries(cart).filter(([key]) => choices.has(key)).map(([key, quantity]) => ({key, quantity}));
     if (!lines.length) { message.textContent = 'הפריטים שבסל אינם זמינים כרגע להזמנה.'; return; }
     if (lines.length > 30 || lines.some(line => line.quantity > 100)) {
@@ -447,8 +462,8 @@ function showCart() {
   message.setAttribute('role', 'status');
   const summary = element('div', '', 'cart-drawer-footer');
   const summaryRow = element('div', '', 'cart-subtotal');
-  summaryRow.append(element('span', 'סך הכל'), element('strong', format(total)));
-  summary.append(summaryRow, checkout, message, element('p', 'אין חיוב בכרטיס בשלב זה.', 'cart-note'));
+  summaryRow.append(element('span', cmsText('uiTotal', 'סך הכל')), element('strong', format(total)));
+  summary.append(summaryRow, checkout, message, element('p', cmsText('uiCartNote', 'אין חיוב בכרטיס בשלב זה.'), 'cart-note'));
   byId('cart-dialog-body').replaceChildren(body, summary);
   byId('drawer-count').textContent = '(' + Object.entries(cart).filter(([key]) => choices.has(key)).reduce((sum, [,qty]) => sum + qty, 0) + ')';
   if (!byId('cart-dialog').open) byId('cart-dialog').showModal();
@@ -468,17 +483,32 @@ byId('search').addEventListener('input', () => {
 });
 byId('sort').addEventListener('change', renderProducts);
 
-for (const [key, label] of Object.entries(badgeLabels)) {
-  const control = button(label, () => { badge = key; byId('catalog-title').textContent = key === 'heroes' ? 'גיבורי אל משיח' : labels.PhoneStickers; renderCategories(); renderProducts(); });
-  control.dataset.badge = key;
-  byId('badge-filters').append(control);
+function renderBadgeFilters() {
+  byId('badge-filters').replaceChildren(...Object.keys(badgeLabels).map(key => {
+    const control = button(badgeLabel(key), () => { badge = key; setTitle(); renderCategories(); renderProducts(); });
+    control.dataset.badge = key;
+    control.setAttribute('aria-pressed', String(key === badge));
+    return control;
+  }));
 }
+renderBadgeFilters();
+let catalogReady = false;
+// Re-render dynamic texts when the CMS settings arrive (or change in the admin preview).
+document.addEventListener('cms:applied', () => {
+  renderBadgeFilters();
+  if (!catalogReady) return;
+  setTitle();
+  renderCategories();
+  renderRails();
+  renderProducts();
+  updateCount();
+});
 byId('reset').addEventListener('click', () => {
   category = '';
   badge = '';
   byId('search').value = '';
   byId('sort').value = 'catalog';
-  byId('catalog-title').textContent = 'כל המוצרים';
+  setTitle();
   renderCategories();
   renderProducts();
 });
@@ -494,10 +524,10 @@ try {
   if (openHeroes) {
     category = 'PhoneStickers';
     badge = 'heroes';
-    byId('catalog-title').textContent = badgeLabels.heroes;
+    setTitle();
   } else if (Object.hasOwn(labels, params.get('category'))) {
     category = params.get('category');
-    byId('catalog-title').textContent = labels[category];
+    setTitle();
   }
   const databaseProducts = await response.json();
   // Keep the original WhatsApp-only ordering flow for Degaliya/Daglit.
@@ -512,6 +542,7 @@ try {
   });
   const keys = new Set(products.flatMap(product => options(product).map(choice => choice.key)));
   cart = Object.fromEntries(Object.entries(initialCart).filter(([key, count]) => keys.has(key) && Number.isSafeInteger(count) && count > 0 && count <= 100));
+  catalogReady = true;
   renderCategories();
   renderRails();
   const skuFromQr = params.get('sku');

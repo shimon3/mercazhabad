@@ -1,4 +1,4 @@
-import {applyAppearance, pages, readAppearance} from '/appearance.js?v=10';
+import {applyAppearance, pages, readAppearance} from '/appearance.js?v=13';
 
 const page = document.body.dataset.appearancePage;
 const video = document.querySelector('.exhibit-video');
