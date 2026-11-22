@@ -6,7 +6,7 @@ function populate(){const m=$('model');m.replaceChildren();models[$('brand').val
 document.querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>{phone.className='phone '+(b.dataset.color==='black'?'':b.dataset.color);document.querySelectorAll('[data-color]').forEach(x=>x.classList.toggle('selected',x===b));updateCase();});
 function updateCase(){const brand=$('brand').value,model=$('model').value;phone.dataset.brand=brand;phone.dataset.model=model;phone.classList.toggle('iphone',brand==='iPhone');phone.classList.toggle('ultra',/Ultra|Pro Max/.test(model));phone.classList.toggle('pro',/Pro/.test(model));phone.setAttribute('aria-label',brand+' '+model+' — הדמיה כללית, לא מידות יצרן');}
 updateCase();
-function choose(el){active=el;document.querySelectorAll('.decal').forEach(d=>d.style.outline=d===el?'2px dashed #1e45c8':'none');$('size').value=parseInt(el.style.width)||95;$('angle').value=Number(el.dataset.angle)||0;}
+function choose(el){active=el;document.querySelectorAll('.decal').forEach(d=>d.style.outline='none');$('size').value=parseInt(el.style.width)||95;$('angle').value=Number(el.dataset.angle)||0;}
 
 /* Remove near-white connected background, preserving white artwork inside the sticker.
    Work on a copy: the original catalogue image is never modified. */
