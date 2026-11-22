@@ -3,7 +3,7 @@ const BASE='https://bdalhyqpruefdbyirykp.supabase.co', KEY='sb_publishable_K6ciG
 const $=id=>document.getElementById(id),phone=$('phone');let active=null,seq=0;
 const models={Samsung:['S23','S23+','S23 Ultra','S24','S24+','S24 Ultra','S25','S25+','S25 Ultra'],iPhone:['15','15 Plus','15 Pro','15 Pro Max','16','16 Plus','16 Pro','16 Pro Max','17','17 Pro','17 Pro Max' ]};
 function populate(){const m=$('model');m.replaceChildren();models[$('brand').value].forEach(v=>m.add(new Option(($('brand').value==='Samsung'?'Galaxy ':'iPhone ')+v,v)));}populate();$('brand').onchange=()=>{populate();updateCase()};$('model').onchange=updateCase;
-document.querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>{phone.className='phone '+(b.dataset.color==='black'?'':b.dataset.color);document.querySelectorAll('[data-color]').forEach(x=>x.classList.toggle('selected',x===b));});
+document.querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>{phone.className='phone '+(b.dataset.color==='black'?'':b.dataset.color);document.querySelectorAll('[data-color]').forEach(x=>x.classList.toggle('selected',x===b));updateCase();});
 function updateCase(){const brand=$('brand').value,model=$('model').value;phone.dataset.brand=brand;phone.dataset.model=model;phone.classList.toggle('iphone',brand==='iPhone');phone.classList.toggle('ultra',/Ultra|Pro Max/.test(model));phone.classList.toggle('pro',/Pro/.test(model));phone.setAttribute('aria-label',brand+' '+model+' — הדמיה כללית, לא מידות יצרן');}
 updateCase();
 function choose(el){active=el;document.querySelectorAll('.decal').forEach(d=>d.style.outline=d===el?'2px dashed #1e45c8':'none');$('size').value=parseInt(el.style.width)||95;$('angle').value=Number(el.dataset.angle)||0;}
