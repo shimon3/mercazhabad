@@ -49,8 +49,23 @@ function borderColour(d, w, h) {
 }
 
 // Flood fill: mask[p] = 1 where background. Seeds: {x, y, colour} — colour null = border colour.
-function computeMask(d, w, h, seeds, tolerance) {
+function computeMask(d, w, h, seeds, tolerance, shadow = 0, keepSeeds = []) {
   const mask = new Uint8Array(w * h);
+  // "Keep" clicks: the region around each click (similar colour) can never become background.
+  const protect = new Uint8Array(w * h);
+  for (const seed of keepSeeds) {
+    const p0 = seed.y * w + seed.x, r0 = d[p0 * 4], g0 = d[p0 * 4 + 1], b0 = d[p0 * 4 + 2];
+    const lim = (Math.max(tolerance, 12) * 4.42) ** 2, stack = [p0];
+    protect[p0] = 1;
+    while (stack.length) {
+      const p = stack.pop(), x = p % w;
+      for (const q of [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, p - w, p + w]) {
+        if (q < 0 || q >= w * h || protect[q] || dist2(d, q * 4, r0, g0, b0) > lim) continue;
+        protect[q] = 1; stack.push(q);
+      }
+    }
+  }
+  for (let p = 0; p < w * h; p++) if (protect[p]) mask[p] = 2; // 2 = protected (treated as "visited", never background)
   const queue = new Int32Array(w * h);
   const limit = (tolerance * 4.42) ** 2; // tolerance 0–100 → distance 0–442 (max RGB distance)
   const bg = borderColour(d, w, h);
@@ -74,7 +89,37 @@ function computeMask(d, w, h, seeds, tolerance) {
     const p = seed.y * w + seed.x;
     fill([p], [d[p * 4], d[p * 4 + 1], d[p * 4 + 2]]);
   }
+  if (shadow > 0) shadowPass(d, w, h, mask, queue, shadow, bg);
+  for (let p = 0; p < w * h; p++) if (mask[p] === 2) mask[p] = 0;
   return mask;
+}
+
+// Shadows and glows: from the background already found, keep spreading over pixels that change
+// only gradually (shadows are smooth, product edges are sharp) and stay greyish and not too dark.
+function shadowPass(d, w, h, mask, queue, strength, bg) {
+  const step = (2 + strength * 1.2) ** 2;        // max colour change between two neighbours
+  const minLight = Math.max(40, (bg[0] + bg[1] + bg[2]) / 3 - 30 - strength * 14); // darkest shadow accepted
+  // Shadows are the background colour, only darker: compare the tint (colour minus its grey level)
+  // with the background's tint, so cream / beige products are not eaten.
+  const bgGrey = (bg[0] + bg[1] + bg[2]) / 3, tint = [bg[0] - bgGrey, bg[1] - bgGrey, bg[2] - bgGrey];
+  const maxTint = 6 + strength * 1.2;
+  let head = 0, tail = 0;
+  for (let p = 0; p < w * h; p++) if (mask[p] === 1) {
+    const x = p % w;
+    if ((x > 0 && !mask[p - 1]) || (x < w - 1 && !mask[p + 1]) || (p >= w && !mask[p - w]) || (p < w * (h - 1) && !mask[p + w])) queue[tail++] = p;
+  }
+  while (head < tail) {
+    const p = queue[head++], x = p % w, i = p * 4;
+    for (const q of [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, p - w, p + w]) {
+      if (q < 0 || q >= w * h || mask[q]) continue;
+      const j = q * 4, r = d[j], g = d[j + 1], b = d[j + 2];
+      if (dist2(d, i, r, g, b) > step) continue;
+      if ((r + g + b) / 3 < minLight) continue;
+      const grey = (r + g + b) / 3;
+      if (Math.abs(r - grey - tint[0]) > maxTint || Math.abs(g - grey - tint[1]) > maxTint || Math.abs(b - grey - tint[2]) > maxTint) continue;
+      mask[q] = 1; queue[tail++] = q;
+    }
+  }
 }
 
 // Soft edge: box-blur the mask into an alpha (0 = keep photo, 1 = white).
@@ -128,15 +173,17 @@ function objectBox(mask, w, h) {
 
 // --- UI ---------------------------------------------------------------------
 function build(panel) {
-  const intro = el('p', 'מעלים תמונת מוצר, והרקע מוחלף בלבן. עובד הכי טוב כשהרקע בצבע אחיד. אם נשאר רקע — לוחצים עליו בתמונה הימנית כדי להסיר גם אותו. הכל מתבצע במחשב שלכם.', 'muted');
+  const intro = el('p', 'מעלים תמונת מוצר, והרקע מוחלף בלבן. עובד הכי טוב כשהרקע בצבע אחיד. נשאר רקע או צל? לחצו עליו בתמונת "אחרי". נמחק חלק מהמוצר? עברו ל־🛡️ שחזור ולחצו עליו. הכל מתבצע במחשב שלכם.', 'muted');
   const drop = el('label', '', 'webp-drop');
   const input = Object.assign(document.createElement('input'), {type: 'file', accept: 'image/jpeg,image/png,image/webp'});
   drop.append(el('strong', 'גררו לכאן תמונה או לחצו לבחירה'), el('small', 'JPG · PNG · WebP'), input);
 
   const tolerance = range(1, 60, 18);
   const softness = range(0, 4, 1);
+  const shadow = range(0, 10, 4);
   const square = Object.assign(document.createElement('input'), {type: 'checkbox', checked: true});
   const transparent = Object.assign(document.createElement('input'), {type: 'checkbox'});
+  transparent.addEventListener('change', () => after.classList.toggle('is-transparent', transparent.checked));
   const settings = el('div', '', 'bg-settings');
   const label = (text, control, valueText) => {
     const node = el('label', text + ' ');
@@ -146,7 +193,8 @@ function build(panel) {
   };
   const tolValue = el('output', '18');
   const softValue = el('output', '1');
-  settings.append(label('רגישות', tolerance, tolValue), label('ריכוך שוליים', softness, softValue),
+  const shadowValue = el('output', '4');
+  settings.append(label('רגישות', tolerance, tolValue), label('ריכוך שוליים', softness, softValue), label('הסרת צל', shadow, shadowValue),
     label('מרכוז בריבוע 800×800 עם שוליים', square), label('רקע שקוף (PNG) במקום לבן', transparent));
 
   const before = el('canvas', '', 'bg-canvas');
@@ -154,31 +202,46 @@ function build(panel) {
   after.title = 'לחיצה על אזור רקע שנשאר תסיר אותו';
   const stage = el('div', '', 'bg-stage');
   const figure = (title, canvas) => { const f = el('figure'); f.append(el('figcaption', title), canvas); return f; };
-  stage.append(figure('לפני', before), figure('אחרי — לחצו על רקע שנשאר', after));
+  stage.append(figure('לפני', before), figure('אחרי', after));
   stage.hidden = true;
 
   const undo = el('button', 'ביטול לחיצה אחרונה', 'secondary');
   const reset = el('button', 'איפוס', 'secondary');
   const download = el('button', 'הורדת התמונה');
   for (const b of [undo, reset, download]) b.type = 'button';
+  // Click mode on the result: remove leftover background, or restore a part of the product that was erased.
+  const modes = el('div', '', 'bg-modes');
+  const modeButton = (value, text) => {
+    const b = el('button', text, 'secondary');
+    b.type = 'button';
+    b.setAttribute('aria-pressed', String(value === 'remove'));
+    b.addEventListener('click', () => {
+      mode = value;
+      for (const other of modes.querySelectorAll('button')) other.setAttribute('aria-pressed', String(other === b));
+      after.classList.toggle('is-keep', value === 'keep');
+    });
+    return b;
+  };
+  modes.hidden = true;
+  modes.append(el('span', 'לחיצה על התמונה:'), modeButton('remove', '🧽 הסרת רקע שנשאר'), modeButton('keep', '🛡️ שחזור חלק מהמוצר שנמחק'));
   const actions = el('div', '', 'row bg-actions');
   actions.append(download, undo, reset);
   actions.hidden = true;
   const status = el('p', '', 'status');
   status.setAttribute('role', 'status');
 
-  let source = null, w = 0, h = 0, seeds = [], mask = null, name = 'image';
+  let source = null, w = 0, h = 0, seeds = [], keepSeeds = [], history = [], mask = null, name = 'image', mode = 'remove';
 
   const draw = () => {
     if (!source) return;
-    mask = computeMask(source.data, w, h, seeds, Number(tolerance.value));
+    mask = computeMask(source.data, w, h, seeds, Number(tolerance.value), Number(shadow.value), keepSeeds);
     const result = render(source, mask, w, h, Number(softness.value), transparent.checked);
     after.width = w; after.height = h;
     after.getContext('2d').putImageData(result, 0, 0);
     const kept = mask.reduce((n, v) => n + (v ? 0 : 1), 0) / mask.length;
-    status.textContent = kept < 0.02 ? 'כמעט כל התמונה הוסרה — הורידו את הרגישות.' : seeds.length ? seeds.length + ' אזורים נוספים הוסרו בלחיצה.' : '';
+    status.textContent = kept < 0.02 ? 'כמעט כל התמונה הוסרה — הורידו את הרגישות.' : (seeds.length || keepSeeds.length) ? seeds.length + ' אזורים הוסרו · ' + keepSeeds.length + ' אזורים שוחזרו.' : '';
     status.className = kept < 0.02 ? 'status error' : 'status ok';
-    undo.disabled = !seeds.length;
+    undo.disabled = !history.length;
   };
 
   async function load(file) {
@@ -192,9 +255,9 @@ function build(panel) {
     ctx.drawImage(bitmap, 0, 0, w, h);
     bitmap.close?.();
     source = ctx.getImageData(0, 0, w, h);
-    seeds = [];
+    seeds = []; keepSeeds = []; history = [];
     name = file.name.replace(/\.[^.]+$/, '');
-    stage.hidden = false; actions.hidden = false;
+    stage.hidden = false; actions.hidden = false; modes.hidden = false;
     draw();
   }
 
@@ -204,17 +267,19 @@ function build(panel) {
   drop.addEventListener('drop', e => { e.preventDefault(); load(e.dataTransfer.files[0]); });
   tolerance.addEventListener('input', () => { tolValue.textContent = tolerance.value; draw(); });
   softness.addEventListener('input', () => { softValue.textContent = softness.value; draw(); });
+  shadow.addEventListener('input', () => { shadowValue.textContent = shadow.value; draw(); });
   transparent.addEventListener('change', draw);
   after.addEventListener('click', event => {
     if (!source) return;
     const box = after.getBoundingClientRect();
     const x = Math.floor((event.clientX - box.left) / box.width * w), y = Math.floor((event.clientY - box.top) / box.height * h);
     if (x < 0 || y < 0 || x >= w || y >= h) return;
-    seeds.push({x, y});
+    (mode === 'keep' ? keepSeeds : seeds).push({x, y});
+    history.push(mode);
     draw();
   });
-  undo.addEventListener('click', () => { seeds.pop(); draw(); });
-  reset.addEventListener('click', () => { seeds = []; tolerance.value = '18'; tolValue.textContent = '18'; draw(); });
+  undo.addEventListener('click', () => { const last = history.pop(); if (last === 'keep') keepSeeds.pop(); else if (last) seeds.pop(); draw(); });
+  reset.addEventListener('click', () => { seeds = []; keepSeeds = []; history = []; tolerance.value = '18'; tolValue.textContent = '18'; shadow.value = '4'; shadowValue.textContent = '4'; draw(); });
 
   download.addEventListener('click', async () => {
     if (!source) return;
@@ -242,5 +307,5 @@ function build(panel) {
     status.className = 'status ok';
   });
 
-  panel.append(el('h2', 'הסרת רקע — רקע לבן'), intro, drop, settings, stage, actions, status);
+  panel.append(el('h2', 'הסרת רקע — רקע לבן'), intro, drop, settings, modes, stage, actions, status);
 }
