@@ -122,8 +122,9 @@ begin
   -- so this wrapper does not depend on its exact signature.
   execute format('select public.mercaz_create_order(p_items => %L, p_name => %L, p_phone => %L, p_address => %L, p_notes => %L)::text',
                  p_items::text, p_name, p_phone, p_address, p_notes) into v_result;
+  -- mercaz_create_order returns the new order's id: use it (never "the latest order", which could race).
   select * into v_order from public.mercaz_orders
-    where customer_id = auth.uid() order by created_at desc limit 1 for update;
+    where id = v_result::uuid and customer_id = auth.uid() for update;
   if not found or v_order.payment_status <> 'pending_payment' or coalesce(v_order.discount_agorot, 0) <> 0 then
     raise exception 'לא ניתן להחיל את הקופון על ההזמנה' using errcode = 'P0001';
   end if;
