@@ -10,13 +10,16 @@ const el = (tag, text, className) => {
 export function injectCommunityTab() {
   const nav = document.querySelector('#dashboard .navtabs');
   if (!nav || document.querySelector('[data-view="community"]')) return;
-  const tab = el('button', '⭐ קהילה');
+  const tab = el('button', '⭐ קהילה וקופונים');
   tab.dataset.view = 'community';
   tab.setAttribute('aria-pressed', 'false');
   nav.append(tab);
   const panel = el('section', '', 'hidden');
   panel.dataset.panel = 'community';
   panel.append(
+    el('h2', 'קודי קופון'),
+    el('p', 'ההנחה מחושבת בשרת לפי סכום ההזמנה. קוד לא פעיל או שפג תוקפו נדחה אוטומטית.', 'muted'),
+    Object.assign(el('div'), {id: 'couponAdmin'}),
     el('h2', 'חוות דעת לאישור'),
     el('p', 'חוות דעת מתפרסמות באתר ובעמודי המוצר רק אחרי אישור. אין לאשר תוכן פוגעני או פרסומי.', 'muted'),
     Object.assign(el('div'), {id: 'pendingReviews'}),
@@ -27,7 +30,112 @@ export function injectCommunityTab() {
   nav.parentElement.append(panel);
 }
 
-export async function loadCommunity(api) {
+const shekel = agorot => '₪' + (agorot / 100).toLocaleString('he-IL', {maximumFractionDigits: 2});
+function field(labelText, input) {
+  const label = el('label', labelText, 'field');
+  label.append(input);
+  return label;
+}
+function input(attrs) { return Object.assign(document.createElement('input'), attrs); }
+
+async function renderCoupons(api, role, host) {
+  let coupons, stats;
+  try {
+    [coupons, stats] = await Promise.all([
+      api('/rest/v1/mercaz_coupons?select=*&order=created_at.desc&limit=200'),
+      api('/rest/v1/mercaz_coupon_stats?select=code,uses,discount_total_agorot'),
+    ]);
+  } catch {
+    host.replaceChildren(el('p', 'טבלת הקופונים עדיין לא הוגדרה (יש להריץ את sql/coupons.sql).', 'status error'));
+    return;
+  }
+  const usage = new Map(stats.map(row => [row.code, row]));
+  const nodes = [];
+  if (role === 'admin') {
+    const form = el('form', '', 'coupon-form');
+    const code = input({name: 'code', required: true, pattern: '[A-Za-z0-9_\\-]{3,30}', maxLength: 30, placeholder: 'CHANUKA10', dir: 'ltr'});
+    const kind = document.createElement('select');
+    kind.name = 'kind';
+    kind.append(new Option('אחוז הנחה (%)', 'percent'), new Option('סכום קבוע (₪)', 'fixed'));
+    const value = input({name: 'value', type: 'number', required: true, min: '1', step: '0.01'});
+    const min = input({name: 'min', type: 'number', min: '0', step: '0.01', placeholder: '0'});
+    const expires = input({name: 'expires', type: 'date'});
+    const maxUses = input({name: 'max_uses', type: 'number', min: '1', step: '1', placeholder: 'ללא הגבלה'});
+    const once = input({name: 'once', type: 'checkbox', checked: true});
+    const onceLabel = el('label', '', 'field');
+    onceLabel.append(once, ' פעם אחת לכל לקוח');
+    const note = input({name: 'note', maxLength: 200, placeholder: 'למשל: קבוצת WhatsApp חנוכה'});
+    const submit = el('button', 'יצירת קופון');
+    submit.type = 'submit';
+    const status = el('p', '', 'status');
+    status.setAttribute('role', 'status');
+    const grid = el('div', '', 'grid');
+    grid.append(field('קוד', code), field('סוג', kind), field('ערך', value), field('מינימום הזמנה (₪)', min),
+      field('תוקף עד (כולל)', expires), field('מספר שימושים מרבי', maxUses), onceLabel, field('הערה פנימית', note));
+    form.append(grid, submit, status);
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const amount = Number(value.value);
+      if (kind.value === 'percent' && (!Number.isInteger(amount) || amount < 1 || amount > 100)) { status.textContent = 'אחוז חייב להיות מספר שלם בין 1 ל־100'; status.className = 'status error'; return; }
+      const row = {
+        code: code.value.trim().toUpperCase(), kind: kind.value,
+        value: kind.value === 'percent' ? amount : Math.round(amount * 100),
+        min_total_agorot: Math.round(Number(min.value || 0) * 100),
+        expires_at: expires.value ? new Date(expires.value + 'T23:59:59').toISOString() : null,
+        max_uses: maxUses.value ? Number(maxUses.value) : null,
+        one_per_customer: once.checked, note: note.value.trim() || null,
+      };
+      submit.disabled = true;
+      try {
+        await api('/rest/v1/mercaz_coupons', 'POST', row);
+        status.textContent = 'הקופון ' + row.code + ' נוצר ✓'; status.className = 'status ok';
+        form.reset(); once.checked = true;
+        await renderCoupons(api, role, host);
+      } catch (error) {
+        status.textContent = /duplicate|unique/i.test(error.message) ? 'קוד זה כבר קיים' : 'השמירה נכשלה: ' + error.message;
+        status.className = 'status error';
+      } finally { submit.disabled = false; }
+    });
+    nodes.push(form);
+  }
+  if (!coupons.length) nodes.push(el('p', 'עדיין אין קופונים.', 'muted'));
+  for (const coupon of coupons) {
+    const used = usage.get(coupon.code);
+    const expired = coupon.expires_at && new Date(coupon.expires_at) < new Date();
+    const card = el('div', '', 'order');
+    const head = el('div', '', 'row');
+    head.append(el('strong', coupon.code),
+      el('span', coupon.kind === 'percent' ? coupon.value + '% הנחה' : shekel(coupon.value) + ' הנחה', 'pill'),
+      el('span', !coupon.active ? 'מושבת' : expired ? 'פג תוקף' : 'פעיל', 'pill'));
+    const details = [
+      coupon.min_total_agorot ? 'מינימום ' + shekel(coupon.min_total_agorot) : null,
+      coupon.expires_at ? 'עד ' + new Date(coupon.expires_at).toLocaleDateString('he-IL') : 'ללא תאריך תפוגה',
+      (used?.uses || 0) + (coupon.max_uses ? ' / ' + coupon.max_uses : '') + ' שימושים',
+      'סה״כ הנחות ' + shekel(used?.discount_total_agorot || 0),
+      coupon.one_per_customer ? 'פעם אחת ללקוח' : 'ללא הגבלה ללקוח',
+      coupon.note,
+    ].filter(Boolean).join(' · ');
+    card.append(head, el('p', details, 'muted'));
+    if (role === 'admin') {
+      const toggle = el('button', coupon.active ? 'השבתה' : 'הפעלה מחדש', 'secondary');
+      toggle.type = 'button';
+      toggle.addEventListener('click', async () => {
+        toggle.disabled = true;
+        try {
+          await api('/rest/v1/mercaz_coupons?code=eq.' + encodeURIComponent(coupon.code), 'PATCH', {active: !coupon.active});
+          await renderCoupons(api, role, host);
+        } catch (error) { toggle.disabled = false; alert('הפעולה נכשלה: ' + error.message); }
+      });
+      card.append(toggle);
+    }
+    nodes.push(card);
+  }
+  host.replaceChildren(...nodes);
+}
+
+export async function loadCommunity(api, role = 'manager') {
+  const couponHost = document.getElementById('couponAdmin');
+  if (couponHost) renderCoupons(api, role, couponHost).catch(() => {});
   const reviewsHost = document.getElementById('pendingReviews');
   const newsHost = document.getElementById('newsletterSummary');
   if (!reviewsHost || !newsHost) return;
