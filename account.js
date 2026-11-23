@@ -68,6 +68,9 @@ $('deliveryMethod').onchange=updateDeliveryMethod;
 const couponInput=()=>$('couponCode').value.trim().toUpperCase();
 function couponText(c){return 'קוד '+c.code+' · הנחה של '+money(c.discount_agorot)+' (הסכום הסופי יחושב בעת אישור ההזמנה)'}
 $('couponCode').oninput=()=>{coupon=null;$('couponStatus').textContent='';$('couponStatus').className='muted'};
+// Coupon typed in the shop's basket before login: pre-fill it and check it once the form is shown.
+let savedCoupon=null;try{savedCoupon=JSON.parse(sessionStorage.getItem('merkaz_coupon')||'null')}catch{}
+if(savedCoupon?.code){$('couponCode').value=savedCoupon.code;const note=document.createElement('p');note.className='muted';note.textContent='🎟️ הקופון '+savedCoupon.code+' נשמר ויוחל בסיום ההזמנה.';$('authForm')?.before(note)}
 $('checkCoupon').onclick=async()=>{
   const code=couponInput();coupon=null;
   if(!/^[A-Z0-9_-]{3,30}$/.test(code)){msg('couponStatus','קוד הקופון אינו תקף',true);return}
@@ -81,7 +84,7 @@ async function showCart(){const items=readCart();if(!items.length)return;try{
 const keys=[...new Set(items.map(i=>i.key.split('::')[0]))];const products=await api('/rest/v1/mercaz_products?select=id,name_he,category,price_agorot,active&active=eq.true', 'GET',undefined,false);const names=new Map(products.map(p=>[p.id,p]));let total=0;
 const el=$('cartSummary');el.replaceChildren();const list=document.createElement('ul');
 for(const line of items){const id=line.key.split('::')[0],pack=line.key.split('::')[1],p=names.get(id);if(!p)continue;const unit=pack==='4'?1500:pack==='10'?3000:p.price_agorot;if(unit==null)continue;total+=unit*line.quantity;const li=document.createElement('li');li.textContent=p.name_he+(pack?' ('+pack+' יח׳)':'')+' × '+line.quantity+' — '+money(unit*line.quantity);list.append(li)}
-cartTotal=total;el.append(list);const cost=document.createElement('strong');cost.textContent='סה״כ מוצרים: '+money(total)+' (לפני דמי משלוח אם יחולו)';el.append(cost);
+cartTotal=total;if($('couponCode').value&&!coupon)setTimeout(()=>$('checkCoupon').click(),0);el.append(list);const cost=document.createElement('strong');cost.textContent='סה״כ מוצרים: '+money(total)+' (לפני דמי משלוח אם יחולו)';el.append(cost);
 }catch(e){msg('checkoutStatus','לא ניתן לטעון את פרטי הסל. רעננו את הדף.',true)}}
 let reviewDetails=null;
 function shippingInfo(){
@@ -151,7 +154,7 @@ $('confirmOrder').onclick=async()=>{
     const created=reviewDetails.coupon
       ?await api('/rest/v1/rpc/mercaz_create_order_with_coupon','POST',{...orderData,p_coupon:reviewDetails.coupon.code})
       :await api('/rest/v1/rpc/mercaz_create_order','POST',orderData);
-    coupon=null;$('couponCode').value='';$('couponStatus').textContent='';
+    coupon=null;$('couponCode').value='';$('couponStatus').textContent='';try{sessionStorage.removeItem('merkaz_coupon')}catch{}
     sessionStorage.removeItem('merkaz_pending_cart');
     $('checkout').classList.add('hidden');
     reviewDetails=null;

@@ -424,6 +424,37 @@ function details(product) {
   openDialog(product.name_he, body);
 }
 
+// "המוצר נוסף לסל" popup with two choices, like the big Israeli shops.
+function showAdded(key) {
+  const added = byId('added-dialog');
+  if (!added) { showToast(cmsText('uiToast', '✓ המוצר נוסף לסל')); return; }
+  const choice = products.flatMap(product => options(product).map(option => ({...option, product}))).find(option => option.key === key);
+  byId('added-name').textContent = choice ? [choice.product.name_he, choice.label].filter(Boolean).join(' · ') : '';
+  if (dialog.open) dialog.close();
+  if (!added.open) added.showModal();
+  byId('added-cart').focus();
+}
+byId('added-close')?.addEventListener('click', () => byId('added-dialog').close());
+byId('added-continue')?.addEventListener('click', () => byId('added-dialog').close());
+byId('added-cart')?.addEventListener('click', () => { byId('added-dialog').close(); showCart(); });
+byId('added-dialog')?.addEventListener('click', event => { if (event.target === event.currentTarget) event.currentTarget.close(); });
+
+// Coupon typed in the basket (before login). The preview is informative; the discount is
+// computed again by the database when the signed-in customer confirms the order.
+const COUPON_KEY = 'merkaz_coupon';
+let cartCoupon = null; // {code, discount_agorot}
+try { const saved = JSON.parse(sessionStorage.getItem(COUPON_KEY) || 'null'); if (saved?.code) cartCoupon = saved; } catch {}
+async function previewCoupon(code, totalAgorot) {
+  const response = await fetch(SUPABASE_URL + '/rest/v1/rpc/mercaz_preview_coupon', {
+    method: 'POST', headers: {apikey: SUPABASE_PUBLISHABLE_KEY, 'Content-Type': 'application/json'},
+    body: JSON.stringify({p_code: code, p_total_agorot: totalAgorot}),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(response.status === 404 ? 'הזנת קופון בסל עדיין לא הופעלה. אפשר להזין אותו בשלב ההזמנה.' : (data.message || 'לא ניתן לבדוק את הקוד כרגע'));
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+
 function add(key, control) {
   updateCart(key, (cart[key] || 0) + 1);
   const counter = byId('count');
@@ -436,7 +467,7 @@ function add(key, control) {
     control.classList.add('is-added');
     setTimeout(() => { control.replaceChildren(...saved); control.classList.remove('is-added'); }, 1400);
   }
-  showToast(cmsText('uiToast', '✓ המוצר נוסף לסל'));
+  showAdded(key);
   byId('announcement').textContent = 'נוסף לסל. פריטים בסל ' + byId('count').textContent;
 }
 
@@ -517,8 +548,55 @@ function showCart() {
   message.setAttribute('role', 'status');
   const summary = element('div', '', 'cart-drawer-footer');
   const summaryRow = element('div', '', 'cart-subtotal');
-  summaryRow.append(element('span', cmsText('uiTotal', 'סך הכל')), element('strong', format(total)));
-  summary.append(summaryRow, checkout, message, element('p', cmsText('uiCartNote', 'אין חיוב בכרטיס בשלב זה.'), 'cart-note'));
+  // Coupon field in the basket.
+  const couponForm = element('form', '', 'cart-coupon');
+  const couponInput = element('input');
+  Object.assign(couponInput, {placeholder: cmsText('uiCouponPlaceholder', 'הזנת קופון'), maxLength: 30, autocomplete: 'off', spellcheck: false, dir: 'ltr', value: cartCoupon?.code || ''});
+  couponInput.setAttribute('aria-label', 'קוד קופון');
+  const couponButton = element('button', cmsText('uiCouponApply', 'החלה'), 'cart-coupon-apply');
+  couponButton.type = 'submit';
+  const couponStatus = element('p', '', 'cart-coupon-status');
+  couponStatus.setAttribute('role', 'status');
+  couponForm.append(couponInput, couponButton);
+  const totals = () => {
+    const discount = cartCoupon ? Math.min(total, cartCoupon.discount_agorot) : 0;
+    const rows = [];
+    if (discount) {
+      const before = element('div', '', 'cart-subtotal cart-subtotal-small');
+      before.append(element('span', 'סכום ביניים'), element('span', format(total)));
+      const off = element('div', '', 'cart-subtotal cart-discount');
+      const label = element('span', 'קופון ' + cartCoupon.code + ' ');
+      const remove = element('button', 'הסרה', 'cart-coupon-remove');
+      remove.type = 'button';
+      remove.addEventListener('click', () => { cartCoupon = null; try { sessionStorage.removeItem(COUPON_KEY); } catch {} showCart(); });
+      label.append(remove);
+      off.append(label, element('span', '−' + format(discount)));
+      rows.push(before, off);
+    }
+    summaryRow.replaceChildren(element('span', cmsText('uiTotal', 'סך הכל')), element('strong', format(total - discount)));
+    return rows;
+  };
+  const discountRows = element('div', '', 'cart-discount-rows');
+  discountRows.replaceChildren(...totals());
+  if (cartCoupon) couponStatus.textContent = '✓ הקופון יוחל. הסכום הסופי יאושר בשלב ההזמנה.';
+  couponForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    const code = couponInput.value.trim().toUpperCase();
+    if (!/^[A-Z0-9_-]{3,30}$/.test(code)) { couponStatus.textContent = 'קוד הקופון אינו תקף'; couponStatus.className = 'cart-coupon-status is-error'; return; }
+    couponButton.disabled = true;
+    try {
+      const result = await previewCoupon(code, total);
+      cartCoupon = {code: result.code, discount_agorot: result.discount_agorot};
+      try { sessionStorage.setItem(COUPON_KEY, JSON.stringify(cartCoupon)); } catch {}
+      showCart();
+      return;
+    } catch (error) {
+      couponStatus.textContent = error.message;
+      couponStatus.className = 'cart-coupon-status is-error';
+    }
+    couponButton.disabled = false;
+  });
+  summary.append(couponForm, couponStatus, discountRows, summaryRow, checkout, message, element('p', cmsText('uiCartNote', 'אין חיוב בכרטיס בשלב זה.'), 'cart-note'));
   byId('cart-dialog-body').replaceChildren(body, summary);
   byId('drawer-count').textContent = '(' + Object.entries(cart).filter(([key]) => choices.has(key)).reduce((sum, [,qty]) => sum + qty, 0) + ')';
   if (!byId('cart-dialog').open) byId('cart-dialog').showModal();
