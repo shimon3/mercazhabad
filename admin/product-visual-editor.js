@@ -140,12 +140,19 @@ export async function mountProductVisualEditor(host, getToken, back, initialProd
     removeLabel.hidden = true;
     videoBox.append(videoTitle, current, videoInput, removeLabel, videoNote);
     fields.append(videoBox);
-    request('/rest/v1/mercaz_products?select=video_key&id=eq.'+encodeURIComponent(product.id)).then(rows=>{
+    // Read with the public key (same as the shop): works whatever the staff role's column grants are.
+    fetch(BASE+'/rest/v1/mercaz_products?select=video_key&id=eq.'+encodeURIComponent(product.id),{cache:'no-store',headers:{apikey:KEY}})
+      .then(async res=>{if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.message||('HTTP '+res.status))}return res.json()})
+      .then(rows=>{
       const key=rows?.[0]?.video_key;
       if(selected!==product)return;
       if(key){current.src=key;current.hidden=false;removeLabel.hidden=false;videoNote.textContent='יש סרטון למוצר. אפשר להחליף או להסיר.';}
       else videoNote.textContent='אין עדיין סרטון למוצר.';
-    }).catch(()=>{videoNote.textContent='כדי להוסיף סרטונים יש להריץ את sql/product-videos.sql.';videoInput.disabled=true;});
+    }).catch(error=>{
+      // Only a missing column means the SQL was not run; anything else is shown as is (and upload stays possible).
+      if(/video_key/.test(error.message)&&/exist|column/i.test(error.message)){videoNote.textContent='כדי להוסיף סרטונים יש להריץ את sql/product-videos.sql.';videoInput.disabled=true;}
+      else videoNote.textContent='לא ניתן לבדוק אם יש סרטון ('+error.message+'). אפשר בכל זאת להעלות סרטון.';
+    });
     videoInput.addEventListener('change',()=>{
       const chosen=videoInput.files?.[0];videoFile=null;
       if(!chosen)return;
