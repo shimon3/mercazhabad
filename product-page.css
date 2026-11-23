@@ -39,3 +39,7 @@ a{color:inherit}
 .pp-reviews li{padding-block:10px;border-top:1px solid var(--rule)}
 .pp-reviews li p{margin:2px 0}
 @media (max-width:720px){.pp-product{grid-template-columns:1fr;padding:14px}}
+.pp-media{display:grid;gap:14px;align-content:start}
+.pp-video{margin:0;display:grid;gap:6px}
+.pp-video figcaption{font-weight:800}
+.pp-video video{width:100%;max-height:480px;border-radius:14px;background:#000}

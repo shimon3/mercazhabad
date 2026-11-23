@@ -1,14 +1,14 @@
 // Server-rendered, indexable product page: /p/<sku or id>.
 // Read-only: buying still happens in the storefront cart (link opens the product there).
 import {CATEGORY_LABELS, PHONE_INTL, STORE_NAME, approvedReviews, escapeHtml as e, findProduct,
-  imageUrl, isOutOfStock, priceInfo, productSlug, shekel} from '../_lib/store.js';
+  imageUrl, isOutOfStock, priceInfo, productSlug, productVideo, shekel} from '../_lib/store.js';
 
 // _headers does not apply to Functions responses, so the page sets its own security headers.
 const HEADERS = {
   'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300',
   'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
-  'Content-Security-Policy': "default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data: https://bdalhyqpruefdbyirykp.supabase.co; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+  'Content-Security-Policy': "default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data: https://bdalhyqpruefdbyirykp.supabase.co; font-src 'self' data:; media-src 'self' https://bdalhyqpruefdbyirykp.supabase.co; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
 };
 
 function stars(rating) {
@@ -34,7 +34,7 @@ export async function onRequestGet({params, request}) {
   const canonical = origin + '/p/' + slug;
   if (params.slug !== slug) return Response.redirect(canonical, 301);
 
-  const reviews = await approvedReviews(product.id);
+  const [reviews, video] = await Promise.all([approvedReviews(product.id), productVideo(product.id)]);
   const price = priceInfo(product);
   const out = isOutOfStock(product);
   const image = imageUrl(product, origin);
@@ -98,7 +98,8 @@ ${image ? `<meta property="og:image" content="${e(image)}">` : ''}
 <main class="pp">
 <nav class="pp-crumbs" aria-label="פירורי לחם"><a href="/">דף הבית</a> › <a href="/?category=${e(encodeURIComponent(product.category))}#catalog">${e(category)}</a> › <span>${e(product.name_he)}</span></nav>
 <article class="pp-product">
-<div class="pp-photo">${image ? `<img src="${e(image)}" alt="${e(product.name_he)}" width="640" height="640">` : '<span class="pp-muted">תמונה בקרוב</span>'}</div>
+<div class="pp-media"><div class="pp-photo">${image ? `<img src="${e(image)}" alt="${e(product.name_he)}" width="640" height="640">` : '<span class="pp-muted">תמונה בקרוב</span>'}</div>
+${video ? `<figure class="pp-video"><figcaption>🎬 סרטון המוצר</figcaption><video src="${e(video)}" controls playsinline muted loop preload="metadata"></video></figure>` : ''}</div>
 <div class="pp-info">
 <p class="pp-cat">${e(category)}</p>
 <h1>${e(product.name_he)}</h1>

@@ -78,3 +78,15 @@ export function imageUrl(product, origin) {
 export function shekel(agorot) {
   return new Intl.NumberFormat('he-IL', {style: 'currency', currency: 'ILS', maximumFractionDigits: 2, minimumFractionDigits: 0}).format(agorot / 100);
 }
+
+// Optional presentation video (column added by sql/product-videos.sql). Never breaks the page.
+export async function productVideo(productId) {
+  try {
+    const rows = await rest('mercaz_products?select=video_key&id=eq.' + encodeURIComponent(productId) + '&limit=1');
+    const value = rows?.[0]?.video_key;
+    if (typeof value !== 'string') return null;
+    if (value.startsWith(BASE + '/storage/v1/object/public/mercaz-product-videos/') && /^[A-Za-z0-9._\/:-]+$/.test(value)) return value;
+    if (/^\/assets-v8\/[A-Za-z0-9._\/-]+\.(mp4|webm)$/.test(value)) return value;
+  } catch {}
+  return null;
+}

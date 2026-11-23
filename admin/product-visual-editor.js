@@ -49,7 +49,7 @@ export async function mountProductVisualEditor(host, getToken, back, initialProd
       report('טעינת התצוגה המקדימה נכשלה: ' + error.message, true);
     }
   }
-  let products = [], selected = null, cropFile = null, dirty = false, loading = false;
+  let products = [], selected = null, cropFile = null, videoFile = null, removeVideo = false, dirty = false, loading = false;
   const report = (message, bad = false) => { status.textContent = message; status.className = 'status ' + (bad ? 'error' : 'ok'); };
   const request = async (path, opts = {}) => {
     const res = await fetch(BASE + path, {cache:'no-store', ...opts, headers:{apikey:KEY, Authorization:'Bearer ' + getToken(), ...(opts.headers || {})}});
@@ -120,6 +120,40 @@ export async function mountProductVisualEditor(host, getToken, back, initialProd
     cropPreview.width=320;cropPreview.height=320;
     cropPreview.className='cms-crop-preview';
     fields.append(cropPreview);
+    // Presentation video shown under the photo in the shop (MP4/WebM, up to 50 MB).
+    videoFile = null; removeVideo = false;
+    const videoBox = document.createElement('div');
+    videoBox.className = 'cms-video-field';
+    const videoTitle = document.createElement('p');
+    videoTitle.className = 'cms-video-title';
+    videoTitle.textContent = 'סרטון הצגה מתחת לתמונה (MP4 / WebM, עד 50MB)';
+    const videoNote = document.createElement('small');
+    const current = document.createElement('video');
+    Object.assign(current, {controls:true, muted:true, playsInline:true, preload:'metadata'});
+    current.className = 'cms-video-preview';
+    current.hidden = true;
+    const videoInput = document.createElement('input');
+    Object.assign(videoInput, {type:'file', accept:'video/mp4,video/webm', name:'video'});
+    const removeLabel = document.createElement('label');
+    const removeBox = Object.assign(document.createElement('input'), {type:'checkbox'});
+    removeLabel.append(removeBox, ' הסרת הסרטון מהמוצר');
+    removeLabel.hidden = true;
+    videoBox.append(videoTitle, current, videoInput, removeLabel, videoNote);
+    fields.append(videoBox);
+    request('/rest/v1/mercaz_products?select=video_key&id=eq.'+encodeURIComponent(product.id)).then(rows=>{
+      const key=rows?.[0]?.video_key;
+      if(selected!==product)return;
+      if(key){current.src=key;current.hidden=false;removeLabel.hidden=false;videoNote.textContent='יש סרטון למוצר. אפשר להחליף או להסיר.';}
+      else videoNote.textContent='אין עדיין סרטון למוצר.';
+    }).catch(()=>{videoNote.textContent='כדי להוסיף סרטונים יש להריץ את sql/product-videos.sql.';videoInput.disabled=true;});
+    videoInput.addEventListener('change',()=>{
+      const chosen=videoInput.files?.[0];videoFile=null;
+      if(!chosen)return;
+      if(!['video/mp4','video/webm'].includes(chosen.type)||chosen.size>50*1024*1024){videoInput.value='';report('יש לבחור סרטון MP4 או WebM עד 50MB.',true);return}
+      videoFile=chosen;removeBox.checked=false;removeVideo=false;dirty=true;
+      videoNote.textContent='נבחר: '+chosen.name+' ('+(chosen.size/1024/1024).toFixed(1)+'MB) — יועלה בלחיצה על שמירה.';
+    });
+    removeBox.addEventListener('change',()=>{removeVideo=removeBox.checked;if(removeVideo){videoFile=null;videoInput.value='';}dirty=true;});
     const source = new Image();
     source.onload = () => redraw();
     source.onerror = () => { if (file.files?.length) report('לא ניתן לקרוא את התמונה.',true); };
@@ -224,13 +258,23 @@ export async function mountProductVisualEditor(host, getToken, back, initialProd
         if (!uploaded.ok) throw new Error('העלאת התמונה נכשלה: HTTP '+uploaded.status);
         payload.image_key=BASE+photoHost+filename;
       } else if (payload.image_key && !validImage(payload.image_key)) throw new Error('כתובת התמונה חייבת להיות מהאתר או מאחסון התמונות של החנות.');
+      // The video column is sent only when it changes, so saving still works before the video SQL is installed.
+      if (videoFile) {
+        report('מעלה סרטון…');
+        const ext=videoFile.type==='video/webm'?'webm':'mp4';
+        const filename=crypto.randomUUID()+'.'+ext;
+        const up=await fetch(BASE+'/storage/v1/object/mercaz-product-videos/'+filename,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+getToken(),'Content-Type':videoFile.type,'cache-control':'31536000'},body:videoFile});
+        if (!up.ok) throw new Error('העלאת הסרטון נכשלה: HTTP '+up.status);
+        payload.video_key=BASE+'/storage/v1/object/public/mercaz-product-videos/'+filename;
+      } else if (removeVideo) payload.video_key=null;
       await request('/rest/v1/mercaz_products?id=eq.'+encodeURIComponent(selected.id),{method:'PATCH',headers:{'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(payload)});
       products=products.map(p=>p.id===selected.id?{...p,...payload}:p);
       const option=[...select.options].find(o=>o.value===selected.id);if(option)option.text=(payload.active?'':'🚫 מוסתר · ')+payload.name_he+' · '+(selected.sku||selected.id);
       dirty=false;
       report('המוצר נשמר. התצוגה תתעדכן.',false);
       await loadPreview();
-      cropFile=null;
+      cropFile=null;videoFile=null;removeVideo=false;
+      selectProduct(selected.id);
     }catch(err){report(err.message,true);}
     finally{loading=false;sidebar.querySelector('[type="submit"]').disabled=false;}
   });
