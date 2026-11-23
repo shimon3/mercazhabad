@@ -62,3 +62,31 @@
 .product-video[hidden]{display:none}
 .product-video-title{font-weight:800;font-size:.95rem}
 .product-video video{width:100%;max-height:min(420px,55dvh);border-radius:14px;background:#000}
+
+/* "Added to cart" popup */
+.added-dialog{width:min(92vw,440px);padding:30px 24px 24px;border:0;border-radius:20px;background:var(--paper);color:var(--ink);text-align:center;box-shadow:0 24px 60px rgb(15 27 77/.3)}
+.added-dialog::backdrop{background:rgb(15 27 77/.45)}
+.added-dialog h2{font-size:clamp(1.35rem,4.5vw,1.7rem);font-weight:800;color:var(--blue)}
+.added-check{display:grid;place-items:center;width:56px;height:56px;margin:0 auto 10px;border-radius:50%;background:var(--gold);font-size:1.7rem;font-weight:900}
+.added-name{margin-top:6px;color:var(--muted);font-size:.95rem}
+.added-close{position:absolute;inset-inline-end:12px;top:12px;width:40px;height:40px;border:0;border-radius:50%;background:var(--tile);color:var(--ink);font-size:1.5rem;cursor:pointer}
+.added-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px}
+.added-actions button{min-height:52px;border-radius:999px;font:inherit;font-weight:800;font-size:1.05rem;cursor:pointer}
+.added-primary{border:0;background:var(--blue);color:#fff}
+.added-primary:hover{background:var(--ink)}
+.added-secondary{border:2px solid var(--blue);background:transparent;color:var(--blue)}
+@media (max-width:380px){.added-actions{grid-template-columns:1fr}}
+
+/* Coupon in the cart drawer */
+.cart-coupon{display:grid;grid-template-columns:1fr auto;gap:8px}
+.cart-coupon input{min-height:46px;padding:0 12px;border:2px solid var(--rule);border-radius:10px;font:inherit;text-transform:uppercase;background:#fff;color:var(--ink)}
+.cart-coupon input::placeholder{text-transform:none}
+.cart-coupon input:focus{outline:none;border-color:var(--blue)}
+.cart-coupon-apply{min-height:46px;padding:0 18px;border:0;border-radius:10px;background:var(--blue);color:#fff;font:inherit;font-weight:800;cursor:pointer}
+.cart-coupon-status{min-height:1em;font-size:.85rem;font-weight:700;color:var(--blue)}
+.cart-coupon-status:empty{display:none}
+.cart-coupon-status.is-error{color:var(--sale)}
+.cart-discount-rows:empty{display:none}
+.cart-subtotal-small{font-size:.92rem;color:var(--muted)}
+.cart-discount{font-size:.95rem;font-weight:800;color:var(--sale)}
+.cart-coupon-remove{margin-inline-start:6px;padding:0;border:0;background:none;color:var(--muted);font:inherit;font-size:.8rem;text-decoration:underline;cursor:pointer}
