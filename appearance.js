@@ -137,6 +137,16 @@ const homeElements = [
     ['floatingCartLabel', 'כפתור סל צף · טקסט'],
     ['floatingCartGo', 'כפתור סל צף · "לתשלום"'],
   ]],
+  ['באנר חגים אוטומטי', [
+    ['seasonal', 'באנר לפי לוח השנה העברי (הצגה/הסתרה)', {kind:'section', background:true}],
+  ]],
+  ['מועדון לקוחות', [
+    ['club', 'אזור ההרשמה לעדכונים (הצגה/הסתרה)', {kind:'section', background:true}],
+    ['clubTitle', 'כותרת המועדון', {def:'👑 מועדון מרכז חב״ד משיח'}],
+    ['clubText', 'טקסט המועדון'],
+    ['clubButton', 'כפתור ההרשמה', {def:'הצטרפות'}],
+    ['clubWhatsapp', 'קישור עדכונים ב־WhatsApp', {hide:true}],
+  ]],
   ['פס עזרה', [
     ['helpBand', 'פס העזרה (הצגה/הסתרה)', {kind:'section', background:true}],
     ['helpTitle', 'כותרת העזרה', {def:'לא בטוחים מה לבחור?'}],
@@ -149,6 +159,7 @@ const homeElements = [
     ['footerTagline', 'משפט בתחתית', {kind:'long'}],
     ['footerWhatsapp', 'קישור WhatsApp', {hide:true}],
     ['footerAccount', 'קישור החשבון', {hide:true}],
+    ['footerAbout', 'קישור אודות', {hide:true}],
     ['footerPrivacy', 'קישור מדיניות פרטיות', {hide:true}],
     ['waFloat', 'כפתור WhatsApp צף', {kind:'section'}],
   ]],
@@ -165,7 +176,7 @@ const privacyElements = [
   ]],
   ...Object.entries(privacyLabels).map(([lang, label]) => ['מדיניות ב' + label, [
     ['privacy_' + lang, 'כל החלק ב' + label + ' (הצגה/הסתרה)', {kind:'section'}],
-    ...[1, 2, 3, 4, 5, 6].flatMap(n => [
+    ...[1, 2, 3, 4, 5, 6, 7].flatMap(n => [
       ['privacy_' + lang + n + 'Title', 'סעיף ' + n + ' · כותרת'],
       ['privacy_' + lang + n + 'Text', 'סעיף ' + n + ' · טקסט', {kind:'long'}],
     ]),

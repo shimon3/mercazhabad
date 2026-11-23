@@ -1,7 +1,7 @@
 import {
   CONTACT, applyAppearance, elementFields, elementGroups, elementKinds, originalText, pageFields, pages,
   publishAppearance, readAppearance, sanitizeAppearance, uploadCmsImage,
-} from '/appearance.js?v=13';
+} from '/appearance.js?v=14';
 
 const SELECTABLE = ['text', 'image', 'media', 'placeholder', 'section', 'edit'];
 const SELECTOR = SELECTABLE.map(name => `[data-appearance-${name}]`).join(',');
