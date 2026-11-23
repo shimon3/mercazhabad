@@ -28,6 +28,7 @@ async function loadProtectedDashboard(){
  communityModule=await import('/admin/community.js?v=2').catch(()=>null);
  communityModule?.injectCommunityTab();
  (await import('/admin/webp-tool.js?v=1').catch(()=>null))?.injectWebpTab();
+ (await import('/admin/bg-remover.js?v=1').catch(()=>null))?.injectBgTab();
  dashboardReady=true;
 }
 let handlersBound=false;
