@@ -1,7 +1,7 @@
 'use strict';
 const BASE='https://bdalhyqpruefdbyirykp.supabase.co', KEY='sb_publishable_K6ciGUejNpRfLeIEc598Iw_L3VoMJYM';
 const $=x=>document.getElementById(x),money=v=>'₪'+(v/100).toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2});
-let token=sessionStorage.getItem('merkaz_customer_token')||'',register=false,recoverySession=false,deliveryOptions=[];
+let token=sessionStorage.getItem('merkaz_customer_token')||'',register=false,recoverySession=false,deliveryOptions=[],cartTotal=0,coupon=null;
 async function api(path,method='GET',data=undefined,authenticated=true){const headers={apikey:KEY};if(authenticated&&token)headers.Authorization='Bearer '+token;if(data!==undefined)headers['Content-Type']='application/json';const res=await fetch(BASE+path,{method,headers,body:data===undefined?undefined:JSON.stringify(data),cache:'no-store'});const raw=await res.text();let out;try{out=raw?JSON.parse(raw):null}catch{out=null}if(!res.ok)throw Error(out?.msg||out?.message||out?.error_description||'HTTP '+res.status);return out}
 function msg(id,t,bad=false){const x=$(id);x.textContent=t;x.className='status '+(bad?'error':'ok')}
 function switchMode(signup){register=signup;$('showSignup').className=signup?'active':'secondary';$('showLogin').className=signup?'secondary':'active';$('authSubmit').textContent=signup?'יצירת חשבון':'כניסה';$('password').autocomplete=signup?'new-password':'current-password'}
@@ -64,12 +64,24 @@ function updateDeliveryMethod(){
  $('deliveryInfo').textContent=[option.area_description,option.instructions,fee,'הסכום לתשלום יאושר מול החנות; לא יתבצע חיוב באתר.'].filter(Boolean).join(' · ');
 }
 $('deliveryMethod').onchange=updateDeliveryMethod;
+// Coupon: the preview is informative only; the real discount is computed again by the database on confirmation.
+const couponInput=()=>$('couponCode').value.trim().toUpperCase();
+function couponText(c){return 'קוד '+c.code+' · הנחה של '+money(c.discount_agorot)+' (הסכום הסופי יחושב בעת אישור ההזמנה)'}
+$('couponCode').oninput=()=>{coupon=null;$('couponStatus').textContent='';$('couponStatus').className='muted'};
+$('checkCoupon').onclick=async()=>{
+  const code=couponInput();coupon=null;
+  if(!/^[A-Z0-9_-]{3,30}$/.test(code)){msg('couponStatus','קוד הקופון אינו תקף',true);return}
+  $('checkCoupon').disabled=true;
+  try{const r=await api('/rest/v1/rpc/mercaz_check_coupon','POST',{p_code:code,p_total_agorot:cartTotal});coupon=r;msg('couponStatus','✓ '+couponText(r))}
+  catch(e){msg('couponStatus',e.message||'קוד הקופון אינו תקף',true)}
+  finally{$('checkCoupon').disabled=false}
+};
 function readCart(){try{const c=JSON.parse(sessionStorage.getItem('merkaz_pending_cart')||'[]');if(!Array.isArray(c)||c.length>30)return[];return c.filter(x=>typeof x.key==='string'&&Number.isInteger(x.quantity)&&x.quantity>0&&x.quantity<=100)}catch{return[]}}
 async function showCart(){const items=readCart();if(!items.length)return;try{
 const keys=[...new Set(items.map(i=>i.key.split('::')[0]))];const products=await api('/rest/v1/mercaz_products?select=id,name_he,category,price_agorot,active&active=eq.true', 'GET',undefined,false);const names=new Map(products.map(p=>[p.id,p]));let total=0;
 const el=$('cartSummary');el.replaceChildren();const list=document.createElement('ul');
 for(const line of items){const id=line.key.split('::')[0],pack=line.key.split('::')[1],p=names.get(id);if(!p)continue;const unit=pack==='4'?1500:pack==='10'?3000:p.price_agorot;if(unit==null)continue;total+=unit*line.quantity;const li=document.createElement('li');li.textContent=p.name_he+(pack?' ('+pack+' יח׳)':'')+' × '+line.quantity+' — '+money(unit*line.quantity);list.append(li)}
-el.append(list);const cost=document.createElement('strong');cost.textContent='סה״כ מוצרים: '+money(total)+' (לפני דמי משלוח אם יחולו)';el.append(cost);
+cartTotal=total;el.append(list);const cost=document.createElement('strong');cost.textContent='סה״כ מוצרים: '+money(total)+' (לפני דמי משלוח אם יחולו)';el.append(cost);
 }catch(e){msg('checkoutStatus','לא ניתן לטעון את פרטי הסל. רעננו את הדף.',true)}}
 let reviewDetails=null;
 function shippingInfo(){
@@ -94,6 +106,13 @@ $('checkoutForm').onsubmit=async e=>{
   reviewDetails.deliveryNotes=selected.instructions;
   reviewDetails.deliveryFee=selected.fee_agorot;
   if(reviewDetails.deliveryMethod==='pickup')reviewDetails.address='איסוף עצמי בתיאום מראש';
+  const typed=couponInput();
+  if(typed&&(!coupon||coupon.code!==typed)){
+    try{coupon=await api('/rest/v1/rpc/mercaz_check_coupon','POST',{p_code:typed,p_total_agorot:cartTotal})}
+    catch(err){msg('checkoutStatus',err.message||'קוד הקופון אינו תקף',true);msg('couponStatus',err.message||'קוד הקופון אינו תקף',true);reviewDetails=null;return}
+  }
+  if(!typed)coupon=null;
+  reviewDetails.coupon=coupon;
   const host=$('reviewSummary');
   host.replaceChildren();
   const cartDisplay=$('cartSummary').cloneNode(true);
@@ -104,7 +123,8 @@ $('checkoutForm').onsubmit=async e=>{
     formReviewLabel('דרך מסירה:',reviewDetails.deliveryLabel),
     formReviewLabel('דמי מסירה:',reviewDetails.deliveryFee==null?'ייקבעו מול החנות':money(reviewDetails.deliveryFee)),
     formReviewLabel('כתובת / איסוף:',reviewDetails.address),
-    formReviewLabel('הערות:',reviewDetails.notes));
+    formReviewLabel('הערות:',reviewDetails.notes),
+    ...(reviewDetails.coupon?[formReviewLabel('קופון:',couponText(reviewDetails.coupon))]:[]));
   $('checkoutForm').classList.add('hidden');
   $('orderReview').classList.remove('hidden');
   msg('checkoutStatus','');
@@ -126,7 +146,12 @@ $('confirmOrder').onclick=async()=>{
     const deliveryText='דרך מסירה: '+chosen.label_he+' ('+chosen.id+')';
     const notes=[deliveryText,reviewDetails.notes].filter(Boolean).join(' | ');
     if(notes.length>800)throw Error('ההערות ארוכות מדי');
-    const created=await api('/rest/v1/rpc/mercaz_create_order','POST',{p_items:items,p_name:reviewDetails.name,p_phone:reviewDetails.phone,p_address:reviewDetails.address,p_notes:notes});
+    const orderData={p_items:items,p_name:reviewDetails.name,p_phone:reviewDetails.phone,p_address:reviewDetails.address,p_notes:notes};
+    // With a coupon, order + discount are created in one database transaction (invalid code = no order).
+    const created=reviewDetails.coupon
+      ?await api('/rest/v1/rpc/mercaz_create_order_with_coupon','POST',{...orderData,p_coupon:reviewDetails.coupon.code})
+      :await api('/rest/v1/rpc/mercaz_create_order','POST',orderData);
+    coupon=null;$('couponCode').value='';$('couponStatus').textContent='';
     sessionStorage.removeItem('merkaz_pending_cart');
     $('checkout').classList.add('hidden');
     reviewDetails=null;
