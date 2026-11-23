@@ -278,3 +278,19 @@
 .cms-image-field small{font-size:.8rem}
 .appearance-sidebar select[name="element"]{max-width:100%}
 .appearance-actions button[type="submit"].has-changes{box-shadow:0 0 0 3px #f5b40055}
+
+/* WebP converter tab */
+.webp-tool .webp-settings{gap:18px;margin-block:10px}
+.webp-tool .webp-settings label{display:flex;align-items:center;gap:8px;font-weight:700}
+.webp-tool .webp-settings select{width:auto}
+.webp-drop{display:grid;place-items:center;gap:4px;min-height:150px;padding:20px;border:2px dashed #c3cae0;border-radius:14px;background:#fff;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+.webp-drop:hover,.webp-drop.is-over{border-color:var(--ink);background:#fffbe6}
+.webp-drop input{position:absolute;width:1px;height:1px;opacity:0}
+.webp-drop small{color:#5d6488}
+.webp-results{display:grid;gap:8px;margin-top:10px}
+.webp-row{display:grid;grid-template-columns:64px minmax(0,1fr) auto;align-items:center;gap:12px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.webp-row img{width:64px;height:64px;object-fit:contain;border-radius:8px;background:#f4f5f9}
+.webp-row div{display:grid;gap:2px;min-width:0}
+.webp-row strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.webp-row small{color:#5d6488}
+.webp-download{padding:8px 14px;border-radius:10px;background:var(--gold);color:var(--ink);font-weight:800;text-decoration:none}

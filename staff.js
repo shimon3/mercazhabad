@@ -27,6 +27,7 @@ async function loadProtectedDashboard(){
  // Reviews moderation + club export tab (added before tab handlers are bound).
  communityModule=await import('/admin/community.js?v=1').catch(()=>null);
  communityModule?.injectCommunityTab();
+ (await import('/admin/webp-tool.js?v=1').catch(()=>null))?.injectWebpTab();
  dashboardReady=true;
 }
 let handlersBound=false;
@@ -37,7 +38,7 @@ function bindDashboardHandlers(){
  if (appearanceEditor && role === 'admin' && getAal() === 'aal2') {
    const appearanceTab = document.querySelector('[data-view="appearance"]');
    appearanceTab.addEventListener('click', () => {
-     import('/admin/appearance-editor.js?v=15')
+     import('/admin/appearance-editor.js?v=16')
        .then(({mountAppearanceEditor}) => mountAppearanceEditor(appearanceEditor, () => token))
        .catch(() => { appearanceEditor.textContent = 'עורך העיצוב לא נטען. רעננו את הדף.'; });
    }, {once:true});
@@ -208,8 +209,10 @@ return '<div class="sku-display"><strong>מק״ט: '+clean(p.sku||'טרם הוק
 }
 function makePayload(form){const v=new FormData(form), price=(v.get('price')||'').toString().trim(), stock=Number(v.get('stock'));if(!Number.isInteger(stock)||stock<0)throw Error('מלאי לא תקין');const agorot=price===''?null:Math.round(Number(price)*100);if(agorot!==null&&(!Number.isFinite(agorot)||agorot<0||agorot>100000000))throw Error('מחיר לא תקין');
 const name=(v.get('name_he')||'').toString().trim();if(!name)throw Error('שם חובה');return {name_he:name,name_fr:String(v.get('name_fr')||'').trim(),category:String(v.get('category')),subcategory:String(v.get('category'))==='PhoneStickers'&&v.get('subcategory')==='HeroesOfMessiah'?'HeroesOfMessiah':'',price_agorot:agorot,stock,description:String(v.get('description')||'').trim(),image_key:String(v.get('image_key')||'').trim(),stock_tracking_enabled:v.has('stock_tracking_enabled'),active:v.has('active')}}
-async function upload(file){if(!file||!file.size)return null;if(file.size>5*1024*1024||!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('יש לבחור קובץ תמונה JPG/PNG/WebP עד 5MB');
-const ext={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[file.type],key=crypto.randomUUID()+'.'+ext;const res=await fetch(BASE+'/storage/v1/object/mercaz-product-images/'+key,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':file.type,'cache-control':'3600'},body:file});if(!res.ok)throw Error('העלאת התמונה נכשלה: '+res.status);return BASE+'/storage/v1/object/public/mercaz-product-images/'+key;}
+async function upload(file){if(!file||!file.size)return null;if(file.size>20*1024*1024||!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('יש לבחור קובץ תמונה JPG/PNG/WebP עד 20MB');
+// JPG/PNG are converted to WebP in the browser before upload (smaller files, faster shop).
+const {prepareUpload}=await import('/admin/webp.js?v=1');const ready=await prepareUpload(file);
+const key=crypto.randomUUID()+'.'+ready.ext;const res=await fetch(BASE+'/storage/v1/object/mercaz-product-images/'+key,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':ready.type,'cache-control':'3600'},body:ready.blob});if(!res.ok)throw Error('העלאת התמונה נכשלה: '+res.status);return BASE+'/storage/v1/object/public/mercaz-product-images/'+key;}
 async function loadProducts(){products=await api('/rest/v1/mercaz_products?select=*&order=created_at.desc&limit=300');showProducts();updateSellerInsights()}
 function productThumb(p){
  let url=null;

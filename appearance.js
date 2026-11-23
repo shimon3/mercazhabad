@@ -631,12 +631,15 @@ export async function publishAppearance(settings, revision, token) {
 export async function uploadCmsImage(file, token) {
   if (!file?.size) throw new Error('לא נבחר קובץ.');
   const types = {'image/jpeg':'jpg', 'image/png':'png', 'image/webp':'webp'};
-  if (!types[file.type] || file.size > 5 * 1024 * 1024) throw new Error('יש לבחור תמונה JPG/PNG/WebP עד 5MB.');
-  const key = 'cms/' + crypto.randomUUID() + '.' + types[file.type];
+  if (!types[file.type] || file.size > 20 * 1024 * 1024) throw new Error('יש לבחור תמונה JPG/PNG/WebP עד 20MB.');
+  // JPG/PNG → WebP in the browser before upload (loaded only in the admin editor).
+  const {prepareUpload} = await import('/admin/webp.js?v=1');
+  const ready = await prepareUpload(file, {maxSize: 2000});
+  const key = 'cms/' + crypto.randomUUID() + '.' + ready.ext;
   const response = await fetch(storageOrigin + '/storage/v1/object/mercaz-product-images/' + key, {
     method:'POST',
-    headers:{apikey, Authorization:'Bearer ' + token, 'Content-Type':file.type, 'cache-control':'31536000'},
-    body:file,
+    headers:{apikey, Authorization:'Bearer ' + token, 'Content-Type':ready.type, 'cache-control':'31536000'},
+    body:ready.blob,
   });
   if (!response.ok) throw new Error('העלאת התמונה נכשלה (' + response.status + ').');
   return storagePrefix + 'mercaz-product-images/' + key;
