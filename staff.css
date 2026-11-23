@@ -69,3 +69,5 @@
 .product-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12px;font-weight:400;color:#756c60}
 .product-price{margin-inline-start:auto;flex:none}
 .chip{display:inline-block;padding:2px 8px;border-radius:20px;background:#f1e8d4;font-size:12px;font-weight:700}
+
+#couponCode{max-width:220px;text-transform:uppercase}
