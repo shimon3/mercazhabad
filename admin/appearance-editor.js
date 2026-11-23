@@ -188,6 +188,26 @@ export async function mountAppearanceEditor(host, getToken) {
       info.textContent = 'בתצוגה המקדימה אזור מוסתר מוצג שקוף עם מסגרת אדומה. באתר עצמו הוא לא יופיע.';
       controls.append(info);
     }
+    // Element inside a card / zone (e.g. a promo card): offer to hide the WHOLE card in one click,
+    // since clicking the card in the preview always selects the text or the photo inside it.
+    const parentSection = parentSectionOf(key0);
+    if (parentSection) {
+      const box = document.createElement('div');
+      box.className = 'cms-parent-section';
+      const parentOption = elementSelect.querySelector(`option[value="${parentSection}"]`);
+      const parentLabel = parentOption?.parentElement?.label ? '„' + parentOption.parentElement.label + '“' : parentOption?.textContent || 'האזור';
+      const hideWhole = document.createElement('label');
+      const check = Object.assign(document.createElement('input'), {type: 'checkbox', checked: settings[parentSection + 'Hidden'] === true});
+      hideWhole.append(check, ' הסתרת ' + parentLabel + ' מהאתר');
+      check.addEventListener('change', () => { setValue(parentSection + 'Hidden', check.checked, 'checkbox', false); syncPreview(); });
+      const jump = document.createElement('button');
+      jump.type = 'button';
+      jump.className = 'secondary';
+      jump.textContent = 'לכל ההגדרות של ' + parentLabel;
+      jump.addEventListener('click', () => selectElement(parentSection));
+      box.append(hideWhole, jump);
+      controls.append(box);
+    }
     // Show/hide switches first: on desktop the sidebar scrolls on its own and a switch
     // placed after the typography fields was out of sight.
     const ordered = [...selectedFields()].sort((a, b) => Number(b[2] === 'checkbox' && /Hidden$/.test(b[0])) - Number(a[2] === 'checkbox' && /Hidden$/.test(a[0])));
@@ -329,6 +349,16 @@ export async function mountAppearanceEditor(host, getToken) {
     } catch {
       if (!request.signal.aborted) previewStatus.textContent = 'לא ניתן לטעון את התצוגה המקדימה. בחרו את העמוד שוב או רעננו.';
     }
+  }
+
+  // The hideable card / zone that contains the element `key` in the preview (null if none).
+  function parentSectionOf(key) {
+    if (!key || elementKinds[key] === 'section' || !previewDocument) return null;
+    const node = previewDocument.querySelector(['text', 'image', 'media', 'placeholder'].map(n => `[data-appearance-${n}="${key}"]`).join(','));
+    const section = node?.parentElement?.closest('[data-appearance-section]');
+    const parent = section?.dataset.appearanceSection;
+    if (!parent || parent === key || elementKinds[parent] !== 'section') return null;
+    return elementFields[parent]?.some(([field]) => field === parent + 'Hidden') ? parent : null;
   }
 
   function selectElement(key) {
