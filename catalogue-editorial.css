@@ -386,3 +386,46 @@ body.has-floating-cart{padding-bottom:96px}
 /* Product subtitle editing and published product-card description. */
 .item .product-subtitle{font-size:.78rem;line-height:1.35;color:#59647a;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .item .product-subtitle[hidden]{display:none}
+
+
+/* All-products category: clean product showcase and live catalogue count.
+   The number comes from categoryControl(products.filter(matches).length),
+   never from an image asset. Selection border is shown only on click. */
+#categories button[data-key=""]{
+  border:2px solid transparent;
+  background:#fff;
+  padding:10px 7px 12px;
+  border-radius:20px;
+  box-shadow:0 3px 12px rgba(11,27,72,.08);
+  min-width:0;
+}
+#categories button[data-key=""]:hover{
+  border-color:transparent;
+  background:#fff;
+}
+#categories button[data-key=""][aria-pressed="true"]{
+  border-color:#101f52;
+  background:#fff;
+}
+#categories button[data-key=""] .cat-thumb.is-collage{
+  width:100%;
+  max-width:142px;
+  aspect-ratio:1;
+  margin:0 auto 8px;
+}
+#categories button[data-key=""] .cat-label{
+  color:#101f52;
+  font-weight:800;
+  font-size:clamp(.84rem,1.2vw,1.04rem);
+  line-height:1.25;
+}
+#categories button[data-key=""] .cat-count{
+  color:#7a86a4;
+  font-size:.88rem;
+  font-variant-numeric:tabular-nums;
+  line-height:1.4;
+}
+@media(max-width:720px){
+  #categories button[data-key=""]{padding:9px 5px 11px;border-radius:17px}
+  #categories button[data-key=""] .cat-thumb.is-collage{max-width:94px}
+}
