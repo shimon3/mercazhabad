@@ -104,6 +104,7 @@ export async function mountProductVisualEditor(host, getToken, back, initialProd
     if (dirty && !confirm('השינויים במוצר הנוכחי טרם נשמרו. להמשיך ללא שמירה?')) return;
     selected = product; dirty = false; cropFile = null;
     select.value = id; fields.replaceChildren();
+    add('active','המוצר מוצג באתר (ביטול הסימון = הסתרה מהקטלוג)','checkbox',product.active!==false);
     add('name_he','שם המוצר','text',product.name_he,{maxLength:250});
     add('description','כותרת משנה / תיאור קצר מתחת לתמונה','textarea',product.description,{maxLength:800});
     add('price','מחיר נוכחי (₪)','number',money(product.price_agorot));
@@ -216,7 +217,7 @@ export async function mountProductVisualEditor(host, getToken, back, initialProd
     if (!form.name_he.value.trim()) {report('שם המוצר חובה.',true);return;}
     loading=true;sidebar.querySelector('[type="submit"]').disabled=true;
     try {
-      const payload={name_he:form.name_he.value.trim(),description:form.description.value.trim(),price_agorot:price,old_price_agorot:old,image_key:form.image_key.value.trim()};
+      const payload={active:form.active.checked,name_he:form.name_he.value.trim(),description:form.description.value.trim(),price_agorot:price,old_price_agorot:old,image_key:form.image_key.value.trim()};
       if (cropFile?.blob) {
         const filename=crypto.randomUUID()+'.webp';
         const uploaded=await fetch(BASE+'/storage/v1/object/mercaz-product-images/'+filename,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+getToken(),'Content-Type':'image/webp','cache-control':'3600'},body:cropFile.blob});
@@ -225,6 +226,7 @@ export async function mountProductVisualEditor(host, getToken, back, initialProd
       } else if (payload.image_key && !validImage(payload.image_key)) throw new Error('כתובת התמונה חייבת להיות מהאתר או מאחסון התמונות של החנות.');
       await request('/rest/v1/mercaz_products?id=eq.'+encodeURIComponent(selected.id),{method:'PATCH',headers:{'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(payload)});
       products=products.map(p=>p.id===selected.id?{...p,...payload}:p);
+      const option=[...select.options].find(o=>o.value===selected.id);if(option)option.text=(payload.active?'':'🚫 מוסתר · ')+payload.name_he+' · '+(selected.sku||selected.id);
       dirty=false;
       report('המוצר נשמר. התצוגה תתעדכן.',false);
       await loadPreview();
@@ -234,7 +236,7 @@ export async function mountProductVisualEditor(host, getToken, back, initialProd
   });
   try {
     products=await request('/rest/v1/mercaz_products?select=id,sku,name_he,description,price_agorot,old_price_agorot,image_key,active&order=name_he.asc&limit=300');
-    for (const p of products) select.add(new Option(p.name_he+' · '+(p.sku||p.id),p.id));
+    for (const p of products) select.add(new Option((p.active===false?'🚫 מוסתר · ':'')+p.name_he+' · '+(p.sku||p.id),p.id));
     if (products.length) {
       selectProduct(products.some(p => p.id === initialProductId) ? initialProductId : products[0].id);
       const fieldName = {image:'photo', title:'name_he',subtitle:'description',price:'price',discount:'old_price'}[initialField];
