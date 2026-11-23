@@ -214,7 +214,7 @@ function categoryControl(key, chipBadge, chipLabel, matches) {
     category = key;
     badge = chipBadge;
     setTitle();
-    renderCategories();
+    syncCategories();
     renderProducts();
   }, chipBadge ? 'subcategory' : '');
   control.dataset.appearanceSection = cardKey;
@@ -261,11 +261,11 @@ function renderCategories() {
   const controls = [categoryControl('', '', cmsText('catAll', 'כל המוצרים'), () => true)];
   for (const key of Object.keys(labels)) {
     const matches = product => product.category === key;
-    // After selecting a category, only its tile and the All Products tile remain.
-    // All Products restores the full list of category tiles.
-    if (!products.some(matches) || (category && key !== category)) continue;
-    if (!category || badge !== 'heroes') controls.push(categoryControl(key, '', label(key), matches));
-    if (key === 'PhoneStickers' && products.some(heroes) && (!category || badge === 'heroes')) {
+    // Category navigation is persistent: selecting a category filters products,
+    // never removes the other category tiles.
+    if (!products.some(matches)) continue;
+    controls.push(categoryControl(key, '', label(key), matches));
+    if (key === 'PhoneStickers' && products.some(heroes)) {
       controls.push(categoryControl(key, 'heroes', badgeLabel('heroes'), heroes));
     }
   }
@@ -274,7 +274,16 @@ function renderCategories() {
   syncCategories();
 }
 
+// Featured shelves belong to the unfiltered home view. While a visitor searches
+// or picks a category, keep the results directly after the category navigation.
+function syncFeaturedShelves() {
+  const filtering = Boolean(category || badge || byId('search').value.trim());
+  byId('deals').hidden = filtering || !byId('deals-rail').children.length;
+  byId('heroes').hidden = filtering || !byId('heroes-rail').children.length;
+}
+
 function renderProducts() {
+  syncFeaturedShelves();
   const filters = byId('badge-filters');
   filters.hidden = category !== 'PhoneStickers';
   for (const control of filters.children) control.setAttribute('aria-pressed', control.dataset.badge === badge);
