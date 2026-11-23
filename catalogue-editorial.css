@@ -116,6 +116,39 @@ main>*,.mast,footer,.announce{padding-inline:max(var(--gutter),(100% - var(--wra
 .cat-label{font-weight:800;font-size:.9rem;line-height:1.25}
 .cat-count{font-size:.75rem;color:var(--muted)}
 
+/* All Products: a lighter navigation card, distinct from the product-photo categories. */
+#categories button[data-key=""]{
+  background:linear-gradient(150deg,#fffdf7 0%,#f5f7fc 100%);
+  border-color:#e2e7f1;
+  box-shadow:0 6px 18px rgba(17,29,72,.07);
+}
+#categories button[data-key=""] .cat-thumb.is-all{
+  width:76px;
+  max-width:76px;
+  margin-block:10px 16px;
+  border-radius:22px;
+  background:#edf1fa;
+  color:#111f53;
+  box-shadow:inset 0 0 0 1px #dae1ef;
+}
+#categories button[data-key=""] .cat-thumb.is-all svg{width:29px;height:29px}
+#categories button[data-key=""] .cat-label{color:#111f53}
+#categories button[data-key=""]:hover{
+  border-color:#a8b7dd;
+  box-shadow:0 10px 25px rgba(17,29,72,.12);
+}
+#categories button[data-key=""][aria-pressed="true"]{
+  border-color:#111f53;
+  background:#f1f4fc;
+  box-shadow:0 0 0 1px #111f53,0 8px 20px rgba(17,29,72,.1);
+}
+#categories button[data-key=""]:focus-visible{outline:3px solid #7297ef;outline-offset:3px}
+@media(max-width:720px){
+  #categories button[data-key=""] .cat-thumb.is-all{
+    width:66px;max-width:66px;margin-block:4px 10px;border-radius:18px;
+  }
+}
+
 /* Rails */
 .rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(210px,1fr);gap:14px;overflow-x:auto;padding:4px 4px 16px;margin-inline:-4px;scroll-snap-type:x mandatory;scrollbar-width:thin}
 .rail>.item{scroll-snap-align:start}
