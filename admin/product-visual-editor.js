@@ -113,8 +113,9 @@ export async function mountProductVisualEditor(host, getToken, back, initialProd
     add('image_key','כתובת תמונה נוכחית','text',product.image_key,{maxLength:800});
     const file = add('photo','החלפת תמונה JPG / PNG / WebP (עד 5MB)','file',null);
     file.accept = 'image/jpeg,image/png,image/webp';
-    const zoom = add('zoom','חיתוך: זום (%)','range',100);
-    zoom.min='100';zoom.max='300';zoom.step='5';
+    const zoom = add('zoom','זום (%) — 100 = תמונה מלאה, פחות = הקטנה, יותר = חיתוך','range',100);
+    // Below 100% the photo gets smaller inside the square (white margin around it).
+    zoom.min='30';zoom.max='300';zoom.step='5';
     const x = add('crop_x','מיקום אופקי (%)','range',50);x.min='0';x.max='100';
     const y = add('crop_y','מיקום אנכי (%)','range',50);y.min='0';y.max='100';
     const cropPreview = document.createElement('canvas');
