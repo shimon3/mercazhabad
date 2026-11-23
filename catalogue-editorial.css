@@ -131,35 +131,47 @@ main>*,.mast,footer,.announce{padding-inline:max(var(--gutter),(100% - var(--wra
   background:color-mix(in srgb,var(--gold) 22%,#fff);
 }
 #categories button[data-key=""] .cat-thumb.is-collage{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  grid-template-rows:repeat(2,minmax(0,1fr));
-  gap:2px;
-  padding:5px;
+  position:relative;
+  display:block;
+  flex-shrink:0;
   width:100%;
-  max-width:96px;
+  max-width:112px;
+  height:auto;
   aspect-ratio:1;
   margin-bottom:6px;
+  padding:0;
   border-radius:50%;
-  background:#f2f3f6;
   overflow:hidden;
+  background:#f4f5f7;
+  isolation:isolate;
 }
-#categories .cat-collage-item{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  min-width:0;
-  min-height:0;
+/* Natural overlapping group of existing product photographs, not a six-cell grid. */
+#categories button[data-key=""] .cat-collage-item{
+  position:absolute;
+  display:grid;
+  place-items:center;
   overflow:hidden;
-  background:#fff;
-  border-radius:6px;
+  padding:0;
+  margin:0;
+  background:transparent;
+  border-radius:50%;
 }
-#categories .cat-collage-item img{
+#categories button[data-key=""] .cat-collage-item img{
   display:block;
   width:100%;
   height:100%;
   object-fit:contain;
-  mix-blend-mode:normal;
+  mix-blend-mode:multiply;
+}
+/* Large cap and kippah behind, with smaller patches and badges in front. */
+#categories button[data-key=""] .cat-collage-item:nth-child(1){width:58%;height:58%;top:3%;left:2%;z-index:1}
+#categories button[data-key=""] .cat-collage-item:nth-child(2){width:56%;height:56%;top:8%;right:0;z-index:2}
+#categories button[data-key=""] .cat-collage-item:nth-child(3){width:42%;height:42%;bottom:9%;left:0;z-index:3}
+#categories button[data-key=""] .cat-collage-item:nth-child(4){width:40%;height:40%;bottom:4%;right:1%;z-index:4}
+#categories button[data-key=""] .cat-collage-item:nth-child(5){width:35%;height:35%;bottom:0;left:28%;z-index:5}
+#categories button[data-key=""] .cat-collage-item:nth-child(6){width:33%;height:33%;bottom:13%;left:36%;z-index:6}
+@media(max-width:720px){
+  #categories button[data-key=""] .cat-thumb.is-collage{max-width:90px}
 }
 
 /* Rails */
