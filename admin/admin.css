@@ -323,3 +323,8 @@
 .bg-modes[hidden]{display:none}
 .admin-console .bg-modes button[aria-pressed="true"]{background:var(--gold);color:var(--ink);border-color:var(--ink)}
 .bg-clickable.is-keep{cursor:copy}
+
+/* Appearance editor: hide the whole card that contains the selected element */
+.cms-parent-section{display:grid;gap:8px;margin-bottom:12px;padding:12px;border-radius:12px;background:#fff7d6;border:1px solid #f1d36b}
+.cms-parent-section label{display:flex;align-items:center;gap:8px;font-weight:800}
+.cms-parent-section button{justify-self:start}
