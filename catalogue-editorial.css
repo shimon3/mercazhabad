@@ -130,6 +130,39 @@ main>*,.mast,footer,.announce{padding-inline:max(var(--gutter),(100% - var(--wra
   border-color:var(--ink);
   background:color-mix(in srgb,var(--gold) 22%,#fff);
 }
+/* When a custom CMS photo is set for All Products, show the entire image.
+   Do not inherit the circular crop intended for the ordinary categories. */
+#categories button[data-key=""] .cat-thumb:not(.is-collage):not(.is-all){
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  max-width:none;
+  height:130px;
+  aspect-ratio:auto;
+  padding:0;
+  margin-bottom:6px;
+  overflow:visible;
+  border-radius:0;
+  background:transparent;
+}
+#categories button[data-key=""] .cat-thumb:not(.is-collage):not(.is-all) img{
+  display:block;
+  width:100%;
+  max-width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:center;
+  mix-blend-mode:normal;
+  border-radius:0;
+}
+@media(max-width:720px){
+  #categories button[data-key=""] .cat-thumb:not(.is-collage):not(.is-all){
+    height:90px;
+    margin-bottom:4px;
+  }
+}
+
 /* Group real product photos like a shop-window arrangement, not a set of icons.
    Transparent white backing blends with the card; the actual items fill the image area. */
 #categories button[data-key=""] .cat-thumb.is-collage{
