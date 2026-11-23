@@ -19,6 +19,8 @@ if (video && replay) {
 }
 
 readAppearance(AbortSignal.timeout(4000))
+  // One retry on a slow or failed first read, so the page does not stay on the default design.
+  .catch(() => readAppearance(AbortSignal.timeout(8000)))
   .then(({settings}) => applyAppearance(document.documentElement, settings, page))
   .catch(() => {});
 

@@ -5,6 +5,8 @@ const storagePrefix = storageOrigin + '/storage/v1/object/public/';
 
 const fontLabels = {original:'ברירת מחדל', sans:'Noto Sans Hebrew', serif:'Noto Serif Hebrew', rashi:'Noto Rashi Hebrew'};
 const fontFamilies = {sans:'"Noto Sans Hebrew CMS", Arial, sans-serif', serif:'"Noto Serif Hebrew CMS", David, serif', rashi:'"Noto Rashi Hebrew CMS", David, serif'};
+const fontWeights = {original:'ברירת מחדל', light:'דק (300)', normal:'רגיל (400)', bold:'מודגש (700)'};
+const cssFontWeights = {light:'300', normal:'400', bold:'700'};
 const alignments = {original:'ברירת מחדל', right:'ימין', center:'מרכז', left:'שמאל'};
 const positions = {original:'ברירת מחדל', before:'לפני שאר הטקסטים', after:'אחרי שאר הטקסטים'};
 const heroElements = new Set(['eyebrow', 'title', 'subtitle']);
@@ -259,7 +261,7 @@ function typographyFields(key, {max = 200, min = 60} = {}) {
     [key + 'Font', 'גופן', 'select', 'original', fontLabels],
     [key + 'Color', 'צבע הטקסט', 'color', null],
     ...(key === 'eyebrow' ? [[key + 'Background', 'צבע רקע התגית', 'color', '#0f1b4d']] : []),
-    [key + 'Weight', 'משקל', 'select', 'original', {original:'ברירת מחדל', normal:'רגיל', bold:'מודגש'}],
+    [key + 'Weight', 'משקל', 'select', 'original', fontWeights],
     [key + 'Underline', 'קו תחתון', 'checkbox', false],
     ...(heroElements.has(key) ? [
       [key + 'Align', 'יישור', 'select', 'original', alignments],
@@ -447,7 +449,7 @@ function applyTypography(node, key, settings) {
   node.style.order = position === 'before' ? '-1' : position === 'after' ? '1' : '';
   const weight = settings[key + 'Weight'];
   node.style.fontFamily = fontFamilies[settings[key + 'Font']] || '';
-  node.style.fontWeight = weight === 'normal' || weight === 'bold' ? weight : '';
+  node.style.fontWeight = cssFontWeights[weight] ?? '';
   node.style.textDecorationLine = settings[key + 'Underline'] ? 'underline' : '';
 }
 
