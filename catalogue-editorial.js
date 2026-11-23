@@ -230,7 +230,7 @@ function categoryControl(key, chipBadge, chipLabel, matches) {
   if (!key && !chipBadge && !customImage && !imageHidden) {
     // Use the actual storefront catalogue photos, never generated illustrations.
     // Select one live product photo per category so the collage reflects the shop.
-    const categories = ['Caps', 'Kippas', 'SoldierPatches', 'CarMagnets', 'Pins', 'PhoneStickers'];
+    const categories = ['Caps', 'Kippas', 'SoldierPatches', 'CarMagnets', 'PhoneStickers'];
     const samples = categories.map(name => products.find(product => product.category === name && product.image_key)).filter(Boolean);
     if (samples.length) {
       thumb.classList.add('is-collage');
