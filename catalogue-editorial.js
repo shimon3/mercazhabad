@@ -205,6 +205,11 @@ function priceLabel(product) {
 }
 
 function categoryControl(key, chipBadge, chipLabel, matches) {
+  const tileKey = chipBadge === 'heroes' ? 'Heroes' : (key || 'All');
+  const textKey = chipBadge === 'heroes' ? 'badgeHeroes' : 'cat' + tileKey;
+  const imageKey = 'cat' + tileKey + 'Image';
+  const cardKey = 'cat' + tileKey + 'Card';
+  const settings = document.cmsSettings || {};
   const control = button('', () => {
     category = key;
     badge = chipBadge;
@@ -212,17 +217,33 @@ function categoryControl(key, chipBadge, chipLabel, matches) {
     syncCategories();
     renderProducts();
   }, chipBadge ? 'subcategory' : '');
+  control.dataset.appearanceSection = cardKey;
+  control.toggleAttribute('data-cms-hidden', settings[cardKey + 'Hidden'] === true);
+
   const thumb = element('span', '', 'cat-thumb');
   const sample = key && products.find(product => matches(product) && product.image_key);
-  if (sample) {
-    const image = photo(sample, true);
+  const customImage = settings[imageKey];
+  const imageHidden = settings[imageKey + 'Hidden'] === true;
+  if ((sample || customImage) && !imageHidden) {
+    const image = sample ? photo(sample, true) : element('img');
     image.alt = '';
+    image.loading = 'lazy';
+    if (customImage) image.src = customImage;
+    image.dataset.appearanceImage = imageKey;
     thumb.append(image);
   } else {
     thumb.classList.add('is-all');
     thumb.append(icon('grid', 30));
+    // A hidden editable target lets the visual CMS select and add a first image.
+    const placeholder = element('img');
+    placeholder.alt = '';
+    placeholder.hidden = true;
+    placeholder.dataset.appearanceImage = imageKey;
+    thumb.append(placeholder);
   }
-  control.append(thumb, element('span', chipLabel, 'cat-label'), element('span', String(products.filter(matches).length), 'cat-count'));
+  const title = element('span', chipLabel, 'cat-label');
+  title.dataset.appearanceText = textKey;
+  control.append(thumb, title, element('span', String(products.filter(matches).length), 'cat-count'));
   control.dataset.key = key;
   control.dataset.badge = chipBadge;
   return control;
