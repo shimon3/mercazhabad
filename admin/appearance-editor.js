@@ -185,7 +185,7 @@ export async function mountAppearanceEditor(host, getToken) {
     } else if (key0 && elementKinds[key0] === 'section') {
       const info = document.createElement('p');
       info.className = 'muted';
-      info.textContent = 'בתצוגה המקדימה אזור מוסתר מוצג שקוף עם מסגרת אדומה. באתר עצמו הוא לא יופיע.';
+      info.textContent = key0.startsWith('cat') && key0.endsWith('Card') ? 'סימון הסתרה מסיר את הקטגוריה מיד מהתצוגה המקדימה ומהאתר לאחר פרסום. לשחזור בחרו אותה שוב ברשימת האלמנטים ובטלו את ההסתרה.' : 'בתצוגה המקדימה אזור מוסתר מוצג שקוף עם מסגרת אדומה. באתר עצמו הוא לא יופיע.';
       controls.append(info);
     }
     // Show/hide switches first: on desktop the sidebar scrolls on its own and a switch
