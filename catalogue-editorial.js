@@ -17,6 +17,8 @@ const dialog = byId('dialog');
 let products = [];
 let category = '';
 let badge = '';
+// The All Products card is not selected until the shopper explicitly clicks it.
+let allProductsClicked = false;
 const badgeLabels = {'':'כל המדבקות',heroes:'גיבורי אל משיח',country:'סמלי מדינות',idf:'סמלי יחידות צה״ל'};
 // Texts editable from the admin CMS (published settings applied by /appearance.js).
 const cmsText = (key, fallback) => {
@@ -213,6 +215,7 @@ function categoryControl(key, chipBadge, chipLabel, matches) {
   const control = button('', () => {
     category = key;
     badge = chipBadge;
+    allProductsClicked = key === '' && !chipBadge;
     setTitle();
     syncCategories();
     renderProducts();
@@ -224,7 +227,26 @@ function categoryControl(key, chipBadge, chipLabel, matches) {
   const sample = key && products.find(product => matches(product) && product.image_key);
   const customImage = settings[imageKey];
   const imageHidden = settings[imageKey + 'Hidden'] === true;
-  if ((sample || customImage) && !imageHidden) {
+  if (!key && !chipBadge && !customImage && !imageHidden) {
+    // Use the actual storefront catalogue photos, never generated illustrations.
+    // Select one live product photo per category so the collage reflects the shop.
+    const categories = ['Caps', 'Kippas', 'SoldierPatches', 'CarMagnets', 'Pins', 'PhoneStickers'];
+    const samples = categories.map(name => products.find(product => product.category === name && product.image_key)).filter(Boolean);
+    if (samples.length) {
+      thumb.classList.add('is-collage');
+      thumb.dataset.appearanceEdit = imageKey;
+      for (const product of samples) {
+        const slot = element('span', '', 'cat-collage-item');
+        const image = photo(product, true);
+        image.alt = '';
+        slot.append(image);
+        thumb.append(slot);
+      }
+    } else {
+      thumb.classList.add('is-all');
+      thumb.append(icon('grid', 30));
+    }
+  } else if ((sample || customImage) && !imageHidden) {
     const image = sample ? photo(sample, true) : element('img');
     image.alt = '';
     image.loading = 'lazy';
@@ -252,7 +274,8 @@ function categoryControl(key, chipBadge, chipLabel, matches) {
 function syncCategories() {
   const activeBadge = category === 'PhoneStickers' && badge === 'heroes' ? 'heroes' : '';
   for (const control of byId('categories').children) {
-    control.setAttribute('aria-pressed', control.dataset.key === category && control.dataset.badge === activeBadge);
+    const selected = control.dataset.key === category && control.dataset.badge === activeBadge && (control.dataset.key !== '' || allProductsClicked);
+    control.setAttribute('aria-pressed', String(selected));
   }
 }
 
@@ -673,6 +696,7 @@ document.addEventListener('cms:applied', () => {
 byId('reset').addEventListener('click', () => {
   category = '';
   badge = '';
+  allProductsClicked = false;
   byId('search').value = '';
   byId('sort').value = 'catalog';
   setTitle();
