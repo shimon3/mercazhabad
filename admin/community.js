@@ -70,9 +70,34 @@ async function renderCoupons(api, role, host) {
     const status = el('p', '', 'status');
     status.setAttribute('role', 'status');
     const grid = el('div', '', 'grid');
-    grid.append(field('קוד', code), field('סוג', kind), field('ערך', value), field('מינימום הזמנה (₪)', min),
+    grid.append(field('קוד', code), field('סוג ההנחה', kind), field('גובה ההנחה (₪ או %)', value), field('מינימום הזמנה (₪)', min),
       field('תוקף עד (כולל)', expires), field('מספר שימושים מרבי', maxUses), onceLabel, field('הערה פנימית', note));
-    form.append(grid, submit, status);
+    // Quick choice: a fixed amount in shekels or a percentage, in one click (still editable below).
+    const presets = el('div', '', 'coupon-presets');
+    presets.append(el('span', 'בחירה מהירה:', 'coupon-presets-label'));
+    const setPreset = (k, v, button) => {
+      kind.value = k;
+      value.value = String(v);
+      value.step = k === 'percent' ? '1' : '0.01';
+      value.max = k === 'percent' ? '100' : '';
+      for (const b of presets.querySelectorAll('button')) b.setAttribute('aria-pressed', String(b === button));
+      if (!code.value) code.value = k === 'percent' ? 'SAVE' + v : 'OFF' + v;
+    };
+    for (const [k, v, label] of [['fixed', 5, '₪5'], ['fixed', 10, '₪10'], ['fixed', 20, '₪20'], ['percent', 5, '5%'], ['percent', 10, '10%'], ['percent', 15, '15%'], ['percent', 20, '20%']]) {
+      const b = el('button', label, 'secondary coupon-preset');
+      b.type = 'button';
+      b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', () => setPreset(k, v, b));
+      presets.append(b);
+    }
+    const valueHint = el('small', 'בסכום קבוע: ההנחה בשקלים. באחוזים: מספר שלם בין 1 ל־100.', 'muted');
+    kind.addEventListener('change', () => {
+      value.step = kind.value === 'percent' ? '1' : '0.01';
+      value.max = kind.value === 'percent' ? '100' : '';
+      for (const b of presets.querySelectorAll('button')) b.setAttribute('aria-pressed', 'false');
+    });
+    value.addEventListener('input', () => { for (const b of presets.querySelectorAll('button')) b.setAttribute('aria-pressed', 'false'); });
+    form.append(presets, grid, valueHint, submit, status);
     form.addEventListener('submit', async event => {
       event.preventDefault();
       const amount = Number(value.value);

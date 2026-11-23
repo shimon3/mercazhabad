@@ -278,3 +278,10 @@
 .cms-image-field small{font-size:.8rem}
 .appearance-sidebar select[name="element"]{max-width:100%}
 .appearance-actions button[type="submit"].has-changes{box-shadow:0 0 0 3px #f5b40055}
+
+/* Coupon quick presets */
+.coupon-presets{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.coupon-presets-label{font-weight:800}
+.admin-console .coupon-presets .coupon-preset{min-height:38px;padding:4px 14px}
+.admin-console .coupon-presets .coupon-preset[aria-pressed="true"]{background:var(--gold);color:var(--ink);border-color:var(--ink)}
+.coupon-form>small{display:block;margin:0 0 10px}
