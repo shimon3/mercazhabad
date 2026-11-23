@@ -214,7 +214,7 @@ function categoryControl(key, chipBadge, chipLabel, matches) {
     category = key;
     badge = chipBadge;
     setTitle();
-    renderCategories();
+    syncCategories();
     renderProducts();
   }, chipBadge ? 'subcategory' : '');
   control.dataset.appearanceSection = cardKey;
