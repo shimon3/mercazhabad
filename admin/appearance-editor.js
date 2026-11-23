@@ -26,7 +26,7 @@ export async function mountAppearanceEditor(host, getToken) {
   async function openProductEditor(productId = null, field = null) {
     productButton.disabled = true;
     try {
-      const {mountProductVisualEditor} = await import('/admin/product-visual-editor.js?v=3');
+      const {mountProductVisualEditor} = await import('/admin/product-visual-editor.js?v=4');
       await mountProductVisualEditor(host, getToken, () => mountAppearanceEditor(host, getToken), productId, field);
     } catch (error) {
       productButton.disabled = false;
@@ -188,7 +188,10 @@ export async function mountAppearanceEditor(host, getToken) {
       info.textContent = 'בתצוגה המקדימה אזור מוסתר מוצג שקוף עם מסגרת אדומה. באתר עצמו הוא לא יופיע.';
       controls.append(info);
     }
-    for (const [key, caption, type, schemaFallback, options, min, max] of selectedFields()) {
+    // Show/hide switches first: on desktop the sidebar scrolls on its own and a switch
+    // placed after the typography fields was out of sight.
+    const ordered = [...selectedFields()].sort((a, b) => Number(b[2] === 'checkbox' && /Hidden$/.test(b[0])) - Number(a[2] === 'checkbox' && /Hidden$/.test(a[0])));
+    for (const [key, caption, type, schemaFallback, options, min, max] of ordered) {
       const fallback = fallbackOf(key, type, schemaFallback);
       const label = document.createElement('label');
       label.textContent = caption;
@@ -265,6 +268,15 @@ export async function mountAppearanceEditor(host, getToken) {
     }
   }
 
+  // Desktop: the sticky sidebar has its own scroll — bring the selected element's fields into view.
+  function revealControls() {
+    const sidebar = form.closest('.appearance-sidebar') || form;
+    if (sidebar.scrollHeight > sidebar.clientHeight + 4) {
+      const top = controls.getBoundingClientRect().top - sidebar.getBoundingClientRect().top + sidebar.scrollTop - 12;
+      sidebar.scrollTo({top: Math.max(0, top), behavior: 'smooth'});
+    }
+  }
+
   function fillElementSelect() {
     const page = pageSelect.value;
     const current = elementSelect.value;
@@ -324,6 +336,7 @@ export async function mountAppearanceEditor(host, getToken) {
     elementSelect.value = key;
     renderControls();
     syncPreview();
+    revealControls();
     controls.querySelector('input:not([type="checkbox"]), textarea, select')?.focus({preventScroll:true});
     return true;
   }
@@ -385,6 +398,7 @@ export async function mountAppearanceEditor(host, getToken) {
   elementSelect.addEventListener('change', () => {
     renderControls();
     syncPreview({reveal:true});
+    revealControls();
   });
   host.querySelector('[data-mobile]').addEventListener('click', event => {
     const button = event.currentTarget;
