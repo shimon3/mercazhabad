@@ -364,10 +364,43 @@ function openDialog(title, body) {
   if (!dialog.open) dialog.showModal();
 }
 
+// Presentation video under the photo. Loaded on demand so the catalogue never depends on the
+// video column (works before and after sql/product-videos.sql). Only the shop's own storage is allowed.
+const VIDEO_ORIGIN = SUPABASE_URL + '/storage/v1/object/public/mercaz-product-videos/';
+const videoCache = new Map();
+function safeVideoUrl(value) {
+  if (typeof value !== 'string' || !value) return null;
+  try {
+    const url = new URL(value, storefrontOrigin);
+    if (url.href.startsWith(VIDEO_ORIGIN) || (url.origin === storefrontOrigin && url.pathname.startsWith('/assets-v8/'))) return url.href;
+  } catch {}
+  return null;
+}
+function productVideo(product) {
+  const holder = element('div', '', 'product-video');
+  holder.hidden = true;
+  const show = src => {
+    if (!src) return;
+    const video = element('video');
+    Object.assign(video, {src, controls: true, playsInline: true, muted: true, loop: true, preload: 'metadata'});
+    video.setAttribute('aria-label', 'סרטון הצגה של ' + product.name_he);
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) video.autoplay = true;
+    video.addEventListener('error', () => { holder.hidden = true; }, {once: true});
+    holder.replaceChildren(element('p', cmsText('uiVideoTitle', '🎬 סרטון המוצר'), 'product-video-title'), video);
+    holder.hidden = false;
+  };
+  if (videoCache.has(product.id)) show(videoCache.get(product.id));
+  else fetch(SUPABASE_URL + '/rest/v1/mercaz_products?select=video_key&id=eq.' + encodeURIComponent(product.id), {headers: {apikey: SUPABASE_PUBLISHABLE_KEY}})
+    .then(response => response.ok ? response.json() : [])
+    .then(rows => { const src = safeVideoUrl(rows?.[0]?.video_key); videoCache.set(product.id, src); show(src); })
+    .catch(() => {});
+  return holder;
+}
+
 function details(product) {
   if (!product) return;
   const body = element('div', '', 'detail');
-  body.append(photo(product));
+  body.append(photo(product), productVideo(product));
   if (!product.inquiryOnly) body.append(element('bdi', 'מק״ט '+(product.sku||product.id), 'sku'));
   body.append(priceLabel(product));
   const detailBadge = stockBadge(product);
@@ -492,6 +525,7 @@ function showCart() {
 }
 
 byId('close').addEventListener('click', () => dialog.close());
+dialog.addEventListener('close', () => { for (const video of dialog.querySelectorAll('video')) video.pause(); });
 byId('basket').addEventListener('click', showCart);
 byId('floating-cart').addEventListener('click', showCart);
 byId('close-cart').addEventListener('click', () => byId('cart-dialog').close());
