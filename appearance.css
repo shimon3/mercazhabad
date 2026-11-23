@@ -61,3 +61,7 @@ body[data-appearance-page="privacy"]{background:var(--cms-privacy-bg,var(--bg));
 [data-editor-preview] :is([data-appearance-image],[data-appearance-media],[data-appearance-placeholder]):hover{outline:2px solid #2262df;outline-offset:3px}
 [data-editor-preview] [data-editor-selected]:is([data-appearance-section],[data-appearance-image],[data-appearance-media],[data-appearance-placeholder],[data-appearance-edit]){outline:3px solid #2262df;outline-offset:3px}
 [data-editor-preview] [data-cms-hidden]{display:revert!important;opacity:.35;outline:2px dashed #c0392b}
+
+/* Hidden category tiles must disappear from the editor preview as they do for shoppers.
+   Editors can restore them from the element dropdown without clicking the tile. */
+[data-editor-preview] #categories > [data-appearance-section][data-cms-hidden]{display:none!important}
