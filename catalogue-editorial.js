@@ -1,5 +1,9 @@
 const SUPABASE_URL='https://bdalhyqpruefdbyirykp.supabase.co';const SUPABASE_PUBLISHABLE_KEY='sb_publishable_K6ciGUejNpRfLeIEc598Iw_L3VoMJYM';
+import {loadReviewSummary, ratingBadge, reviewsSection} from '/reviews.js?v=1';
 const byId = id => document.getElementById(id);
+let reviewSummary = new Map();
+// Indexable product page URL (server-rendered by functions/p/[slug].js). Same rule on both sides.
+const productPath = product => '/p/' + (/^MH-[0-9]{6,}$/.test(product.sku || '') ? product.sku : String(product.id).replace(/\//g, '--'));
 const storefrontOrigin = new URL(document.baseURI).origin;
 const labels = {
   PhoneStickers: 'מדבקות לפלאפון', CarMagnets: 'מגנטים לרכב',
@@ -242,6 +246,7 @@ function renderCategories() {
     if (key === 'PhoneStickers' && products.some(heroes)) controls.push(categoryControl(key, 'heroes', badgeLabel('heroes'), heroes));
   }
   byId('categories').replaceChildren(...controls);
+  byId('categories').classList.remove('categories-fallback');
   syncCategories();
 }
 
@@ -287,7 +292,14 @@ function card(product) {
   if (badges.children.length) image.append(badges);
   const info = element('div', '', 'item-info');
   const title = element('h3');
-  const titleButton = button(product.name_he, () => details(product));
+  // A real link so search engines find every product page; a normal click still opens the quick view.
+  const titleButton = element('a', product.name_he, 'item-title-link');
+  titleButton.href = productPath(product);
+  titleButton.addEventListener('click', event => {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0) return;
+    event.preventDefault();
+    details(product);
+  });
   titleButton.dataset.productField = 'title';
   title.append(titleButton);
   const priceNode = priceLabel(product);
@@ -295,7 +307,10 @@ function card(product) {
   const subtitle = element('p', product.description && product.description !== product.name_he ? product.description : '', 'product-subtitle');
   subtitle.dataset.productField = 'subtitle';
   subtitle.hidden = !subtitle.textContent;
-  info.append(title, subtitle, priceNode);
+  info.append(title, subtitle);
+  const rating = ratingBadge(reviewSummary.get(product.id));
+  if (rating) info.append(rating);
+  info.append(priceNode);
   if (saving) info.append(element('p', cmsText('uiSaveLine', 'חוסכים') + ' ' + format(product.old_price_agorot - (product.inquiryOnly ? product.price_agorot : choices[0].price)), 'save'));
   const actions = element('div', '', 'item-actions');
   if (choices.length > 1) {
@@ -317,10 +332,14 @@ function card(product) {
 }
 
 function renderRails() {
-  const deals = products
-    .filter(product => discount(product) > 0 && !['out', 'insufficient'].includes(stockState(product)))
+  const available = product => !['out', 'insufficient'].includes(stockState(product));
+  let deals = products
+    .filter(product => discount(product) > 0 && available(product))
     .sort((a, b) => discount(b) - discount(a))
     .slice(0, 10);
+  // No marked-down product: the permanent sticker-pack offer (4 ב־₪15 · 10 ב־₪30) is the deal,
+  // so the "למבצעים" button never lands on an empty section.
+  if (!deals.length) deals = products.filter(product => product.category === 'PhoneStickers' && options(product).length > 1).slice(0, 10);
   byId('deals-rail').replaceChildren(...deals.map(card));
   byId('deals').hidden = !deals.length;
   const heroes = products.filter(product => product.subcategory === 'HeroesOfMessiah');
@@ -366,6 +385,9 @@ function details(product) {
   if (!actions.children.length && detailBadge) actions.append(soldOutButton(product));
   actions.append(whatsappContact(product));
   body.append(actions);
+  const pageLink = element('a', 'לעמוד המוצר המלא ושיתוף ←', 'product-page-link');
+  pageLink.href = productPath(product);
+  body.append(pageLink, reviewsSection(product));
   openDialog(product.name_he, body);
 }
 
@@ -545,8 +567,13 @@ try {
   catalogReady = true;
   renderCategories();
   renderRails();
+  const productFromLink = params.get('product');
   const skuFromQr = params.get('sku');
-  if (skuFromQr && /^MH-[0-9]{6,}$/.test(skuFromQr)) {
+  const linked = productFromLink && products.find(product => product.id === productFromLink);
+  if (linked) {
+    renderProducts();
+    details(linked);
+  } else if (skuFromQr && /^MH-[0-9]{6,}$/.test(skuFromQr)) {
     const match = products.find(product => product.sku === skuFromQr);
     if (match) {
       byId('search').value = skuFromQr;
@@ -561,8 +588,15 @@ try {
   }
   if (legacyGalleryLink || location.hash === '#catalog') byId('catalog').scrollIntoView();
   updateCount();
+  // Star ratings arrive after the catalogue so they never delay the first paint.
+  loadReviewSummary().then(summary => {
+    if (!summary.size) return;
+    reviewSummary = summary;
+    renderRails();
+    renderProducts();
+  });
 } catch {
   byId('result-count').textContent = 'לא ניתן לטעון את הקטלוג. בדקו את החיבור ונסו לרענן.';
-  byId('categories').replaceChildren(element('p', 'הקטגוריות אינן זמינות כעת.', 'empty'));
+  // Keep the static category links (they still work as filtered page loads).
   byId('products').replaceChildren(element('p', 'אירעה שגיאה בטעינת המוצרים. נסו שוב מאוחר יותר.', 'empty'));
 }

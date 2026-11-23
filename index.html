@@ -10,8 +10,12 @@
 <link rel="stylesheet" href="catalogue-editorial.css?v=shop-8">
 <link rel="stylesheet" href="/appearance.css?v=7">
 <link rel="stylesheet" href="/case-studio-promo.css?v=2">
-<script type="module" src="catalogue-editorial.js?v=shop-6"></script>
-<script type="module" src="/storefront-appearance.js?v=13"></script>
+<link rel="stylesheet" href="/storefront-extras.css?v=1">
+<link rel="sitemap" type="application/xml" href="/sitemap.xml">
+<script type="module" src="catalogue-editorial.js?v=shop-7"></script>
+<script type="module" src="/storefront-appearance.js?v=14"></script>
+<script type="module" src="/seasonal.js?v=1"></script>
+<script type="module" src="/newsletter.js?v=1"></script>
 </head>
 <body data-appearance-page="home">
 <div class="announce" data-appearance-section="announce"><span data-appearance-text="announcePromo">🔥 מבצע מדבקות לפלאפון: <b>4 ב־₪15</b> · <b>10 ב־₪30</b></span><span class="announce-sep" aria-hidden="true">|</span><span><span data-appearance-text="announceAsk">שאלות?</span> <a href="https://wa.me/972533770073" target="_blank" rel="noopener noreferrer" data-appearance-text="announceWhatsapp">כתבו לנו ב־WhatsApp</a> <span data-appearance-text="announceOr">או</span> <a href="tel:+972533770073" dir="ltr" data-appearance-phone>053-377-0073</a></span></div>
@@ -55,6 +59,8 @@
   </a>
 </section>
 
+<aside id="seasonal" class="seasonal" hidden aria-label="מבצע עונתי" data-appearance-section="seasonal"><span class="seasonal-icon" aria-hidden="true"></span><div><strong class="seasonal-title"></strong><p class="seasonal-text"></p></div><a class="seasonal-cta" href="/#catalog"></a></aside>
+
 <ul class="perks" aria-label="למה לקנות אצלנו" data-appearance-section="perks">
   <li data-appearance-section="perk1"><span class="perk-icon" aria-hidden="true" data-appearance-text="perk1Icon">💬</span><div><strong data-appearance-text="perk1Title">מענה אישי ומהיר</strong><small data-appearance-text="perk1Text">ב־WhatsApp ובטלפון</small></div></li>
   <li data-appearance-section="perk2"><span class="perk-icon" aria-hidden="true" data-appearance-text="perk2Icon">🏷️</span><div><strong data-appearance-text="perk2Title">מחירי מבצע</strong><small data-appearance-text="perk2Text">הנחות על רוב המוצרים</small></div></li>
@@ -64,7 +70,7 @@
 
 <section class="shelf" aria-labelledby="cats-title" data-appearance-section="categoriesShelf">
   <div class="shelf-head"><h2 id="cats-title" data-appearance-text="categoriesTitle">קנו לפי קטגוריה</h2></div>
-  <aside class="index"><nav id="categories" aria-label="קטגוריות מוצרים" data-appearance-edit="categoryNames"></nav><noscript><p role="alert">יש להפעיל JavaScript בדפדפן כדי לראות את הקטגוריות והמוצרים. אפשר לפנות לחנות בטלפון 053-377-0073.</p></noscript></aside>
+  <aside class="index"><nav id="categories" class="categories-fallback" aria-label="קטגוריות מוצרים" data-appearance-edit="categoryNames"><a href="/?category=PhoneStickers#catalog">מדבקות לפלאפון</a><a href="/?category=CarMagnets#catalog">מגנטים לרכב</a><a href="/?category=Pins#catalog">סיכות משיח</a><a href="/?category=Kippas#catalog">כיפות משיח</a><a href="/?category=Caps#catalog">כובעי משיח</a><a href="/?category=Keychains#catalog">מחזיקי מפתחות</a><a href="/?category=Flags#catalog">דגלי משיח</a><a href="/?category=SoldierPatches#catalog">פאצ׳ים לחיילים</a></nav><noscript><p role="alert">יש להפעיל JavaScript בדפדפן כדי לראות את הקטגוריות והמוצרים. אפשר לפנות לחנות בטלפון 053-377-0073.</p></noscript></aside>
 </section>
 
 <section class="shelf" id="deals" aria-labelledby="deals-title" hidden data-appearance-section="deals">
@@ -87,6 +93,19 @@
   <noscript><p>קטלוג מוצרי משיח: מדבקות לפלאפון, דגלים, סיכות, כיפות, מחזיקי מפתחות ומוצרים נוספים. לעיון במלאי ובמחירים יש להפעיל JavaScript.</p></noscript>
 </section>
 
+<section class="club" aria-labelledby="club-title" data-appearance-section="club">
+  <div class="club-copy"><h2 id="club-title" data-appearance-text="clubTitle">👑 מועדון מרכז חב״ד משיח</h2><p data-appearance-text="clubText">מבצעים, עיצובים חדשים והטבות לחגים — ראשונים לדעת.</p></div>
+  <form class="club-form" data-newsletter="home">
+    <label class="sr-only" for="club-email">כתובת דוא״ל</label>
+    <input id="club-email" name="email" type="email" required maxlength="254" autocomplete="email" placeholder="כתובת הדוא״ל שלכם">
+    <input class="club-hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <button type="submit" data-appearance-text="clubButton">הצטרפות</button>
+    <label class="club-consent"><input name="consent" type="checkbox" value="1" required> אני מאשר/ת לקבל עדכונים ומבצעים בדוא״ל. אפשר להסיר בכל עת.</label>
+    <p class="club-status" role="status"></p>
+  </form>
+  <a class="club-wa" href="https://wa.me/972533770073?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%A7%D7%91%D7%9C%20%D7%A2%D7%93%D7%9B%D7%95%D7%A0%D7%99%20%D7%9E%D7%91%D7%A6%D7%A2%D7%99%D7%9D%20%D7%91%D7%95%D7%95%D7%90%D7%98%D7%A1%D7%90%D7%A4" target="_blank" rel="noopener noreferrer" data-appearance-text="clubWhatsapp">או קבלו עדכונים ב־WhatsApp</a>
+</section>
+
 <section class="help-band" aria-labelledby="help-title" data-appearance-section="helpBand">
   <div><h2 id="help-title" data-appearance-text="helpTitle">לא בטוחים מה לבחור?</h2><p data-appearance-text="helpText">מזמינים לקהילה, לחלוקה או למבצע? כתבו לנו ונעזור להרכיב הזמנה.</p></div>
   <a class="btn btn-wa" href="https://wa.me/972533770073?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%A2%D7%96%D7%A8%D7%94%20%D7%91%D7%91%D7%97%D7%99%D7%A8%D7%AA%20%D7%9E%D7%95%D7%A6%D7%A8%D7%99%D7%9D" target="_blank" rel="noopener noreferrer" data-appearance-text="helpButton" data-appearance-href="helpButton">דברו איתנו ב־WhatsApp</a>
@@ -95,7 +114,7 @@
 
 <footer data-appearance-section="footer">
   <div><strong data-appearance-text="footerName">מרכז חב״ד משיח</strong><p data-appearance-text="footerTagline">מפרסמים את הגאולה בעזרת מוצרי דגל המשיח.</p></div>
-  <div class="footer-links"><a href="tel:+972533770073" dir="ltr" data-appearance-phone>053-377-0073</a><a href="https://wa.me/972533770073" target="_blank" rel="noopener noreferrer" data-appearance-text="footerWhatsapp">WhatsApp</a><a href="/account/" data-appearance-text="footerAccount">החשבון שלי</a><a href="/privacy/" data-appearance-text="footerPrivacy">מדיניות פרטיות</a></div>
+  <div class="footer-links"><a href="tel:+972533770073" dir="ltr" data-appearance-phone>053-377-0073</a><a href="https://wa.me/972533770073" target="_blank" rel="noopener noreferrer" data-appearance-text="footerWhatsapp">WhatsApp</a><a href="/account/" data-appearance-text="footerAccount">החשבון שלי</a><a href="/about/" data-appearance-text="footerAbout">אודות</a><a href="/privacy/" data-appearance-text="footerPrivacy">מדיניות פרטיות</a></div>
 </footer>
 
 <a class="wa-float" data-appearance-section="waFloat" href="https://wa.me/972533770073" target="_blank" rel="noopener noreferrer" aria-label="שיחה ב־WhatsApp"><svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-3.3-.8-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.7 1.2 1.6 2 1.1 1 2 1.3 2.3 1.4.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.7-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3Z"/></svg></a>

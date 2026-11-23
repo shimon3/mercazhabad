@@ -12,7 +12,7 @@ const res=await fetch(BASE+path,{method,headers,body:body===undefined?undefined:
 async function who(){if(!token)throw Error('יש להתחבר');return api('/auth/v1/user')}
 async function getRole(user){const found=await api('/rest/v1/mercaz_roles?select=role&user_id=eq.'+encodeURIComponent(user.id));role=found?.[0]?.role||'';if(!['admin','manager'].includes(role)||(panel==='admin'&&role!=='admin'))throw Error('אין הרשאה למסך ניהול זה');return role}
 function getAal(){try{return JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).aal||'aal1'}catch{return 'aal1'}}
-let dashboardReady=false;
+let dashboardReady=false,communityModule=null;
 async function loadProtectedDashboard(){
  if(dashboardReady)return;
  const res=await fetch('/api/staff/dashboard?panel='+encodeURIComponent(panel),{
@@ -24,6 +24,9 @@ async function loadProtectedDashboard(){
  const protectedRoot=doc.querySelector('#dashboard');
  if(!protectedRoot)throw Error('תוכן ניהול לא תקין');
  $('dashboard').replaceChildren(...Array.from(protectedRoot.childNodes));
+ // Reviews moderation + club export tab (added before tab handlers are bound).
+ communityModule=await import('/admin/community.js?v=1').catch(()=>null);
+ communityModule?.injectCommunityTab();
  dashboardReady=true;
 }
 let handlersBound=false;
@@ -90,7 +93,7 @@ for(const b of document.querySelectorAll('[data-view]'))b.onclick=()=>{const sho
 async function initStaff(){const user=await who();await getRole(user);$('login').classList.add('hidden');if(getAal()!=='aal2'){await showMfa(user);return}
 await loadProtectedDashboard();bindDashboardHandlers();
 if(new URLSearchParams(location.search).has('customize'))document.querySelector('[data-view="appearance"]')?.click();
-$('mfa').classList.add('hidden');$('dashboard').classList.remove('hidden');$('roleBadge').textContent=role==='admin'?'מנהל ראשי':'ניהול הזמנות (מוצרים לקריאה בלבד)';if(role!=='admin'){$('newProduct').hidden=true;const heading=$('newProduct').previousElementSibling;if(heading?.tagName==='H2')heading.hidden=true;}$('onlyAdmin').classList.toggle('hidden',role!=='admin');await Promise.all([loadProducts(),loadOrders()]);if(role==='admin')await loadDeliverySettings()}
+$('mfa').classList.add('hidden');$('dashboard').classList.remove('hidden');$('roleBadge').textContent=role==='admin'?'מנהל ראשי':'ניהול הזמנות (מוצרים לקריאה בלבד)';if(role!=='admin'){$('newProduct').hidden=true;const heading=$('newProduct').previousElementSibling;if(heading?.tagName==='H2')heading.hidden=true;}$('onlyAdmin').classList.toggle('hidden',role!=='admin');await Promise.all([loadProducts(),loadOrders()]);communityModule?.loadCommunity(api).catch(()=>{});if(role==='admin')await loadDeliverySettings()}
 async function showMfa(user){$('mfa').classList.remove('hidden');$('dashboard').classList.add('hidden');$('totpSetup').classList.add('hidden');$('totpVerify').classList.add('hidden');$('startMfa').classList.add('hidden');
 const active=(Array.isArray(user.factors)?user.factors:[]).find(f=>f.factor_type==='totp'&&f.status==='verified');if(active){pendingFactor=active.id;$('mfaInfo').textContent='יש להזין את הקוד בן 6 הספרות מאפליקציית האימות.';$('totpVerify').classList.remove('hidden');try{await challenge()}catch(e){notice('לא ניתן לשלוח בקשת אימות: '+e.message,true,'mfaStatus')}}else{$('startMfa').classList.remove('hidden');$('mfaInfo').textContent='לפני כניסה ראשונה נדרש להפעיל אימות דו־שלבי באפליקציית Authenticator.'}}
 async function challenge(){const c=await api('/auth/v1/factors/'+encodeURIComponent(pendingFactor)+'/challenge','POST',{});challengeId=c.id}
