@@ -56,3 +56,9 @@
 .review-rating label{display:inline-flex;align-items:center;gap:4px;color:#d9a400;font-weight:400}
 .review-submit{justify-self:start;min-height:42px;padding:0 18px;border:0;border-radius:10px;background:var(--ink);color:#fff;font:inherit;font-weight:700;cursor:pointer}
 .review-status{font-weight:700}
+
+/* Product presentation video (under the photo in the product view) */
+.product-video{display:grid;gap:6px}
+.product-video[hidden]{display:none}
+.product-video-title{font-weight:800;font-size:.95rem}
+.product-video video{width:100%;max-height:min(420px,55dvh);border-radius:14px;background:#000}
