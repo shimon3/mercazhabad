@@ -214,7 +214,7 @@ function categoryControl(key, chipBadge, chipLabel, matches) {
     category = key;
     badge = chipBadge;
     setTitle();
-    syncCategories();
+    renderCategories();
     renderProducts();
   }, chipBadge ? 'subcategory' : '');
   control.dataset.appearanceSection = cardKey;
@@ -261,10 +261,13 @@ function renderCategories() {
   const controls = [categoryControl('', '', cmsText('catAll', 'כל המוצרים'), () => true)];
   for (const key of Object.keys(labels)) {
     const matches = product => product.category === key;
-    // Empty categories are not shown to shoppers.
-    if (!products.some(matches)) continue;
-    controls.push(categoryControl(key, '', label(key), matches));
-    if (key === 'PhoneStickers' && products.some(heroes)) controls.push(categoryControl(key, 'heroes', badgeLabel('heroes'), heroes));
+    // After selecting a category, only its tile and the All Products tile remain.
+    // All Products restores the full list of category tiles.
+    if (!products.some(matches) || (category && key !== category)) continue;
+    if (!category || badge !== 'heroes') controls.push(categoryControl(key, '', label(key), matches));
+    if (key === 'PhoneStickers' && products.some(heroes) && (!category || badge === 'heroes')) {
+      controls.push(categoryControl(key, 'heroes', badgeLabel('heroes'), heroes));
+    }
   }
   byId('categories').replaceChildren(...controls);
   byId('categories').classList.remove('categories-fallback');
