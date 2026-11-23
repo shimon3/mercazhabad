@@ -2,6 +2,7 @@ const BASE = 'https://bdalhyqpruefdbyirykp.supabase.co';
 const KEY = 'sb_publishable_K6ciGUejNpRfLeIEc598Iw_L3VoMJYM';
 const money = n => n == null ? '' : (n / 100).toFixed(2);
 const photoHost = '/storage/v1/object/public/mercaz-product-images/';
+const CROP = 800; // output size of a cropped product photo (px, square)
 const validImage = url => {
   try {
     const parsed = new URL(url, location.origin);
@@ -117,7 +118,7 @@ export async function mountProductVisualEditor(host, getToken, back, initialProd
     const x = add('crop_x','מיקום אופקי (%)','range',50);x.min='0';x.max='100';
     const y = add('crop_y','מיקום אנכי (%)','range',50);y.min='0';y.max='100';
     const cropPreview = document.createElement('canvas');
-    cropPreview.width=320;cropPreview.height=320;
+    cropPreview.width=CROP;cropPreview.height=CROP;
     cropPreview.className='cms-crop-preview';
     fields.append(cropPreview);
     // Presentation video shown under the photo in the shop (MP4/WebM, up to 50 MB).
@@ -167,17 +168,18 @@ export async function mountProductVisualEditor(host, getToken, back, initialProd
     const redraw = () => {
       if (!source.naturalWidth) return;
       const ctx = cropPreview.getContext('2d');
-      const size=320, scale=Math.max(size/source.naturalWidth,size/source.naturalHeight)*Number(zoom.value)/100;
+      // Zoom 100% = whole photo visible (no crop); higher zoom crops, the sliders choose which part.
+      const size=CROP, scale=Math.min(size/source.naturalWidth,size/source.naturalHeight)*Number(zoom.value)/100;
       const w=source.naturalWidth*scale,h=source.naturalHeight*scale;
       ctx.clearRect(0,0,size,size);
       ctx.fillStyle='#ffffff';ctx.fillRect(0,0,size,size);
       ctx.drawImage(source,(size-w)*Number(x.value)/100,(size-h)*Number(y.value)/100,w,h);
-      cropPreview.toBlob(blob => {
+      try { cropPreview.toBlob(blob => {
         if (!blob) return;
         if (cropFile?.url) URL.revokeObjectURL(cropFile.url);
         cropFile = {blob, url:URL.createObjectURL(blob)};
         updatePreview();
-      },'image/webp',0.9);
+      },'image/webp',0.9); } catch { report('לא ניתן לחתוך את התמונה הזאת. בחרו אותה כקובץ מהמחשב.',true); }
     };
     file.addEventListener('change', () => {
       const chosen=file.files?.[0];
@@ -191,23 +193,25 @@ export async function mountProductVisualEditor(host, getToken, back, initialProd
     });
     for(const control of [zoom,x,y]) control.addEventListener('input', () => {
       if (!source.naturalWidth) {
-        report('כדי לחתוך תמונה קיימת יש לבחור אותה כקובץ מהמחשב.',true);
+        report('התמונה עדיין נטענת… נסו שוב בעוד רגע.',true);
         return;
       }
+      dirty = true;
       redraw();
     });
     // Display the stored photo without generating an upload or changing it.
+    // The stored photo is loaded as the crop source, so zoom / position also work on the current photo.
+    // It is only drawn here; a new image is produced (and uploaded on save) only after a slider moves.
     const original=validImage(product.image_key);
     if (original) {
-      const img = new Image();
-      img.crossOrigin='anonymous';
-      img.onload=()=>{
+      source.crossOrigin='anonymous';
+      source.onload=()=>{
         const ctx=cropPreview.getContext('2d');
-        ctx.clearRect(0,0,320,320);ctx.fillStyle='#fff';ctx.fillRect(0,0,320,320);
-        const ratio=Math.min(320/img.naturalWidth,320/img.naturalHeight);
-        ctx.drawImage(img,(320-img.naturalWidth*ratio)/2,(320-img.naturalHeight*ratio)/2,img.naturalWidth*ratio,img.naturalHeight*ratio);
+        ctx.clearRect(0,0,CROP,CROP);ctx.fillStyle='#fff';ctx.fillRect(0,0,CROP,CROP);
+        const ratio=Math.min(CROP/source.naturalWidth,CROP/source.naturalHeight);
+        ctx.drawImage(source,(CROP-source.naturalWidth*ratio)/2,(CROP-source.naturalHeight*ratio)/2,source.naturalWidth*ratio,source.naturalHeight*ratio);
       };
-      img.src=original;
+      source.src=original;
     }
     for (const card of currentCard() || []) card.classList.toggle('cms-product-selected',card.dataset.productId===id);
     updatePreview();
