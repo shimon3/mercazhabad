@@ -18,11 +18,37 @@ if (video && replay) {
   else replay.hidden = false;
 }
 
+const CACHE_KEY = 'merkaz_appearance_v1:' + location.pathname;
+const root = document.documentElement;
+const reveal = () => root.classList.remove('cms-pending');
+
+function readCache() {
+  try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch { return null; }
+}
+
+function writeCache(settings) {
+  try {
+    const vars = {};
+    for (const name of root.style) if (name.startsWith('--')) vars[name] = root.style.getPropertyValue(name).trim();
+    localStorage.setItem(CACHE_KEY, JSON.stringify({settings, vars}));
+  } catch { /* storage full or blocked: next visit waits for the network */ }
+}
+
+// Last published design first, so returning visitors see it immediately.
+const cached = readCache();
+if (cached?.settings) {
+  try { applyAppearance(root, cached.settings, page); reveal(); } catch { /* fall through to network */ }
+}
+
 readAppearance(AbortSignal.timeout(4000))
   // One retry on a slow or failed first read, so the page does not stay on the default design.
   .catch(() => readAppearance(AbortSignal.timeout(8000)))
-  .then(({settings}) => applyAppearance(document.documentElement, settings, page))
-  .catch(() => {});
+  .then(({settings}) => {
+    applyAppearance(root, settings, page);
+    writeCache(settings);
+  })
+  .catch(() => {})
+  .finally(reveal);
 
 async function showCustomizeShortcut() {
   const token = sessionStorage.getItem('merkaz_staff_token');

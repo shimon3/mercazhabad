@@ -65,3 +65,7 @@ body[data-appearance-page="privacy"]{background:var(--cms-privacy-bg,var(--bg));
 /* Hidden category tiles must disappear from the editor preview as they do for shoppers.
    Editors can restore them from the element dropdown without clicking the tile. */
 [data-editor-preview] #categories > [data-appearance-section][data-cms-hidden]{display:none!important}
+
+/* Hide the default design until the published CMS settings are applied (see appearance-boot.js). */
+html.cms-pending body{opacity:0}
+body{transition:opacity .12s ease-out}
