@@ -1,0 +1,18 @@
+name: Admin quantity prices
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [feat/admin-magnet-quantity-prices]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/quantity-prices.test.mjs
+      - run: node --check staff.js && node --check account.js && node --check catalogue-editorial.js

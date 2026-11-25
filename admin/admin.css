@@ -323,3 +323,6 @@
 .bg-modes[hidden]{display:none}
 .admin-console .bg-modes button[aria-pressed="true"]{background:var(--gold);color:var(--ink);border-color:var(--ink)}
 .bg-clickable.is-keep{cursor:copy}
+.quantity-price-fields{grid-column:1/-1;border:1px solid #dce3ef;border-radius:12px;padding:16px;min-width:0}
+.quantity-price-fields legend{font-weight:700;padding:0 8px}
+.quantity-price-fields output{display:block;min-height:44px;padding:10px;background:#fff8d6;border-radius:10px;font-weight:700}
