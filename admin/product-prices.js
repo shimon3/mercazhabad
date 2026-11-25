@@ -7,13 +7,12 @@ export function priceFields(p) {
   const value = n => n == null ? '' : Number(n) / 100;
   const input = (label, name, amount) => '<div class="field"><label>' + label + '<input name="' + name + '" type="number" min="0" max="1000000" step="0.01" value="' + value(amount) + '"></label></div>';
   const old = input('מחיר רגיל לפני מבצע (₪, ריק = ללא מבצע)', 'old_price', p.old_price_agorot);
-  if (p.category !== 'CarMagnets') return old;
   const t = p.quantityPrices;
   return old + '<fieldset class="quantity-price-fields"><legend>מחירי כמות — לכל דגם בנפרד</legend><div class="grid">' +
     input('מחיר ליחידה מ־10 (₪)', 'price_10', t?.price_10_agorot) +
     input('מחיר ליחידה מ־20 (₪)', 'price_20', t?.price_20_agorot) +
     '<div class="field"><label>הנחה מ־20 יח׳ (%)<input name="discount_20" type="number" min="0" max="100" step="0.1" placeholder="למשל 40"></label></div></div>' +
-    '<small>לדוגמה: מחיר יחידה 20 ₪ והנחה של 40% נותנים 12 ₪ ליחידה מ־20 יח׳. אפשר להזין אחוז או מחיר. השאירו את שני מחירי הכמות ריקים ללא הנחת כמות.</small></fieldset>';
+    '<small>לדוגמה: מחיר יחידה 20 ₪ והנחה של 40% נותנים 12 ₪ ליחידה מ־20 יח׳. אפשר להזין אחוז או מחיר. השאירו את שני מחירי הכמות ריקים ללא הנחת כמות. במדבקות, הגדרת מחירי כמות מפעילה מכירה ביחידות לפי המחירים שהזנתם במקום המארזים הקבועים.</small></fieldset>';
 }
 
 export function bindPriceFields(form) {

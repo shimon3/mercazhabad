@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {quantityUnitPrice, choicePrice, loadQuantityPrices} from '../quantity-prices.js';
+import {quantityUnitPrice, choicePrice, loadQuantityPrices,usesStickerPacks} from '../quantity-prices.js';
+import {priceInfo} from '../functions/_lib/store.js';
 import {discountFrom20, bindPriceFields, readPriceInputs, priceFields} from '../admin/product-prices.js';
 
 const tiers={price_10_agorot:1500,price_20_agorot:1200};
@@ -32,8 +33,18 @@ test('admin prices validate the complete ladder and preserve zero',()=>{
  form.elements.price_20.value='';assert.throws(()=>readPriceInputs(form,2000),/שני/);
  form.elements.price_10.value='';assert.deepEqual(readPriceInputs(form,2000),{old:2500,ten:null,twenty:null});
 });
-test('only magnets get quantity controls; all inputs use numeric attribute values',()=>{
- assert.match(priceFields({category:'CarMagnets',quantityPrices:tiers}),/name="price_10"/);
- assert.match(priceFields({category:'CarMagnets'}),/name="discount_20"/);
- assert.doesNotMatch(priceFields({category:'PhoneStickers'}),/name="price_10"/);
+test('every category and new products expose the same quantity and percent controls',()=>{
+ for(const category of ['CarMagnets','PhoneStickers','Pins','Kippas','Caps','Keychains','Flags','SoldierPatches','General',undefined]) {
+  assert.match(priceFields({category,quantityPrices:tiers}),/name="price_10"/);
+  assert.match(priceFields({category}),/name="price_20"/);
+  assert.match(priceFields({category}),/name="discount_20"/);
+ }
+});
+test('custom sticker quantity prices replace pack options only after configuration',()=>{
+ const p={id:'hero/purple',category:'PhoneStickers',price_agorot:500};
+ assert.equal(usesStickerPacks(p),true);assert.equal(priceInfo(p).label,'מארז 4 ב־₪15 · מארז 10 ב־₪30');
+ p.quantityPrices={price_10_agorot:400,price_20_agorot:300};
+ assert.equal(usesStickerPacks(p),false);assert.equal(priceInfo(p).low,500);assert.equal(priceInfo(p).label,null);
+ assert.equal(quantityUnitPrice(500,10,p.quantityPrices),400);assert.equal(quantityUnitPrice(500,20,p.quantityPrices),300);
+ assert.equal(usesStickerPacks({id:'mix-test',category:'PhoneStickers'}),false);
 });

@@ -1,5 +1,5 @@
 'use strict';
-import {priceFields, bindPriceFields, readPriceInputs} from '/admin/product-prices.js?v=1';
+import {priceFields, bindPriceFields, readPriceInputs} from '/admin/product-prices.js?v=2';
 const BASE='https://bdalhyqpruefdbyirykp.supabase.co', KEY='sb_publishable_K6ciGUejNpRfLeIEc598Iw_L3VoMJYM';
 const CATEGORY={'PhoneStickers':'מדבקות לפלאפון','CarMagnets':'מגנטים לרכב','Pins':'סיכות משיח','Kippas':'כיפות משיח','Caps':'כובעי משיח','Keychains':'מחזיקי מפתחות','SoldierPatches':'פאצ׳ים לחיילים','Flags':'דגלי משיח','General':'מוצרי משיח כללי'};
 const $=x=>document.getElementById(x);
@@ -87,7 +87,8 @@ for(const tile of document.querySelectorAll('[data-insight]')){
  tile.onclick=()=>tile.dataset.insight==='pending'?setOrderFilter('pending'):setProductFilter(tile.dataset.insight);
 }
 for(const [v,n] of Object.entries(CATEGORY))$('newCategory').add(new Option(n,v));
-$('newProduct').onsubmit=async e=>{e.preventDefault();if(role!=='admin'){notice('רק מנהל ראשי עם MFA יכול ליצור מוצרים.',true);return}const b=e.target.querySelector('button');b.disabled=true;try{const data=makePayload(e.target);let id=$('newId').value.trim();if(!id)id='p-'+crypto.randomUUID();if(!/^[\w/-]{1,90}$/.test(id))throw Error('מזהה פנימי לא תקין');data.id=id;const img=await upload(e.target.elements.photo.files[0]);if(img)data.image_key=img;await api('/rest/v1/mercaz_products','POST',data);e.target.reset();await loadProducts();const created=products.find(p=>p.id===id);notice('המוצר נוסף · מק״ט: '+(created?.sku||'נוצר אוטומטית'))}catch(err){notice(err.message,true)}finally{b.disabled=false}};
+$('newProduct').querySelector('.grid').insertAdjacentHTML('beforeend',priceFields({}));bindPriceFields($('newProduct'));
+$('newProduct').onsubmit=async e=>{e.preventDefault();if(role!=='admin'){notice('רק מנהל ראשי עם MFA יכול ליצור מוצרים.',true);return}const b=e.target.querySelector('button');b.disabled=true;try{const data=makePayload(e.target);const prices=readPriceInputs(e.target,data.price_agorot);data.old_price_agorot=prices.old;let id=$('newId').value.trim();if(!id)id='p-'+crypto.randomUUID();if(!/^[\w/-]{1,90}$/.test(id))throw Error('מזהה פנימי לא תקין');data.id=id;const img=await upload(e.target.elements.photo.files[0]);if(img)data.image_key=img;await api('/rest/v1/rpc/mercaz_create_product_with_prices','POST',{p_product:data,p_price_10:prices.ten,p_price_20:prices.twenty});e.target.reset();await loadProducts();const created=products.find(p=>p.id===id);notice('המוצר נוסף · מק״ט: '+(created?.sku||'נוצר אוטומטית'))}catch(err){notice(err.message,true)}finally{b.disabled=false}};
 $('findOrder').oninput=showOrders;
 $('reloadOrders').onclick=()=>loadOrders().catch(e=>notice(e.message,true));
 for(const b of document.querySelectorAll('[data-view]'))b.onclick=()=>{const show=b.dataset.view;for(const el of document.querySelectorAll('[data-panel]'))el.classList.toggle('hidden',el.dataset.panel!==show);for(const btn of document.querySelectorAll('[data-view]')){btn.classList.toggle('active',btn===b);btn.setAttribute('aria-pressed',String(btn===b))}};

@@ -1,6 +1,6 @@
 const SUPABASE_URL='https://bdalhyqpruefdbyirykp.supabase.co';const SUPABASE_PUBLISHABLE_KEY='sb_publishable_K6ciGUejNpRfLeIEc598Iw_L3VoMJYM';
 import {loadReviewSummary, ratingBadge, reviewsSection} from '/reviews.js?v=1';
-import {choicePrice, loadQuantityPrices, quantityUnitPrice} from '/quantity-prices.js?v=1';
+import {choicePrice, loadQuantityPrices, quantityUnitPrice, usesStickerPacks} from '/quantity-prices.js?v=2';
 const byId = id => document.getElementById(id);
 let reviewSummary = new Map();
 // Indexable product page URL (server-rendered by functions/p/[slug].js). Same rule on both sides.
@@ -125,7 +125,7 @@ function whatsappContact(product, compact = false) {
 function options(product) {
   if (product.inquiryOnly) return [];
   const tracked = product.stock_tracking_enabled === true;
-  if (product.category === 'PhoneStickers' && !product.id.startsWith('mix-')) {
+  if (usesStickerPacks(product)) {
     return [
       {key: product.id + '::4', label: cmsText('uiPack4', 'מארז 4 יח׳'), price: 1500, units: 4},
       {key: product.id + '::10', label: cmsText('uiPack10', 'מארז 10 יח׳'), price: 3000, units: 10},
@@ -138,7 +138,7 @@ function options(product) {
 function stockState(product) {
   if (!product.stock_tracking_enabled) return 'untracked';
   if (product.stock <= 0) return 'out';
-  if (product.category === 'PhoneStickers' && !product.id.startsWith('mix-') && product.stock < 4) return 'insufficient';
+  if (usesStickerPacks(product) && product.stock < 4) return 'insufficient';
   return 'available';
 }
 
@@ -193,6 +193,7 @@ function priceLabel(product) {
       line.classList.add('has-sale');
       line.append(element('del', format(product.old_price_agorot)));
     }
+    appendQuantityNote(line,product);
     return line;
   }
   const choices = options(product);
@@ -204,12 +205,16 @@ function priceLabel(product) {
     line.classList.add('has-sale');
     line.append(element('del', format(product.old_price_agorot)));
   }
+  appendQuantityNote(line,product);
+  return line;
+}
+
+function appendQuantityNote(line,product) {
   const tiers = product.quantityPrices;
-  if (tiers && product.category === 'CarMagnets') {
+  if (tiers) {
     const note = element('small', '10–19 יח׳: ' + format(quantityUnitPrice(product.price_agorot,10,tiers)) + ' ליחידה · 20+ יח׳: ' + format(quantityUnitPrice(product.price_agorot,20,tiers)) + ' ליחידה. לכל דגם בנפרד.', 'quantity-price-note');
     line.append(note);
   }
-  return line;
 }
 
 function categoryControl(key, chipBadge, chipLabel, matches) {

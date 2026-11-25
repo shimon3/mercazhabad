@@ -3,7 +3,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [feat/admin-magnet-quantity-prices]
+    branches: [feat/admin-magnet-quantity-prices, fix/quantity-prices-all-products]
 permissions:
   contents: read
 jobs:
