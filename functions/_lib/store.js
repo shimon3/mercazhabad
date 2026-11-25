@@ -43,7 +43,7 @@ export async function findProduct(slug) {
     : 'id=eq.' + encodeURIComponent(slug.replace(/--/g, '/'));
   const rows = await rest('mercaz_products?select=' + PRODUCT_FIELDS + '&active=eq.true&' + filter + '&limit=1');
   const product = rows?.[0] || null;
-  if (product?.category === 'CarMagnets') {
+  if (product) {
     const response = await fetch(BASE + '/rest/v1/mercaz_quantity_prices?select=price_10_agorot,price_20_agorot&product_id=eq.' + encodeURIComponent(product.id), {
       headers: {apikey: PUBLIC_KEY, Accept:'application/json'}, signal:AbortSignal.timeout(8000),
       cf: {cacheTtl:60,cacheEverything:true},
@@ -65,7 +65,7 @@ export async function approvedReviews(productId) {
 // Mirrors options() in catalogue-editorial.js so server pages show the same prices.
 export function priceInfo(product) {
   const inquiry = String(product.id).startsWith('degaliya/');
-  if (!inquiry && product.category === 'PhoneStickers' && !String(product.id).startsWith('mix-')) {
+  if (!inquiry && product.category === 'PhoneStickers' && !String(product.id).startsWith('mix-') && !product.quantityPrices) {
     return {low: 1500, high: 3000, label: 'מארז 4 ב־₪15 · מארז 10 ב־₪30'};
   }
   if (product.price_agorot == null) return null;

@@ -1,5 +1,5 @@
 'use strict';
-import {quantityUnitPrice, loadQuantityPrices} from '/quantity-prices.js?v=1';
+import {quantityUnitPrice, loadQuantityPrices} from '/quantity-prices.js?v=2';
 const BASE='https://bdalhyqpruefdbyirykp.supabase.co', KEY='sb_publishable_K6ciGUejNpRfLeIEc598Iw_L3VoMJYM';
 const $=x=>document.getElementById(x),money=v=>'₪'+(v/100).toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2});
 let token=sessionStorage.getItem('merkaz_customer_token')||'',register=false,recoverySession=false,deliveryOptions=[],cartTotal=0,coupon=null;

@@ -1,4 +1,8 @@
 // Shared browser calculation. The database independently computes the order total.
+export function usesStickerPacks(product) {
+  return product.category === 'PhoneStickers' && !String(product.id).startsWith('mix-') && !product.quantityPrices;
+}
+
 export function quantityUnitPrice(base, quantity, tiers) {
   if (!Number.isSafeInteger(base) || base < 0) return null;
   if (!Number.isSafeInteger(quantity) || quantity < 1 || !tiers) return base;
