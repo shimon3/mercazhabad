@@ -14,7 +14,8 @@
 
 1. Apply `sql/magnet-quantity-prices.sql` (new table, read policies, atomic admin save RPC).
 2. Apply `sql/magnet-order-pricing.sql` (the existing private checkout function with only its non-pack unit-price lookup changed).
-3. Deploy the frontend and Pages Functions in this PR. The script tags for staff and account pages must remain ES modules.
+3. Apply `sql/magnet-admin-invoker.sql` (the atomic save runs with the caller's RLS permissions rather than bypassing them).
+4. Deploy the frontend and Pages Functions in this PR. The script tags for staff and account pages must remain ES modules.
 
 The schema migration does not populate tiers or change existing product prices. Existing products continue at their current price until an administrator saves quantity prices. The optional table read tolerates a 404 before the schema is installed, but the new save RPC requires installation before the admin update goes live.
 
