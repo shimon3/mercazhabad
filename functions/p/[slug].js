@@ -72,6 +72,10 @@ export async function onRequestGet({params, request}) {
   if (price) priceHtml = price.label
     ? `<p class="pp-price">${e(price.label)}</p>`
     : `<p class="pp-price">${e(shekel(price.low))}${product.old_price_agorot > price.low ? ` <del>${e(shekel(product.old_price_agorot))}</del>` : ''}</p>`;
+  if (price && product.quantityPrices) {
+    const ten = Math.min(price.low,product.quantityPrices.price_10_agorot), twenty = Math.min(price.low,product.quantityPrices.price_20_agorot);
+    priceHtml += `<p>10–19 יח׳: ${e(shekel(ten))} ליחידה. 20 יח׳ ומעלה: ${e(shekel(twenty))} ליחידה. המחיר לכל דגם בנפרד.</p>`;
+  }
 
   const reviewsHtml = reviews.length
     ? `<section class="pp-reviews" aria-labelledby="reviews-title"><h2 id="reviews-title">חוות דעת של לקוחות <span class="pp-stars" aria-label="דירוג ${average.toFixed(1)} מתוך 5">${stars(average)}</span> <small>(${reviews.length})</small></h2><ul>${reviews.map(r => `<li><p class="pp-stars" aria-label="${r.rating} מתוך 5">${stars(r.rating)}</p><p>${e(r.body)}</p><p class="pp-muted">${e(r.display_name)} · ${e(new Date(r.created_at).toLocaleDateString('he-IL'))}</p></li>`).join('')}</ul></section>`

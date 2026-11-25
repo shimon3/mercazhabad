@@ -1,5 +1,6 @@
 const SUPABASE_URL='https://bdalhyqpruefdbyirykp.supabase.co';const SUPABASE_PUBLISHABLE_KEY='sb_publishable_K6ciGUejNpRfLeIEc598Iw_L3VoMJYM';
 import {loadReviewSummary, ratingBadge, reviewsSection} from '/reviews.js?v=1';
+import {choicePrice, loadQuantityPrices, quantityUnitPrice} from '/quantity-prices.js?v=1';
 const byId = id => document.getElementById(id);
 let reviewSummary = new Map();
 // Indexable product page URL (server-rendered by functions/p/[slug].js). Same rule on both sides.
@@ -131,7 +132,7 @@ function options(product) {
     ].filter(choice => !tracked || product.stock >= choice.units);
   }
   return product.price_agorot == null || (tracked && product.stock < 1)
-    ? [] : [{key: product.id, label: '', price: product.price_agorot, units: 1}];
+    ? [] : [{key: product.id, label: '', price: product.price_agorot, units: 1, quantityPrices: product.quantityPrices}];
 }
 
 function stockState(product) {
@@ -202,6 +203,11 @@ function priceLabel(product) {
   if (discount(product, choices)) {
     line.classList.add('has-sale');
     line.append(element('del', format(product.old_price_agorot)));
+  }
+  const tiers = product.quantityPrices;
+  if (tiers && product.category === 'CarMagnets') {
+    const note = element('small', '10–19 יח׳: ' + format(quantityUnitPrice(product.price_agorot,10,tiers)) + ' ליחידה · 20+ יח׳: ' + format(quantityUnitPrice(product.price_agorot,20,tiers)) + ' ליחידה. לכל דגם בנפרד.', 'quantity-price-note');
+    line.append(note);
   }
   return line;
 }
@@ -541,7 +547,7 @@ function updateCount() {
   for (const [key, quantity] of Object.entries(cart)) {
     if (!choices.has(key)) continue;
     count += quantity;
-    total += choices.get(key).price * quantity;
+    total += choicePrice(choices.get(key), quantity) * quantity;
   }
   byId('count').textContent = count;
   byId('floating-cart-count').textContent = count;
@@ -561,13 +567,14 @@ function showCart() {
   for (const [key, count] of Object.entries(cart)) {
     const choice = choices.get(key);
     if (!choice) continue;
-    total += choice.price * count;
+    total += choicePrice(choice, count) * count;
     const line = element('div', '', 'cart-line');
     const thumb = element('span', '', 'cart-thumb');
     thumb.append(photo(choice.product, true));
     const details = element('div', '', 'cart-line-details');
     details.append(element('strong', [choice.product.name_he, choice.label].filter(Boolean).join(' · ')));
-    details.append(element('p', format(choice.price * count), 'cart-line-price'));
+    details.append(element('p', format(choicePrice(choice, count) * count), 'cart-line-price'));
+    if (choice.quantityPrices) details.append(element('small', format(choicePrice(choice, count)) + ' ליחידה', 'cart-note'));
     line.append(thumb, details);
     const quantity = element('div', '', 'quantity');
     const change = (label, value, description) => {
@@ -721,6 +728,8 @@ try {
     setTitle();
   }
   const databaseProducts = await response.json();
+  const quantityPrices = await loadQuantityPrices(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  for (const product of databaseProducts) product.quantityPrices = quantityPrices.get(product.id);
   // Keep the original WhatsApp-only ordering flow for Degaliya/Daglit.
   // Their images, captions and optional display prices now come from Supabase,
   // so edits made in the visual CMS are reflected in the storefront.

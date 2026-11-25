@@ -462,3 +462,4 @@ body.has-floating-cart{padding-bottom:96px}
   #categories button[data-key=""]{padding:9px 5px 11px;border-radius:17px}
   #categories button[data-key=""] .cat-thumb.is-collage{max-width:94px}
 }
+.quantity-price-note{display:block;flex-basis:100%;font-size:.875rem;line-height:1.5;font-weight:400;color:var(--muted,#555)}

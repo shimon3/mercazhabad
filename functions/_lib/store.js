@@ -42,7 +42,16 @@ export async function findProduct(slug) {
     ? 'sku=eq.' + encodeURIComponent(slug)
     : 'id=eq.' + encodeURIComponent(slug.replace(/--/g, '/'));
   const rows = await rest('mercaz_products?select=' + PRODUCT_FIELDS + '&active=eq.true&' + filter + '&limit=1');
-  return rows?.[0] || null;
+  const product = rows?.[0] || null;
+  if (product?.category === 'CarMagnets') {
+    const response = await fetch(BASE + '/rest/v1/mercaz_quantity_prices?select=price_10_agorot,price_20_agorot&product_id=eq.' + encodeURIComponent(product.id), {
+      headers: {apikey: PUBLIC_KEY, Accept:'application/json'}, signal:AbortSignal.timeout(8000),
+      cf: {cacheTtl:60,cacheEverything:true},
+    });
+    if (response.ok) product.quantityPrices = (await response.json())?.[0] || null;
+    else if (response.status !== 404) throw Error('Quantity prices unavailable');
+  }
+  return product;
 }
 
 // Approved reviews only (RLS also enforces this). Missing table → no reviews, never an error page.

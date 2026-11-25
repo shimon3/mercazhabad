@@ -1,4 +1,5 @@
 'use strict';
+import {quantityUnitPrice, loadQuantityPrices} from '/quantity-prices.js?v=1';
 const BASE='https://bdalhyqpruefdbyirykp.supabase.co', KEY='sb_publishable_K6ciGUejNpRfLeIEc598Iw_L3VoMJYM';
 const $=x=>document.getElementById(x),money=v=>'₪'+(v/100).toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2});
 let token=sessionStorage.getItem('merkaz_customer_token')||'',register=false,recoverySession=false,deliveryOptions=[],cartTotal=0,coupon=null;
@@ -81,9 +82,9 @@ $('checkCoupon').onclick=async()=>{
 };
 function readCart(){try{const c=JSON.parse(sessionStorage.getItem('merkaz_pending_cart')||'[]');if(!Array.isArray(c)||c.length>30)return[];return c.filter(x=>typeof x.key==='string'&&Number.isInteger(x.quantity)&&x.quantity>0&&x.quantity<=100)}catch{return[]}}
 async function showCart(){const items=readCart();if(!items.length)return;try{
-const keys=[...new Set(items.map(i=>i.key.split('::')[0]))];const products=await api('/rest/v1/mercaz_products?select=id,name_he,category,price_agorot,active&active=eq.true', 'GET',undefined,false);const names=new Map(products.map(p=>[p.id,p]));let total=0;
+const keys=[...new Set(items.map(i=>i.key.split('::')[0]))];const products=await api('/rest/v1/mercaz_products?select=id,name_he,category,price_agorot,active&active=eq.true', 'GET',undefined,false);const tiers=await loadQuantityPrices(BASE,KEY);const names=new Map(products.map(p=>[p.id,p]));let total=0;
 const el=$('cartSummary');el.replaceChildren();const list=document.createElement('ul');
-for(const line of items){const id=line.key.split('::')[0],pack=line.key.split('::')[1],p=names.get(id);if(!p)continue;const unit=pack==='4'?1500:pack==='10'?3000:p.price_agorot;if(unit==null)continue;total+=unit*line.quantity;const li=document.createElement('li');li.textContent=p.name_he+(pack?' ('+pack+' יח׳)':'')+' × '+line.quantity+' — '+money(unit*line.quantity);list.append(li)}
+for(const line of items){const id=line.key.split('::')[0],pack=line.key.split('::')[1],p=names.get(id);if(!p)continue;const unit=pack==='4'?1500:pack==='10'?3000:quantityUnitPrice(p.price_agorot,line.quantity,tiers.get(id));if(unit==null)continue;total+=unit*line.quantity;const li=document.createElement('li');li.textContent=p.name_he+(pack?' ('+pack+' יח׳)':'')+' × '+line.quantity+' — '+money(unit*line.quantity);list.append(li)}
 cartTotal=total;if($('couponCode').value&&!coupon)setTimeout(()=>$('checkCoupon').click(),0);el.append(list);const cost=document.createElement('strong');cost.textContent='סה״כ מוצרים: '+money(total)+' (לפני דמי משלוח אם יחולו)';el.append(cost);
 }catch(e){msg('checkoutStatus','לא ניתן לטעון את פרטי הסל. רעננו את הדף.',true)}}
 let reviewDetails=null;
