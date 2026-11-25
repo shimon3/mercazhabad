@@ -73,3 +73,18 @@
 #couponCode{max-width:220px;text-transform:uppercase}
 .quantity-price-fields{grid-column:1/-1;border:1px solid #dce3ef;border-radius:12px;padding:16px;min-width:0}
 .quantity-price-fields output{display:block;padding:10px;background:#fff8d6;border-radius:10px;font-weight:700}
+.product-kind-section{margin:0 0 18px}
+.product-kind-heading{font-size:1rem;font-weight:700;margin:0 0 10px}
+.product-kind-filters{display:flex;gap:12px;flex-wrap:wrap}
+body .product-kind-filters button{flex:1;min-width:140px;min-height:58px;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;border:2px solid #d9deed;border-radius:12px;color:#121b4d;background:#f5f7fd;font-size:1rem;font-weight:700}
+body .product-kind-filters button[data-product-kind="sticker"]{background:#fff7dc}
+body .product-kind-filters button[data-product-kind="magnet"]{background:#edf4ff}
+body .product-kind-filters button[aria-pressed="true"]{background:#121b4d;color:#fff;border-color:#121b4d}
+body .product-kind-filters button:focus-visible{outline:3px solid #345de9;outline-offset:3px}
+.product-kind-count{padding:3px 10px;border-radius:20px;background:rgb(127 127 127/.13);font-size:.9rem}
+body .product-kind-filters button[aria-pressed="true"] .product-kind-count{background:rgb(255 255 255/.18)}
+.product-kind-status{font-size:.9rem;margin:8px 0 0;color:#555}
+@media(max-width:540px){.product-kind-filters{gap:8px}body .product-kind-filters button{min-width:0;flex-basis:calc(50% - 8px);padding:12px}body .product-kind-filters button:first-child{flex-basis:100%}}
+
+body .product-kind-filters button:hover:not(:disabled){background:#e5ebfa;color:#121b4d;border-color:#345de9}
+body .product-kind-filters button[aria-pressed="true"]:hover:not(:disabled){background:#121b4d;color:#fff}
